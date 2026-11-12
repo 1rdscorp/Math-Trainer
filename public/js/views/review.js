@@ -1,7 +1,7 @@
 // Mixed review: a few questions from different topics the student has already worked on.
 // Coming back to older material, mixed together, is how practice turns into lasting memory.
 
-import { h, clear, announce, focusOn } from '../ui/dom.js';
+import { h, announce, focusOn, fill } from '../ui/dom.js';
 import { rich, visual, stepsList } from '../ui/math.js';
 import { toSpeech } from '../ui/speech.js';
 import { loading, guestNotice } from '../ui/components.js';
@@ -50,7 +50,7 @@ export default function reviewView(ctx) {
     if (index >= plan.length) return finish();
     const item = plan[index];
     const info = describeTopic(item.key);
-    clear(stage).append(loading('Getting the next question…'));
+    fill(stage, loading('Getting the next question…'));
     let question = null;
     let topic = null;
     try {
@@ -98,7 +98,7 @@ export default function reviewView(ctx) {
           const next = h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: () => ask(index + 1) }, index + 1 >= plan.length ? 'See how I did' : 'Next question');
           const title = h('h3', { tabindex: '-1' }, ok ? '✅ You remembered it.' : '💡 Not yet. Here is how it goes.');
           feedback.className = `feedback notice ${ok ? 'notice-good' : 'notice-info'}`;
-          clear(feedback).append(
+          fill(feedback, 
             title,
             ok ? h('details', null, h('summary', null, 'See the worked solution'), stepsList(question.solution)) : h('div', null, h('p', { class: 'answer-line' }, h('span', { class: 'label' }, 'Correct answer:'), rich(question.choices[question.correctIndex])), stepsList(question.solution), h('p', null, h('a', { href: `#/topic/${item.key}/learn` }, `Review the rules for ${info.meta.title}`))),
             h('p', null, next),
@@ -116,7 +116,7 @@ export default function reviewView(ctx) {
       h('div', null, check),
       feedback,
     );
-    clear(stage).append(form);
+    fill(stage, form);
     if (index > 0) focusOn(heading);
 
     if (onKey) document.removeEventListener('keydown', onKey);
@@ -138,7 +138,7 @@ export default function reviewView(ctx) {
     const right = results.filter((r) => r.ok).length;
     const missed = [...new Map(results.filter((r) => !r.ok).map((r) => [r.key, r])).values()];
     const heading = h('h2', { tabindex: '-1' }, `You remembered ${right} of ${results.length}`);
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: 'card stack' },
@@ -156,7 +156,7 @@ export default function reviewView(ctx) {
   }
 
   if (!plan.length) {
-    clear(stage).append(h('div', { class: 'card stack' }, h('p', null, 'A mixed review uses topics you have already practised. Answer a few quiz questions in any topic first, then come back.'), h('p', null, h('a', { class: 'btn btn-primary', href: '#/' }, 'Choose a topic'))));
+    fill(stage, h('div', { class: 'card stack' }, h('p', null, 'A mixed review uses topics you have already practised. Answer a few quiz questions in any topic first, then come back.'), h('p', null, h('a', { class: 'btn btn-primary', href: '#/' }, 'Choose a topic'))));
   } else {
     ask(0);
   }

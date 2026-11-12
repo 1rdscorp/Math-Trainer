@@ -486,8 +486,27 @@ function plot(s) {
     inside.push(rect(X(r.x), Y(yTop), X(r.x + r.w) - X(r.x), Y(yBot) - Y(yTop), `${FILLS[colorIndex(r.color, 1)]} viz-shade viz-outline`));
   }
 
-  // Curves.
+  // Labels are placed so that they do not sit on top of each other.
   const labels = [];
+  const taken = [];
+  const placeLabel = (x, y, str, cls, options) => {
+    const w = String(str).length * 7 + 6;
+    const hgt = 16;
+    for (const [dx, dy, anchor] of options) {
+      const left = anchor === 'end' ? x + dx - w : anchor === 'middle' ? x + dx - w / 2 : x + dx;
+      const box = [left, y + dy - hgt / 2, left + w, y + dy + hgt / 2];
+      const inside = box[0] >= 2 && box[2] <= W - 2 && box[1] >= 2 && box[3] <= H - 2;
+      const clash = taken.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1]);
+      if (inside && !clash) {
+        taken.push(box);
+        labels.push(text(x + dx, y + dy, str, cls, { 'text-anchor': anchor }));
+        return;
+      }
+    }
+    const [dx, dy, anchor] = options[0];
+    labels.push(text(x + dx, y + dy, str, cls, { 'text-anchor': anchor }));
+  };
+  // Curves.
   const curve = (xy, t0, t1, cls) => {
     const N = 320;
     let d = '';
@@ -516,7 +535,7 @@ function plot(s) {
       for (const lx of tries) {
         const ly = fn.f(lx);
         if (Number.isFinite(ly) && ly < yMax - 0.12 * span && ly > yMin + 0.05 * span) {
-          labels.push(text(X(lx), Y(ly) - 13, fn.label, 'viz-text-sm viz-text-b'));
+          placeLabel(X(lx), Y(ly), fn.label, 'viz-text-sm viz-text-b', [[0, -13, 'middle'], [0, 15, 'middle']]);
           break;
         }
       }
@@ -539,14 +558,15 @@ function plot(s) {
     if (sg.label != null) {
       const len = Math.hypot(bx - ax, by - ay) || 1;
       const off = 11 + String(sg.label).length * 2.2;
-      labels.push(text((ax + bx) / 2 - ((by - ay) / len) * off, (ay + by) / 2 + ((bx - ax) / len) * off, sg.label, 'viz-text-sm viz-text-b'));
+      const nx = -((by - ay) / len) * off;
+      const ny = ((bx - ax) / len) * off;
+      placeLabel((ax + bx) / 2, (ay + by) / 2, sg.label, 'viz-text-sm viz-text-b', [[nx, ny, 'middle'], [-nx, -ny, 'middle']]);
     }
   }
   for (const p of s.points ?? []) {
     inside.push(circle(X(p.x), Y(p.y), 4.5, p.open ? `viz-open-${'abcd'[colorIndex(p.color)]}` : `viz-dot-${'abcd'[colorIndex(p.color)]}`));
     if (p.label != null) {
-      const above = Y(p.y) > m.t + 22;
-      labels.push(text(Math.min(Math.max(X(p.x) + 8, m.l + 8), W - 30), Y(p.y) + (above ? -13 : 15), p.label, 'viz-text-sm viz-text-b', { 'text-anchor': X(p.x) > W - 70 ? 'end' : 'start' }));
+      placeLabel(X(p.x), Y(p.y), p.label, 'viz-text-sm viz-text-b', [[8, -13, 'start'], [8, 15, 'start'], [-8, -13, 'end'], [-8, 15, 'end'], [0, -24, 'middle'], [0, 26, 'middle']]);
     }
   }
 

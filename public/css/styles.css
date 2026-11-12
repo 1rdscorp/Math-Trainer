@@ -418,7 +418,19 @@ main {
 
 /* ───────── lesson stepper ───────── */
 .stepper { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.3rem, 1fr)); gap: 0.4rem; list-style: none; padding: 0; margin: 0 0 1.25rem; }
-.stepper a { overflow-wrap: anywhere; }
+.step-num {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 0.8rem;
+}
+.stepper a[aria-current] .step-num { background: var(--brand-ink); color: var(--brand); }
+@media (max-width: 30rem) {
+  .stepper a { font-size: 0.82rem; padding-inline: 0.15rem; }
+}
 .stepper li { margin: 0; }
 .stepper a {
   display: flex;
@@ -538,7 +550,7 @@ input[aria-invalid='true'] { border-color: var(--bad); }
 }
 .bar > span { display: block; height: 100%; background: var(--brand); border-radius: 999px 0 0 999px; transition: width 0.35s ease; }
 
-.tier-ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(3.9rem, 1fr)); gap: 0.35rem; list-style: none; padding: 0; margin: 0; }
+.tier-ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.2rem, 1fr)); gap: 0.35rem; list-style: none; padding: 0; margin: 0; }
 .tier-ladder li {
   margin: 0;
   text-align: center;
@@ -550,7 +562,6 @@ input[aria-invalid='true'] { border-color: var(--bad); }
   color: var(--ink-2);
   background: var(--surface);
   line-height: 1.25;
-  overflow-wrap: anywhere;
 }
 .tier-ladder li .pts { display: block; font-weight: 400; font-size: 0.75rem; }
 .tier-ladder li.current { color: var(--ink); border-width: 3px; }

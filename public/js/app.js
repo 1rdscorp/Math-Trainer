@@ -2,7 +2,7 @@
 
 import { createStore } from './core/store.js';
 import { settings, apply as applySettings } from './core/settings.js';
-import { h, clear, focusOn } from './ui/dom.js';
+import { h, focusOn, fill } from './ui/dom.js';
 import { errorBox, loading } from './ui/components.js';
 import { stopSpeaking } from './ui/speech.js';
 import { openAccountDialog } from './views/account.js';
@@ -44,7 +44,7 @@ function renderHeaderTools() {
   const account = store.isGuest
     ? h('button', { type: 'button', class: 'btn btn-primary btn-small', id: 'account-button', onclick: () => app.openAccount() }, 'Save my progress')
     : h('button', { type: 'button', class: 'btn btn-small', id: 'account-button', 'aria-label': `Account: signed in as ${store.user.name}`, onclick: () => app.openAccount() }, h('span', { 'aria-hidden': 'true' }, '👤 '), store.user.name);
-  clear(tools).append(settingsBtn, account);
+  fill(tools, settingsBtn, account);
 
   const footer = document.getElementById('footer-status');
   if (footer) {
@@ -99,7 +99,7 @@ async function render() {
   const myCleanups = [];
   const ctx = { app, params: match ? match.slice(1) : [], title: '', onLeave: (fn) => myCleanups.push(fn) };
   const slow = setTimeout(() => {
-    if (token === renderToken) clear(main).append(loading());
+    if (token === renderToken) fill(main, loading());
   }, 250);
 
   let node;
@@ -129,7 +129,7 @@ async function render() {
     return;
   }
   cleanups = myCleanups;
-  clear(main).append(node);
+  fill(main, node);
   main.dataset.route = path;
   document.title = ctx.title ? `${ctx.title} · Math Trainer` : 'Math Trainer';
   window.scrollTo(0, 0);

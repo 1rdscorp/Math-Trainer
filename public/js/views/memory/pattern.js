@@ -1,6 +1,6 @@
 // Pattern memory: squares light up on a grid; remember them and tap them.
 
-import { h, clear, announce, focusOn } from '../../ui/dom.js';
+import { h, announce, focusOn, fill } from '../../ui/dom.js';
 import { guestNotice } from '../../ui/components.js';
 import { makeRng } from '../../core/rng.js';
 import { staircase } from '../../core/mental.js';
@@ -79,7 +79,7 @@ export default function patternView(ctx) {
     clearTimeout(timer);
     const { size, lit } = patternSpec(stair.level);
     const start = h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: round }, 'Show me the pattern');
-    clear(stage).append(h('div', { class: 'card stack center' }, h('p', null, h('strong', null, `Next: ${lit} squares on a ${size} × ${size} grid.`), best ? ` Your biggest pattern so far: ${best} squares.` : ''), h('div', null, start)));
+    fill(stage, h('div', { class: 'card stack center' }, h('p', null, h('strong', null, `Next: ${lit} squares on a ${size} × ${size} grid.`), best ? ` Your biggest pattern so far: ${best} squares.` : ''), h('div', null, start)));
     return start;
   }
 
@@ -92,7 +92,7 @@ export default function patternView(ctx) {
     const where = [...cells].sort((a, b) => a - b).map((i) => `row ${Math.floor(i / size) + 1} column ${(i % size) + 1}`).join('; ');
     const note = h('p', { class: 'muted center' }, factor ? 'Remember where the squares are…' : 'Take as long as you like, then press the button.');
     const card = h('div', { class: 'card stack center' }, note, g.wrap, h('p', { class: 'sr-only', 'aria-live': 'assertive' }, `Lit squares: ${where}.`));
-    clear(stage).append(card);
+    fill(stage, card);
     if (!factor) {
       const ready = h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: () => answer(size, cells) }, 'Hide the pattern');
       card.append(h('div', null, ready));
@@ -106,7 +106,7 @@ export default function patternView(ctx) {
     clearTimeout(timer);
     const g = grid(size, { interactive: true });
     const check = h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: () => result(size, cells, g.chosen) }, 'Check my pattern');
-    clear(stage).append(h('div', { class: 'card stack center' }, h('p', null, h('strong', null, `Tap the ${cells.size} squares that were lit.`), ' Tap a square again to undo it.'), g.wrap, h('div', null, check)));
+    fill(stage, h('div', { class: 'card stack center' }, h('p', null, h('strong', null, `Tap the ${cells.size} squares that were lit.`), ' Tap a square again to undo it.'), g.wrap, h('div', null, check)));
     g.buttons[0].focus();
   }
 
@@ -121,7 +121,7 @@ export default function patternView(ctx) {
     });
     const next = patternSpec(stair.level);
     const heading = h('h2', { tabindex: '-1' }, ok ? 'Yes! You remembered the whole pattern.' : `You found ${hits} of ${cells.size}.`);
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: 'card stack center' },

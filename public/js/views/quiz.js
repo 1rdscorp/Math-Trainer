@@ -1,7 +1,7 @@
 // The adaptive topic quiz: one question at a time, immediate explanatory feedback,
 // a visible tier ladder and a points bar that fills to 100.
 
-import { h, clear, announce, focusOn, confetti, duration } from '../ui/dom.js';
+import { h, announce, focusOn, confetti, duration, fill } from '../ui/dom.js';
 import { rich, richEl, visual, stepsList } from '../ui/math.js';
 import { ruleCard, guestNotice } from '../ui/components.js';
 import { speakButton, toSpeech } from '../ui/speech.js';
@@ -72,7 +72,7 @@ export function quizSection(ctx, { topic, level }) {
       ? `Top level! ${state.up} right in a row. Each right answer is worth ${tier.right} points.`
       : `${state.up} right in a row. ${need} more to move up to ${TIERS[state.tier + 1].name}.`;
 
-    clear(status).append(
+    fill(status, 
       h('div', { class: 'score-row' }, h('span', { class: 'score-num' }, `${state.score} `, h('span', { class: 'small muted' }, `/ ${TARGET_SCORE} points`)), h('span', { class: 'small muted' }, `Question ${state.answered + (answered ? 0 : 1)} · ${state.correct} right so far`)),
       bar,
       ladder,
@@ -87,7 +87,7 @@ export function quizSection(ctx, { topic, level }) {
       next = nextQuestion(topic, state, rng);
     } catch (err) {
       console.error(err);
-      clear(stage).append(h('div', { class: 'notice notice-bad', role: 'alert' }, h('p', null, 'We could not make a question just now.'), h('button', { type: 'button', class: 'btn', onclick: showQuestion }, 'Try again')));
+      fill(stage, h('div', { class: 'notice notice-bad', role: 'alert' }, h('p', null, 'We could not make a question just now.'), h('button', { type: 'button', class: 'btn', onclick: showQuestion }, 'Try again')));
       return;
     }
     question = next.question;
@@ -141,7 +141,7 @@ export function quizSection(ctx, { topic, level }) {
       h('div', { class: 'row' }, check, h('span', { class: 'small muted' }, 'Tip: press 1–4 or A–D to choose, then Enter.')),
       feedback,
     );
-    clear(stage).append(form, controls());
+    fill(stage, form, controls());
   }
 
   // ── after an answer ──
@@ -229,7 +229,7 @@ export function quizSection(ctx, { topic, level }) {
     parts.push(h('p', null, nextBtn));
 
     feedback.className = `feedback notice ${isCorrect ? 'notice-good' : 'notice-info'}`;
-    clear(feedback).append(...parts);
+    fill(feedback, ...parts);
     announce(
       `${isCorrect ? 'Correct' : 'Not yet'}. ${deltaText}. ${isCorrect ? '' : `The correct answer is ${LETTERS[question.correctIndex]}: ${toSpeech(question.choices[question.correctIndex])}. `}You have ${state.score} points.${result.tierChange > 0 ? ` Moving up to ${TIERS[state.tier].name}.` : result.tierChange < 0 ? ` Moving down to ${TIERS[state.tier].name}.` : ''}`,
     );
@@ -272,7 +272,7 @@ export function quizSection(ctx, { topic, level }) {
     const next = topics[idx + 1];
     const secs = Math.round((Date.now() - (state.startedAt || Date.now())) / 1000);
     const heading = h('h3', { tabindex: '-1' }, 'You reached 100 points!');
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: 'card complete stack pop' },

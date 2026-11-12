@@ -1,6 +1,6 @@
 // My progress: points, completed topics, current tiers, weak areas and quiz history.
 
-import { h, shortDate, duration, announce } from '../ui/dom.js';
+import { h, shortDate, duration, announce, fill } from '../ui/dom.js';
 import { guestNotice, tierBadge, chip } from '../ui/components.js';
 import { LEVELS, topicList, describeTopic } from '../content/index.js';
 import { summarize, weakAreas, weakFacts, isCompleted } from '../core/progress.js';
@@ -177,7 +177,7 @@ export default function progressView(ctx) {
     const tbody = h('tbody');
     const more = h('button', { type: 'button', class: 'btn btn-small' }, 'Show older quizzes');
     const draw = () => {
-      tbody.replaceChildren(
+      fill(tbody, 
         ...rows.slice(0, shown).map((e) => {
           const info = describeTopic(e.k);
           return h(

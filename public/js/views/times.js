@@ -1,6 +1,6 @@
 // Multiplication table: explore the 1–12 grid, practise facts (untimed or timed), take a quiz.
 
-import { h, clear, announce, focusOn } from '../ui/dom.js';
+import { h, clear, announce, focusOn, fill } from '../ui/dom.js';
 import { visual } from '../ui/math.js';
 import { chip, guestNotice } from '../ui/components.js';
 import { keypad, answerInput, countdown, clock } from '../ui/keypad.js';
@@ -100,7 +100,7 @@ function explore(ctx) {
     if (hidden && user) revealed.add(factKey(a, b));
     paint();
     const p = a * b;
-    clear(detail).append(
+    fill(detail, 
       h('p', { class: 'big-fact' }, `${a} × ${b} = ${p}`),
       visual({ type: 'array', rows: a, cols: b, alt: `An array with ${a} rows of ${b}, which is ${p} in all.` }),
       h('p', null, h('strong', null, 'One way to work it out: '), strategy(a, b)),
@@ -196,7 +196,7 @@ function practice(ctx) {
       [['normal', 'Normal'], ['relaxed', 'Double time'], ['off', 'No timers at all']].map(([v, l]) => h('option', { value: v, selected: settings.get('timing') === v }, l)),
     );
     comfort.style.width = 'auto';
-    clear(stage).append(
+    fill(stage, 
       levelCard(store.progress),
       h(
         'form',
@@ -288,7 +288,7 @@ function practice(ctx) {
       if (waiting || input.disabled) return;
       const text = input.value.trim();
       if (!/^\d+$/.test(text)) {
-        feedback.replaceChildren(h('p', { class: 'error-text' }, 'Type a number, then press ✓ or Enter.'));
+        fill(feedback, h('p', { class: 'error-text' }, 'Type a number, then press ✓ or Enter.'));
         return;
       }
       const info = describeFact(current);
@@ -299,7 +299,7 @@ function practice(ctx) {
       store.change((doc) => recordFact(doc, current.a, current.b, ok, ms));
       updateBars();
       if (ok) {
-        feedback.replaceChildren(h('p', { class: 'answer-line' }, '✓ Correct!'));
+        fill(feedback, h('p', { class: 'answer-line' }, '✓ Correct!'));
         waiting = true;
         setTimeout(() => { if (waiting) next(); }, 450);
         return;
@@ -313,7 +313,7 @@ function practice(ctx) {
       retry.push({ fact: current, at: answered + 3 });
       const p = current.a * current.b;
       const nextBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: () => { timer?.resume(); next(); } }, 'Got it, next question');
-      feedback.replaceChildren(
+      fill(feedback, 
         h(
           'div',
           { class: 'notice notice-info stack' },
@@ -340,7 +340,7 @@ function practice(ctx) {
       });
       const pct = answered ? Math.round((100 * correct) / answered) : 0;
       const heading = h('h3', { tabindex: '-1' }, answered ? `Round finished: ${correct} of ${answered} correct` : 'Round finished');
-      clear(stage).append(
+      fill(stage, 
         h(
           'div',
           { class: 'card stack' },
@@ -376,7 +376,7 @@ function practice(ctx) {
       h('div', { class: 'row', style: 'justify-content:center' }, pauseBtn, h('button', { type: 'button', class: 'btn btn-ghost btn-small', onclick: finish }, 'Finish now')),
     );
     input.setAttribute('aria-describedby', 'tt-fact');
-    clear(stage).append(form);
+    fill(stage, form);
 
     if (timed) {
       timer = countdown(seconds, {
@@ -405,7 +405,7 @@ function quiz(ctx) {
   ctx.onLeave(() => onKey && document.removeEventListener('keydown', onKey));
 
   function showSetup() {
-    clear(stage).append(
+    fill(stage, 
       levelCard(store.progress),
       h(
         'form',
@@ -451,7 +451,7 @@ function quiz(ctx) {
             if (options[j] === info.answer) b.classList.add('btn-primary');
           });
           const nextBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: ask }, n >= QUIZ_QUESTIONS ? 'See my score' : 'Next question');
-          feedback.replaceChildren(
+          fill(feedback, 
             ok
               ? h('p', { class: 'answer-line' }, '✓ Correct! ', `${fact.a} × ${fact.b} = ${fact.a * fact.b}`)
               : h('div', { class: 'notice notice-info stack' }, h('p', null, h('strong', null, 'Not yet. '), `${fact.a} × ${fact.b} = ${fact.a * fact.b}.`), h('p', null, strategy(fact.a, fact.b))),
@@ -461,7 +461,7 @@ function quiz(ctx) {
         } }, String(value)),
       );
       const heading = h('h3', { tabindex: '-1' }, `Question ${n + 1} of ${QUIZ_QUESTIONS}`);
-      clear(stage).append(
+      fill(stage, 
         h('div', { class: 'card stack center' }, h('div', { class: 'row row-between' }, heading, chip(`${correct} correct`, 'good')), h('p', { class: 'big-fact' }, info.text), h('div', { class: 'grid-2', role: 'group', 'aria-label': 'Choose the answer' }, buttons), h('p', { class: 'small muted' }, 'Tip: press 1, 2, 3 or 4 to choose.'), feedback),
       );
       if (n > 0) focusOn(heading);
@@ -476,7 +476,7 @@ function quiz(ctx) {
         doc.times.best.quiz = Math.max(doc.times.best.quiz ?? 0, correct);
       });
       const heading = h('h3', { tabindex: '-1' }, `You got ${correct} out of ${QUIZ_QUESTIONS}`);
-      clear(stage).append(
+      fill(stage, 
         h(
           'div',
           { class: 'card stack' },

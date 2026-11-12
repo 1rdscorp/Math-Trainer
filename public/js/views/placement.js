@@ -1,6 +1,6 @@
 // Placement quiz: a short set of questions that suggests where to start.
 
-import { h, clear, announce, focusOn } from '../ui/dom.js';
+import { h, announce, focusOn, fill } from '../ui/dom.js';
 import { rich, visual } from '../ui/math.js';
 import { loading } from '../ui/components.js';
 import { speakButton, toSpeech } from '../ui/speech.js';
@@ -28,10 +28,10 @@ export default function placementView(ctx) {
 
   function intro() {
     if (!usable.length) {
-      clear(stage).append(h('p', { class: 'notice notice-info' }, 'The placement quiz is not ready yet. You can choose a level yourself.'), h('p', null, h('a', { class: 'btn btn-primary', href: '#/' }, 'Choose a level')));
+      fill(stage, h('p', { class: 'notice notice-info' }, 'The placement quiz is not ready yet. You can choose a level yourself.'), h('p', null, h('a', { class: 'btn btn-primary', href: '#/' }, 'Choose a level')));
       return;
     }
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: 'card stack' },
@@ -75,7 +75,7 @@ export default function placementView(ctx) {
     const rungIndex = search.usable[search.pos];
     const rung = RUNGS[rungIndex];
     const level = findLevel(rung.level);
-    clear(stage).append(loading('Getting the next question…'));
+    fill(stage, loading('Getting the next question…'));
     const made = await makeQuestion(rung);
     if (!made) {
       // Could not build a question for this rung: treat it as not passed and move on.
@@ -106,7 +106,7 @@ export default function placementView(ctx) {
         else if (failedRung) rungDone(false);
         else ask(); // first question right: one more on this rung
       } }, 'Next');
-      clear(feedback).append(h('p', { class: `notice ${correct ? 'notice-good' : 'notice-info'}` }, message), h('p', null, next));
+      fill(feedback, h('p', { class: `notice ${correct ? 'notice-good' : 'notice-info'}` }, message), h('p', null, next));
       announce(message);
       next.focus();
     };
@@ -139,7 +139,7 @@ export default function placementView(ctx) {
       h('div', { class: 'row place-actions' }, h('button', { type: 'submit', class: 'btn btn-primary btn-big' }, 'Check'), h('button', { type: 'button', class: 'btn btn-big', onclick: () => { if (locked) return; form.querySelector('.place-actions').hidden = true; settle(false, true); } }, 'I have not learned this yet')),
       feedback,
     );
-    clear(stage).append(form, h('p', null, h('button', { type: 'button', class: 'btn btn-ghost btn-small', onclick: finish }, 'Stop and show my result so far')));
+    fill(stage, form, h('p', null, h('button', { type: 'button', class: 'btn btn-ghost btn-small', onclick: finish }, 'Stop and show my result so far')));
     if (totalAsked > 1) focusOn(heading);
     else announce(`Question 1. ${toSpeech(question.prompt)}`);
 
@@ -178,7 +178,7 @@ export default function placementView(ctx) {
 
     const heading = h('h2', { tabindex: '-1' }, r.toppedOut ? `You are ready for ${level.title}, the top level here.` : `A good place to start: ${level.title}`);
     const below = LEVELS[LEVELS.findIndex((l) => l.id === level.id) - 1];
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: 'card stack' },

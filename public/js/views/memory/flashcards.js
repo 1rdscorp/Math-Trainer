@@ -1,6 +1,6 @@
 // Spaced-repetition flashcards for math facts (Leitner boxes).
 
-import { h, clear, announce, focusOn, shortDate } from '../../ui/dom.js';
+import { h, clear, announce, focusOn, shortDate, fill } from '../../ui/dom.js';
 import { rich } from '../../ui/math.js';
 import { toSpeech } from '../../ui/speech.js';
 import { chip, guestNotice } from '../../ui/components.js';
@@ -25,7 +25,7 @@ export default function flashcardsView(ctx) {
   }
 
   function showDecks() {
-    clear(stage).append(
+    fill(stage, 
       h('p', { class: 'muted' }, `How it works: answer a card correctly and it moves up a box, so you see it again after a longer gap (${BOX_DAYS.join(', ')} days). Miss it and it goes back to box 1. Only a handful of new cards are added each time.`),
       store.isGuest ? h('p', { class: 'notice notice-info' }, 'As a guest, your boxes last until you close this page. Save your progress and the cards will come back on the right day.') : null,
       h(
@@ -55,7 +55,7 @@ export default function flashcardsView(ctx) {
       if (!early) {
         const p = plan(deck, state());
         const heading = h('h2', { tabindex: '-1' }, 'All caught up');
-        clear(stage).append(
+        fill(stage, 
           h('div', { class: 'card stack' }, heading, h('p', null, `Nothing in "${deck.title}" is due right now${p.nextDue ? `. The next cards come back on ${shortDate(p.nextDue)}` : ''}. Waiting is part of how this works: remembering after a gap is what makes facts stick.`), h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onclick: () => study(deck, true) }, 'Practise early anyway'), h('button', { type: 'button', class: 'btn btn-primary', onclick: showDecks }, 'Choose another deck'))),
         );
         focusOn(heading);
@@ -87,7 +87,7 @@ export default function flashcardsView(ctx) {
       card = byId.get(queue[0]);
       queue = queue.slice(1);
       counter.textContent = `Card ${Math.min(done + 1, total)} of ${total}`;
-      clear(front).append(h('div', null, rich(card.front)));
+      fill(front, h('div', null, rich(card.front)));
       unit.textContent = card.unit ?? '';
       input.value = '';
       input.disabled = false;
@@ -100,7 +100,7 @@ export default function flashcardsView(ctx) {
       const text = input.value.trim().replace(',', '.');
       const value = Number(text);
       if (text === '' || !Number.isFinite(value)) {
-        feedback.replaceChildren(h('p', { class: 'error-text' }, 'Type a number, then press ✓ or Enter.'));
+        fill(feedback, h('p', { class: 'error-text' }, 'Type a number, then press ✓ or Enter.'));
         return;
       }
       const ok = Math.abs(value - card.answer) < 1e-9;
@@ -115,7 +115,7 @@ export default function flashcardsView(ctx) {
       if (ok) {
         if (!missedOnce.has(card.id)) firstTry.add(card.id);
         done += 1;
-        feedback.replaceChildren(h('p', { class: 'answer-line' }, result === 'fast' ? `✓ Correct! This card is now in box ${after[0]}.` : '✓ Correct. That one took a little while, so it will come back sooner.'));
+        fill(feedback, h('p', { class: 'answer-line' }, result === 'fast' ? `✓ Correct! This card is now in box ${after[0]}.` : '✓ Correct. That one took a little while, so it will come back sooner.'));
         setTimeout(() => { if (waiting) next(); }, result === 'fast' ? 650 : 1400);
         return;
       }
@@ -123,7 +123,7 @@ export default function flashcardsView(ctx) {
       queue = requeue(queue, card.id);
       input.disabled = true;
       const nextBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: next }, 'Got it, next card');
-      feedback.replaceChildren(
+      fill(feedback, 
         h('div', { class: 'notice notice-info stack' }, h('p', null, h('strong', null, 'Not yet. '), rich(card.front), ` is ${card.answer}${card.unit ?? ''}.`), card.hint ? h('p', null, card.hint) : null, h('p', { class: 'small muted' }, 'You will see this card again in a moment.'), h('p', null, nextBtn)),
       );
       nextBtn.focus();
@@ -132,7 +132,7 @@ export default function flashcardsView(ctx) {
     function finish() {
       const heading = h('h2', { tabindex: '-1' }, 'Session finished');
       const p = plan(deck, state());
-      clear(stage).append(
+      fill(stage, 
         h(
           'div',
           { class: 'card stack' },
@@ -148,7 +148,7 @@ export default function flashcardsView(ctx) {
       focusOn(heading);
     }
 
-    clear(stage).append(
+    fill(stage, 
       h(
         'form',
         { class: 'card stack center', onsubmit: (e) => { e.preventDefault(); check(); } },

@@ -34,7 +34,13 @@ export default async function topicView(ctx) {
     h(
       'ol',
       { class: 'stepper' },
-      PARTS.map((p, i) => h('li', null, h('a', { href: `#/topic/${key}/${p.id}`, 'aria-current': p.id === part.id ? 'step' : null }, h('span', null, `${i + 1}. ${p.label}`), h('span', { class: 'step-n' }, p.sub)))),
+      PARTS.map((p, i) =>
+        h(
+          'li',
+          null,
+          h('a', { href: `#/topic/${key}/${p.id}`, 'aria-current': p.id === part.id ? 'step' : null }, h('span', { class: 'step-num', 'aria-hidden': 'true' }, String(i + 1)), h('span', { class: 'step-label' }, h('span', { class: 'sr-only' }, `Step ${i + 1}: `), p.label), h('span', { class: 'step-n' }, p.sub)),
+        ),
+      ),
     ),
   );
 

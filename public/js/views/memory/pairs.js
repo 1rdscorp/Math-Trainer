@@ -1,6 +1,6 @@
 // Matching pairs: turn over cards to match each expression with its value.
 
-import { h, clear, announce, focusOn, duration } from '../../ui/dom.js';
+import { h, announce, focusOn, duration, fill } from '../../ui/dom.js';
 import { guestNotice } from '../../ui/components.js';
 import { makeRng } from '../../core/rng.js';
 import { PAIR_LEVELS, MAX_PAIR_LEVEL, pairDeck } from '../../core/mental.js';
@@ -22,7 +22,7 @@ export default function pairsView(ctx) {
     const spec = PAIR_LEVELS[level];
     const select = h('select', { id: 'pairs-level', onchange: (e) => { level = Number(e.target.value); intro(); } }, PAIR_LEVELS.map((p, i) => h('option', { value: String(i), selected: i === level }, `Level ${i + 1}: ${p.name} (${p.pairs} pairs)`)));
     select.style.width = 'auto';
-    clear(stage).append(
+    fill(stage, 
       h('div', { class: 'card stack center' }, h('p', null, h('strong', null, `Level ${level + 1}: ${spec.name}.`), ` ${spec.pairs} pairs to find.`, best ? ` Highest level finished: ${best}.` : ''), h('div', { class: 'row', style: 'justify-content:center' }, h('label', { for: 'pairs-level', style: 'font-weight:400' }, 'Level:'), select), h('div', null, h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: play }, 'Deal the cards'))),
     );
   }
@@ -91,7 +91,7 @@ export default function pairsView(ctx) {
       if (up) level += 1;
       store.change((doc) => { doc.memory.pairs = { level, best }; });
       const heading = h('h2', { tabindex: '-1' }, `All ${pairs} pairs found!`);
-      clear(stage).append(
+      fill(stage, 
         h(
           'div',
           { class: 'card stack center' },
@@ -107,7 +107,7 @@ export default function pairsView(ctx) {
     }
 
     const board = h('div', { class: 'pairs-grid', role: 'group', 'aria-label': 'Cards' }, buttons);
-    clear(stage).append(h('div', { class: 'card stack' }, h('p', { class: 'center muted' }, `Level ${level + 1}: ${PAIR_LEVELS[level].name}. Match each sum with its answer.`), status, board, h('div', { class: 'row', style: 'justify-content:center' }, h('button', { type: 'button', class: 'btn btn-ghost btn-small', onclick: intro }, 'Stop this game'))));
+    fill(stage, h('div', { class: 'card stack' }, h('p', { class: 'center muted' }, `Level ${level + 1}: ${PAIR_LEVELS[level].name}. Match each sum with its answer.`), status, board, h('div', { class: 'row', style: 'justify-content:center' }, h('button', { type: 'button', class: 'btn btn-ghost btn-small', onclick: intro }, 'Stop this game'))));
     buttons[0].focus();
   }
 

@@ -1,6 +1,6 @@
 // Number recall: watch a row of digits, then type it back. The row grows as you improve.
 
-import { h, clear, announce, focusOn } from '../../ui/dom.js';
+import { h, announce, focusOn, fill } from '../../ui/dom.js';
 import { guestNotice } from '../../ui/components.js';
 import { keypad, answerInput } from '../../ui/keypad.js';
 import { makeRng } from '../../core/rng.js';
@@ -31,7 +31,7 @@ export default function sequenceView(ctx) {
     clearTimers();
     const id = 'seq-backwards';
     const start = h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: round }, 'Show me the digits');
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: 'card stack center' },
@@ -50,7 +50,7 @@ export default function sequenceView(ctx) {
     const factor = settings.timeFactor();
     const display = h('p', { class: 'digits', 'aria-live': 'assertive', 'aria-atomic': 'true' });
     const note = h('p', { class: 'muted center' });
-    clear(stage).append(h('div', { class: 'card stack center' }, note, display));
+    fill(stage, h('div', { class: 'card stack center' }, note, display));
 
     if (!factor) {
       // No time limits: show the whole row until the student is ready.
@@ -80,12 +80,12 @@ export default function sequenceView(ctx) {
     const submit = () => {
       const got = input.value.replace(/\D/g, '');
       if (!got) {
-        feedback.replaceChildren(h('p', { class: 'error-text' }, 'Type the digits you remember.'));
+        fill(feedback, h('p', { class: 'error-text' }, 'Type the digits you remember.'));
         return;
       }
       result(digits, want, got);
     };
-    clear(stage).append(
+    fill(stage, 
       h('form', { class: 'card stack center', onsubmit: (e) => { e.preventDefault(); submit(); } }, h('p', null, h('strong', null, backwards ? `Type the ${digits.length} digits backwards.` : `Type the ${digits.length} digits in order.`)), input, h('div', null, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Check')), keypad(input, { onEnter: submit }), feedback),
     );
     input.focus();
@@ -99,7 +99,7 @@ export default function sequenceView(ctx) {
     store.change((doc) => { doc.memory.sequence = { level: stair.level, best }; });
     const heading = h('h2', { tabindex: '-1' }, ok ? `Yes! All ${digits.length} digits.` : 'Not quite this time.');
     const again = h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: round }, 'Next row');
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: `card stack center ${ok ? '' : ''}` },

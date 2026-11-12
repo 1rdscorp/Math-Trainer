@@ -244,8 +244,10 @@ export function createApp(options = {}) {
       req.on('data', (chunk) => {
         size += chunk.length;
         if (size > BODY_LIMIT) {
+          // Stop keeping the data, answer 413, and drop the connection once the answer is sent.
+          req.removeAllListeners('data');
+          req.resume();
           reject(new HttpError(413, 'too-large', 'That is too much data.'));
-          req.destroy();
           return;
         }
         chunks.push(chunk);
@@ -447,6 +449,10 @@ export function createApp(options = {}) {
     } catch (err) {
       if (res.headersSent) return res.destroy();
       if (err instanceof HttpError) {
+        if (err.status === 413) {
+          res.on('finish', () => req.destroy());
+          return sendJson(res, 413, { error: err.code, message: err.message }, { Connection: 'close' });
+        }
         if (pathname.startsWith('/api')) return sendJson(res, err.status, { error: err.code, message: err.message });
         res.writeHead(err.status, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' });
         return res.end(err.message);

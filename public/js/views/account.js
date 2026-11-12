@@ -1,6 +1,6 @@
 // "Save my progress": the optional account dialog. Nothing in the app requires it.
 
-import { h, clear, announce } from '../ui/dom.js';
+import { h, announce, fill } from '../ui/dom.js';
 import { NAME_MIN, NAME_MAX, PASSWORD_MIN } from '../core/store.js';
 import { summarize } from '../core/progress.js';
 
@@ -60,7 +60,7 @@ export async function openAccountDialog(app, { tab = 'new' } = {}) {
 }
 
 async function renderGuest(app, body, close, startTab) {
-  clear(body).append(h('p', { class: 'muted' }, 'One moment…'));
+  fill(body, h('p', { class: 'muted' }, 'One moment…'));
   const hasServer = await app.store.probeServer();
   let tab = startTab;
   const error = h('p', { class: 'error-text', role: 'alert' });
@@ -134,7 +134,7 @@ async function renderGuest(app, body, close, startTab) {
     }
 
     const s = summarize(app.store.progress);
-    clear(body).append(
+    fill(body, 
       h('p', null, isNew ? 'Make a free account to keep your points, finished topics and quiz history. ' : 'Welcome back. ', h('strong', null, 'You never need an account to learn or take quizzes.')),
       s.points > 0 || s.answered > 0 ? h('p', { class: 'notice notice-good' }, `The ${s.points} points and ${s.answered} answers from this visit will be ${isNew ? 'saved to your new account' : 'added to your account'}.`) : null,
       tabs,
@@ -206,7 +206,7 @@ function renderSignedIn(app, body, close) {
     if (!delForm.hidden) delPass.input.focus();
   } }, 'Delete my account…');
 
-  clear(body).append(
+  fill(body, 
     h('p', null, 'Signed in as ', h('strong', null, store.user.name), '.'),
     h('p', { class: 'notice notice-good' }, `${s.points} points · ${s.completed} topic${s.completed === 1 ? '' : 's'} completed. ${where}`),
     h('div', { class: 'row' }, signOut, h('a', { class: 'btn', href: '#/progress', onclick: close }, 'See my progress'), download),

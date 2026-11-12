@@ -1,6 +1,6 @@
 // Mental-math rounds: quick questions answered in your head, getting harder as you go.
 
-import { h, clear, announce, focusOn } from '../../ui/dom.js';
+import { h, clear, announce, focusOn, fill } from '../../ui/dom.js';
 import { guestNotice } from '../../ui/components.js';
 import { keypad, answerInput, countdown, clock } from '../../ui/keypad.js';
 import { makeRng } from '../../core/rng.js';
@@ -26,7 +26,7 @@ export default function speedView(ctx) {
     const select = h('select', { id: 'speed-level' }, MENTAL_LEVELS.map((name, i) => h('option', { value: String(i), selected: i === saved.level }, `Step ${i + 1}: ${name}`)));
     select.style.width = 'auto';
     const start = h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: () => run(Number(select.value)) }, 'Start a round');
-    clear(stage).append(
+    fill(stage, 
       h(
         'div',
         { class: 'card stack center' },
@@ -86,7 +86,7 @@ export default function speedView(ctx) {
       if (waiting || input.disabled) return;
       const text = input.value.trim();
       if (!/^\d+$/.test(text)) {
-        feedback.replaceChildren(h('p', { class: 'error-text' }, 'Type a number, then press ✓ or Enter.'));
+        fill(feedback, h('p', { class: 'error-text' }, 'Type a number, then press ✓ or Enter.'));
         return;
       }
       const ok = Number(text) === current.answer;
@@ -97,14 +97,14 @@ export default function speedView(ctx) {
       bars();
       waiting = true;
       if (ok) {
-        feedback.replaceChildren(h('p', { class: 'answer-line' }, stair.change > 0 ? `✓ Correct! Stepping up: ${MENTAL_LEVELS[stair.level]}.` : '✓ Correct!'));
+        fill(feedback, h('p', { class: 'answer-line' }, stair.change > 0 ? `✓ Correct! Stepping up: ${MENTAL_LEVELS[stair.level]}.` : '✓ Correct!'));
         setTimeout(() => { if (waiting) next(); }, stair.change > 0 ? 1100 : 400);
         return;
       }
       timer?.pause();
       input.disabled = true;
       const nextBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: () => { timer?.resume(); next(); } }, 'Got it, next question');
-      feedback.replaceChildren(h('div', { class: 'notice notice-info stack' }, h('p', null, h('strong', null, 'Not yet. '), `${current.text} = ${current.answer}.`), stair.change < 0 ? h('p', null, `Stepping down for now: ${MENTAL_LEVELS[stair.level]}.`) : null, h('p', null, nextBtn)));
+      fill(feedback, h('div', { class: 'notice notice-info stack' }, h('p', null, h('strong', null, 'Not yet. '), `${current.text} = ${current.answer}.`), stair.change < 0 ? h('p', null, `Stepping down for now: ${MENTAL_LEVELS[stair.level]}.`) : null, h('p', null, nextBtn)));
       nextBtn.focus();
     };
 
@@ -115,7 +115,7 @@ export default function speedView(ctx) {
       const newBest = correct > saved.best;
       store.change((doc) => { doc.memory.speed = { level: stair.level, best: Math.max(saved.best, correct) }; });
       const heading = h('h2', { tabindex: '-1' }, `Round finished: ${correct} correct`);
-      clear(stage).append(
+      fill(stage, 
         h(
           'div',
           { class: 'card stack center' },
@@ -131,7 +131,7 @@ export default function speedView(ctx) {
       focusOn(heading);
     }
 
-    clear(stage).append(
+    fill(stage, 
       h(
         'form',
         { class: 'card stack center', onsubmit: (e) => { e.preventDefault(); check(); } },
