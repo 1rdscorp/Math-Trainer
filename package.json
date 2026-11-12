@@ -1,0 +1,24 @@
+{
+  "name": "math-trainer",
+  "version": "1.0.0",
+  "description": "A math trainer web app for students from 1st grade through Calculus 3.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test",
+    "validate": "node scripts/validate-content.mjs",
+    "sample": "node scripts/sample.mjs",
+    "catalog": "node scripts/build-catalog.mjs",
+    "vendor": "node scripts/vendor.mjs"
+  },
+  "devDependencies": {
+    "@fontsource/atkinson-hyperlegible": "^5.3.0",
+    "axe-core": "^4.14.0",
+    "katex": "^0.19.1"
+  }
+}
