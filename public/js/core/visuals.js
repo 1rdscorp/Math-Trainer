@@ -470,6 +470,13 @@ function plot(s) {
   const id = `viz-clip-${++uid}`;
   const out = [];
   const inside = [];
+  // Boxes that labels must keep clear of: the numbers on the axes, the marked points, other labels.
+  const taken = [];
+  const tickBox = (cx, cy, str, anchor) => {
+    const w = String(str).length * 6.4 + 2;
+    const left = anchor === 'end' ? cx - w : cx - w / 2;
+    taken.push([left, cy - 6, left + w, cy + 6]);
+  };
 
   // Grid and tick labels.
   const axisY = yMin <= 0 && yMax >= 0 ? Y(0) : Y(yMin);
@@ -481,7 +488,9 @@ function plot(s) {
     if (s.grid !== false) out.push(line(X(x), m.t, X(x), m.t + ph, 'viz-grid'));
     const k = Math.round(x / xStep);
     if (Math.abs(x) > 1e-9 && k % xLabelEvery === 0) {
-      out.push(text(X(x), Math.min(axisY + 13, H - 9), s.piTicks ? piLabel(x) : fmt(x), 'viz-text-xs'));
+      const str = s.piTicks ? piLabel(x) : fmt(x);
+      out.push(text(X(x), Math.min(axisY + 13, H - 9), str, 'viz-text-xs'));
+      tickBox(X(x), Math.min(axisY + 13, H - 9), str, 'middle');
     }
   }
   const yLabelEvery = Math.max(1, Math.ceil(((yMax - yMin) / yStep + 1) / 11));
@@ -490,6 +499,7 @@ function plot(s) {
     const k = Math.round(y / yStep);
     if (Math.abs(y) > 1e-9 && k % yLabelEvery === 0) {
       out.push(text(Math.max(axisX - 6, 16), Y(y), fmt(y), 'viz-text-xs', { 'text-anchor': 'end' }));
+      tickBox(Math.max(axisX - 6, 16), Y(y), fmt(y), 'end');
     }
   }
   out.push(line(m.l, axisY, m.l + pw, axisY, 'viz-axis'), line(axisX, m.t, axisX, m.t + ph, 'viz-axis'));
@@ -526,9 +536,9 @@ function plot(s) {
     inside.push(rect(X(r.x), Y(yTop), X(r.x + r.w) - X(r.x), Y(yBot) - Y(yTop), `${FILLS[colorIndex(r.color, 1)]} viz-shade viz-outline`));
   }
 
-  // Labels are placed so that they do not sit on top of each other.
+  // Labels are placed so that they do not sit on top of each other, on a marked point or on an axis number.
   const labels = [];
-  const taken = [];
+  for (const pt of s.points ?? []) taken.push([X(pt.x) - 5, Y(pt.y) - 5, X(pt.x) + 5, Y(pt.y) + 5]);
   const placeLabel = (x, y, str, cls, options) => {
     const w = String(str).length * 7 + 6;
     const hgt = 16;
@@ -539,12 +549,12 @@ function plot(s) {
       const clash = taken.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1]);
       if (inside && !clash) {
         taken.push(box);
-        labels.push(text(x + dx, y + dy, str, cls, { 'text-anchor': anchor }));
+        labels.push(text(x + dx, y + dy, str, `${cls} viz-halo`, { 'text-anchor': anchor }));
         return;
       }
     }
     const [dx, dy, anchor] = options[0];
-    labels.push(text(x + dx, y + dy, str, cls, { 'text-anchor': anchor }));
+    labels.push(text(x + dx, y + dy, str, `${cls} viz-halo`, { 'text-anchor': anchor }));
   };
   // Curves.
   const curve = (xy, t0, t1, cls) => {
@@ -606,7 +616,7 @@ function plot(s) {
   for (const p of s.points ?? []) {
     inside.push(circle(X(p.x), Y(p.y), 4.5, p.open ? `viz-open-${'abcd'[colorIndex(p.color)]}` : `viz-dot-${'abcd'[colorIndex(p.color)]}`));
     if (p.label != null) {
-      placeLabel(X(p.x), Y(p.y), p.label, 'viz-text-sm viz-text-b', [[8, -13, 'start'], [8, 15, 'start'], [-8, -13, 'end'], [-8, 15, 'end'], [0, -24, 'middle'], [0, 26, 'middle']]);
+      placeLabel(X(p.x), Y(p.y), p.label, 'viz-text-sm viz-text-b', [[8, -13, 'start'], [8, 15, 'start'], [-8, -13, 'end'], [-8, 15, 'end'], [0, -24, 'middle'], [0, 26, 'middle'], [14, -22, 'start'], [-14, -22, 'end'], [14, 24, 'start'], [-14, 24, 'end']]);
     }
   }
 
@@ -656,6 +666,11 @@ function polygon(s) {
   const cnt = p.length;
   const centroid = mul(p.reduce(add, [0, 0]), 1 / cnt);
   const out = [];
+  // Rough boxes of the labels drawn so far, so that a side label can step aside instead of landing on another label.
+  const boxes = [];
+  const boxOf = (x, y, label) => ({ x, y, w: String(label).length * 7.2 + 4, h: 15 });
+  const clash = (b) => boxes.some((o) => Math.abs(o.x - b.x) < (o.w + b.w) / 2 + 1 && Math.abs(o.y - b.y) < (o.h + b.h) / 2);
+  const sideLabels = [];
 
   const fill = s.fill === 'none' ? 'viz-fill-none' : FILLS[colorIndex(s.fill)] + ' viz-shade';
   out.push(polygonEl(p, fill));
@@ -674,6 +689,7 @@ function polygon(s) {
       const d = unit(sub(b, a));
       const side = e.labelSide === 'left' ? -1 : 1;
       out.push(text(mid[0] + -d[1] * 13 * side, mid[1] + d[0] * 13 * side, e.label, 'viz-text-sm viz-text-b'));
+      boxes.push(boxOf(mid[0] + -d[1] * 13 * side, mid[1] + d[0] * 13 * side, e.label));
     }
   }
 
@@ -687,10 +703,7 @@ function polygon(s) {
     if (nrm[0] * (mid[0] - centroid[0]) + nrm[1] * (mid[1] - centroid[1]) < 0) nrm = mul(nrm, -1);
 
     const sideLabel = s.sides?.[i];
-    if (sideLabel != null && sideLabel !== '') {
-      const off = 13 + Math.abs(nrm[0]) * Math.min(22, String(sideLabel).length * 3.4);
-      out.push(text(mid[0] + nrm[0] * off, mid[1] + nrm[1] * off, sideLabel, 'viz-text-sm viz-text-b'));
-    }
+    if (sideLabel != null && sideLabel !== '') sideLabels.push({ mid, d, nrm, label: sideLabel, half: len(sub(b, a)) / 2 });
     const marks = s.marks?.[i];
     if (marks) {
       for (let k = 0; k < marks; k++) {
@@ -723,9 +736,32 @@ function polygon(s) {
       if (!s.right?.includes(i)) out.push(path(`M ${n(s1[0])} ${n(s1[1])} A ${r} ${r} 0 0 ${sweep} ${n(s2[0])} ${n(s2[1])}`, 'viz-stroke viz-thin'));
       const dist = Math.max(30, Math.min(58, 15 / Math.max(0.2, Math.sin(half)) + String(angleLabel).length * 2.2));
       out.push(text(a[0] + bis[0] * dist, a[1] + bis[1] * dist, angleLabel, 'viz-text-sm'));
+      boxes.push(boxOf(a[0] + bis[0] * dist, a[1] + bis[1] * dist, angleLabel));
     }
     const vLabel = s.vertices?.[i];
-    if (vLabel != null && vLabel !== '') out.push(text(a[0] - bis[0] * 14, a[1] - bis[1] * 14, vLabel, 'viz-text-b viz-text-i'));
+    if (vLabel != null && vLabel !== '') {
+      out.push(text(a[0] - bis[0] * 14, a[1] - bis[1] * 14, vLabel, 'viz-text-b viz-text-i'));
+      boxes.push(boxOf(a[0] - bis[0] * 14, a[1] - bis[1] * 14, vLabel));
+    }
+  }
+
+  // Side labels go on last, longest sides first. Each sits beside the middle of its side; if that
+  // spot is taken (the two short sides of an L-shaped notch want the same corner), it slides along
+  // its side, and only then moves further out.
+  for (const { mid, d, nrm, label, half } of sideLabels.sort((u, v) => v.half - u.half)) {
+    const off = 13 + Math.abs(nrm[0]) * Math.min(22, String(label).length * 3.4);
+    let spot = null;
+    for (const [slide, extra] of [[0, 0], [0.35, 0], [-0.35, 0], [0.65, 0], [-0.65, 0], [0, 11], [0.35, 11], [-0.35, 11], [0, 22]]) {
+      const x = mid[0] + d[0] * slide * half + nrm[0] * (off + extra);
+      const y = mid[1] + d[1] * slide * half + nrm[1] * (off + extra);
+      if (!clash(boxOf(x, y, label))) {
+        spot = [x, y];
+        break;
+      }
+    }
+    spot ??= [mid[0] + nrm[0] * off, mid[1] + nrm[1] * off];
+    out.push(text(spot[0], spot[1], label, 'viz-text-sm viz-text-b'));
+    boxes.push(boxOf(spot[0], spot[1], label));
   }
 
   const described = [s.sides?.filter((x) => x != null && x !== '').length ? `sides labelled ${s.sides.filter((x) => x != null && x !== '').join(', ')}` : '', s.angles?.filter((x) => x != null && x !== '').length ? `angles labelled ${s.angles.filter((x) => x != null && x !== '').join(', ')}` : ''].filter(Boolean).join('; ');
@@ -895,9 +931,17 @@ function transversal(s) {
 function solid(s) {
   const L = s.labels ?? {};
   const out = [];
-  const W = 300;
+  let W = 300;
   let H = 220;
   const lab = (x, y, t) => t != null && t !== '' && out.push(text(x, y, t, 'viz-text-sm viz-text-b'));
+  // A label beside an edge starts (or ends) at x, so a long label such as "12 cm" cannot run back
+  // over the edge. A long label on the right widens the picture instead of being cut off.
+  const labR = (x, y, t) => {
+    if (t == null || t === '') return;
+    out.push(text(x, y, t, 'viz-text-sm viz-text-b', { 'text-anchor': 'start' }));
+    W = Math.max(W, Math.ceil(x + String(t).length * 7.4 + 8));
+  };
+  const labL = (x, y, t) => t != null && t !== '' && out.push(text(x, y, t, 'viz-text-sm viz-text-b viz-halo', { 'text-anchor': 'end' }));
   const kind = s.kind;
   if (kind === 'box' || kind === 'cube') {
     const x = 60;
@@ -911,8 +955,8 @@ function solid(s) {
     out.push(rect(x, y, w, h, 'viz-fill-a viz-shade viz-outline'));
     out.push(line(x, y + h, x + ox, y + h + oy, 'viz-stroke viz-dash viz-thin'), line(x + ox, y + h + oy, x + w + ox, y + h + oy, 'viz-stroke viz-dash viz-thin'), line(x + ox, y + oy, x + ox, y + h + oy, 'viz-stroke viz-dash viz-thin'));
     lab(x + w / 2, y + h + 14, L.l ?? L.s);
-    lab(x + w + ox / 2 + 16, y + h + oy / 2 + 12, L.w ?? (kind === 'cube' ? null : undefined));
-    lab(x + w + ox + 16, y + h / 2 + oy, L.h);
+    labR(x + w + ox / 2 + 9, y + h + oy / 2 + 11, L.w ?? (kind === 'cube' ? null : undefined));
+    labR(x + w + ox + 7, y + h / 2 + oy, L.h);
     H = y + h + 30;
   } else if (kind === 'cylinder') {
     const cx = 150;
@@ -925,7 +969,7 @@ function solid(s) {
     out.push(path(`M ${cx - rx} ${bottom} A ${rx} ${ry} 0 0 1 ${cx + rx} ${bottom}`, 'viz-stroke viz-dash viz-thin'));
     out.push(line(cx, top, cx + rx, top, 'viz-stroke'), circle(cx, top, 2.5, 'viz-ink-fill'));
     lab(cx + rx / 2, top - 10, L.r);
-    lab(cx + rx + 18, (top + bottom) / 2, L.h);
+    labR(cx + rx + 8, (top + bottom) / 2, L.h);
     if (L.d != null) lab(cx, top + 12, L.d);
     H = bottom + ry + 16;
   } else if (kind === 'cone') {
@@ -938,8 +982,8 @@ function solid(s) {
     out.push(path(`M ${cx - rx} ${base} A ${rx} ${ry} 0 0 1 ${cx + rx} ${base}`, 'viz-stroke viz-dash viz-thin'));
     out.push(line(cx, apex, cx, base, 'viz-stroke viz-dash viz-thin'), line(cx, base, cx + rx, base, 'viz-stroke'), circle(cx, base, 2.5, 'viz-ink-fill'));
     lab(cx + rx / 2 - 4, base - 10, L.r);
-    lab(cx - 14, (apex + base) / 2 + 4, L.h);
-    lab(cx + rx / 2 + 22, (apex + base) / 2 - 8, L.s ?? L.l);
+    labL(cx - 6, base - 38, L.h); // low down, where the cone is wide enough for the label
+    labR(cx + rx / 2 + 10, (apex + base) / 2 - 8, L.s ?? L.l);
     H = base + ry + 16;
   } else if (kind === 'sphere') {
     const cx = 150;
@@ -962,9 +1006,9 @@ function solid(s) {
     out.push(line(a[0], a[1], d[0], d[1], 'viz-stroke viz-dash viz-thin'), line(d[0], d[1], c[0], c[1], 'viz-stroke viz-dash viz-thin'), line(d[0], d[1], apex[0], apex[1], 'viz-stroke viz-dash viz-thin'));
     out.push(line(apex[0], apex[1], centre[0], centre[1], 'viz-stroke viz-dash viz-thin'));
     lab((a[0] + b[0]) / 2, a[1] + 14, L.s ?? L.l);
-    lab(b[0] + 40, (b[1] + c[1]) / 2 + 10, L.w);
-    lab(centre[0] - 12, 100, L.h);
-    lab((b[0] + apex[0]) / 2 + 42, (b[1] + apex[1]) / 2 - 22, L.slant);
+    labR((b[0] + c[0]) / 2 + 10, (b[1] + c[1]) / 2 + 10, L.w);
+    labL(centre[0] - 6, 106, L.h);
+    labR(204, (b[1] + apex[1]) / 2 - 22, L.slant);
     H = 200;
   } else if (kind === 'triPrism') {
     const a = [50, 170];
@@ -977,8 +1021,8 @@ function solid(s) {
     out.push(line(a[0], a[1], sh(a)[0], sh(a)[1], 'viz-stroke viz-dash viz-thin'), line(sh(a)[0], sh(a)[1], sh(b)[0], sh(b)[1], 'viz-stroke viz-dash viz-thin'), line(sh(a)[0], sh(a)[1], sh(c)[0], sh(c)[1], 'viz-stroke viz-dash viz-thin'));
     out.push(path(`M ${a[0] + 10} ${a[1]} v -10 h -10`, 'viz-stroke viz-thin'));
     lab((a[0] + b[0]) / 2, a[1] + 14, L.b);
-    lab(a[0] - 16, (a[1] + c[1]) / 2, L.h);
-    lab((b[0] + sh(b)[0]) / 2 + 20, (b[1] + sh(b)[1]) / 2 + 12, L.l);
+    labL(a[0] - 6, (a[1] + c[1]) / 2, L.h);
+    labR((b[0] + sh(b)[0]) / 2 + 8, (b[1] + sh(b)[1]) / 2 + 13, L.l);
     H = 200;
   } else {
     throw new Error(`solid: unknown kind "${kind}"`);
