@@ -510,7 +510,10 @@ function describeSum(a, b, c, d, op) {
     steps.push(R`The bottom numbers are already the same (\(${b}\)), so the pieces are the same size.`);
   } else {
     steps.push(R`The bottom numbers are different. The least common denominator of \(${b}\) and \(${d}\) is \(${L}\).`);
-    steps.push(R`Rename: \(\frac{${a}}{${b}} = \frac{${a} \times ${m1}}{${b} \times ${m1}} = \frac{${a * m1}}{${L}}\) and \(\frac{${c}}{${d}} = \frac{${c} \times ${m2}}{${d} \times ${m2}} = \frac{${c * m2}}{${L}}\).`);
+    const rename = (n, den, k) => R`\(\frac{${n}}{${den}} = \frac{${n} \times ${k}}{${den} \times ${k}} = \frac{${n * k}}{${L}}\)`;
+    const changed = [m1 > 1 ? rename(a, b, m1) : null, m2 > 1 ? rename(c, d, m2) : null].filter(Boolean);
+    const kept = m1 === 1 ? R` \(\frac{${a}}{${b}}\) already has that denominator.` : m2 === 1 ? R` \(\frac{${c}}{${d}}\) already has that denominator.` : '';
+    steps.push(`Rename: ${changed.join(' and ')}.${kept}`);
   }
   steps.push(R`${op === '+' ? 'Add' : 'Subtract'} the tops and keep the bottom: \(\frac{${a * m1}}{${L}} ${op} \frac{${c * m2}}{${L}} = \frac{${top}}{${L}}\).`);
   if (ans.d !== L) steps.push(R`Simplify by dividing top and bottom by \(${L / ans.d}\): \(\frac{${top}}{${L}} = ${ans.tex()}\).`);

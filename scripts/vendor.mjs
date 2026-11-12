@@ -19,12 +19,13 @@ for (const f of await readdir(from('katex', 'dist', 'fonts'))) {
   if (f.endsWith('.woff2')) await cp(from('katex', 'dist', 'fonts', f), to('katex', 'fonts', f));
 }
 
-// Atkinson Hyperlegible (SIL Open Font License): latin subset, regular + bold.
-await mkdir(to('atkinson'), { recursive: true });
-const font = '@fontsource/atkinson-hyperlegible';
+// Andika (SIL Open Font License): a typeface designed for beginning readers, with the letter and
+// digit shapes children are taught to write (plain 0, single-storey a and g, distinct I, l and 1).
+await mkdir(to('andika'), { recursive: true });
+const font = '@fontsource/andika';
 for (const f of ['400-normal', '400-italic', '700-normal']) {
-  await cp(from(font, 'files', `atkinson-hyperlegible-latin-${f}.woff2`), to('atkinson', `atkinson-hyperlegible-${f}.woff2`));
+  await cp(from(font, 'files', `andika-latin-${f}.woff2`), to('andika', `andika-${f}.woff2`));
 }
-await cp(from(font, 'LICENSE'), to('atkinson', 'LICENSE'));
+await cp(from(font, 'LICENSE'), to('andika', 'LICENSE'));
 
-console.log('Vendored KaTeX and Atkinson Hyperlegible into public/vendor/');
+console.log('Vendored KaTeX and Andika into public/vendor/');

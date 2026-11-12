@@ -97,8 +97,11 @@ Formatting rules that the helpers exist to enforce:
 
 - Never build `ax + b` by hand. `terms`, `linear` and `poly` hide coefficients of 1, drop zero terms
   and get signs right (`3x - 2`, never `3x + -2` or `1x`).
-- Never let two numbers sit side by side: `${a}${b}` prints 4 and 6 as 46. Use `product(a, b)` or `dot(a, b)`.
+- Never let two numbers sit side by side: `${a}${b}` prints 4 and 6 as 46. Use `product(a, b)`,
+  `dot(a, b)` or write the parentheses yourself: `${a}(${x})`. Beware `${a}${paren(x)}`: `paren` only
+  wraps negative numbers, so it prints 7 and 8 as 78.
 - A negative number after an operator needs parentheses: `paren(x)`.
+- Leave out steps that do nothing ("multiply top and bottom by 1"); say the number already fits.
 - A minus sign belongs in front of a fraction, not in its numerator: `over(-7, 'x^{2}')`.
 - Round anything computed with decimals: `num(x, { places: 2 })`.
 - Guard against impossible cases. `tryFrac` returns `null` for a zero denominator, and `q()` skips `null` choices.

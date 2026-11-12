@@ -1,0 +1,11 @@
+{
+  "name": "Math Trainer",
+  "short_name": "Math Trainer",
+  "description": "Practice math from 1st grade through Calculus 3.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6fb",
+  "theme_color": "#3438c7",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
