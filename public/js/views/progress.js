@@ -244,7 +244,6 @@ export default function progressView(ctx) {
           }
           store.reset();
           announce('All progress was erased.');
-          app.rerender();
         },
       },
       'Erase my progress and start fresh',

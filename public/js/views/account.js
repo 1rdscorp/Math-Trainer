@@ -107,7 +107,6 @@ async function renderGuest(app, body, close, startTab) {
             announce(
               `You are signed in as ${result.name}. ${result.merged ? 'The progress from this visit was added to your account. ' : ''}Your progress is now saved.`,
             );
-            app.rerender();
           } catch (err) {
             error.textContent = friendly(err);
             (err.code === 'weak-password' || err.code === 'bad-credentials' ? pass.input : name).focus();
@@ -162,7 +161,6 @@ function renderSignedIn(app, body, close) {
     await store.signOut();
     close();
     announce('You are signed out. You are now practising as a guest.');
-    app.rerender();
   } }, 'Sign out');
 
   const download = h('button', { type: 'button', class: 'btn', onclick: () => {
@@ -189,7 +187,6 @@ function renderSignedIn(app, body, close) {
           await store.deleteAccount(delPass.input.value);
           close();
           announce('Your account and its saved progress were deleted.');
-          app.rerender();
         } catch (err) {
           error.textContent = friendly(err);
           delPass.input.focus();

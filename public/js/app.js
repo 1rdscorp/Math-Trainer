@@ -61,6 +61,7 @@ function renderHeaderTools() {
 
 // ───────── router ─────────
 
+let started = false; // true once the first page has been asked for
 let cleanups = [];
 let renderToken = 0;
 let firstRender = true;
@@ -141,7 +142,11 @@ async function render() {
 
 applySettings();
 settings.subscribe(renderHeaderTools);
-store.subscribe(renderHeaderTools);
+store.subscribe((reason) => {
+  renderHeaderTools();
+  // Signing in or out, or progress arriving from the server, changes what every page shows.
+  if (started && (reason === 'auth' || reason === 'replaced')) render();
+});
 
 document.getElementById('skip-link')?.addEventListener('click', (e) => {
   e.preventDefault();
@@ -157,4 +162,5 @@ document.addEventListener('visibilitychange', () => {
 
 await store.init();
 renderHeaderTools();
+started = true;
 render();
