@@ -195,7 +195,7 @@ function mediumEvaluate(rng) {
     ],
     solution: [
       R`Differentiate first: \(f'(x) = ${poly(d)}\).`,
-      R`Substitute \(x = ${p}\): \(f'(${p}) = ${d.map((c, i) => `${paren(c)}${i < d.length - 1 ? `${paren(p)}${d.length - 1 - i > 1 ? `^{${d.length - 1 - i}}` : ''}` : ''}`).join(' + ')} = ${value}\).`,
+      R`Substitute \(x = ${p}\): \(f'(${p}) = ${d.map((c, i) => (i < d.length - 1 ? `${paren(c)}(${p})${d.length - 1 - i > 1 ? `^{${d.length - 1 - i}}` : ''}` : paren(c))).join(' + ')} = ${value}\).`,
     ],
     rule: 1,
     skill: 'evaluating a derivative',

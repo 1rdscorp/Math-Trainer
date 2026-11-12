@@ -96,7 +96,9 @@ export function createStore(env = {}) {
   let saving = null;
   const listeners = new Set();
 
-  const notify = () => listeners.forEach((fn) => fn());
+  // Listeners are told why: 'change' (the student did something), 'auth' (signed in or out),
+  // 'replaced' (progress was loaded from the server) or 'status' (saving state changed).
+  const notify = (reason = 'change') => listeners.forEach((fn) => fn(reason));
 
   // ── server calls ──
   async function api(method, path, body, { keepalive = false, timeout = 10000 } = {}) {
@@ -195,9 +197,9 @@ export function createStore(env = {}) {
       })
       .finally(() => {
         saving = null;
-        notify();
+        notify(user ? 'status' : 'auth');
       });
-    notify();
+    notify('status');
     return saving;
   }
 
@@ -235,7 +237,7 @@ export function createStore(env = {}) {
     } else {
       doc = normalizeProgress(readJson(session, KEY.guest));
     }
-    notify();
+    notify('auth');
   }
 
   async function refreshFromServer() {
@@ -244,17 +246,28 @@ export function createStore(env = {}) {
       await api('GET', 'api/me');
       if (readJson(local, KEY.pending(k))) {
         await pushNow(); // this device has changes the server has not seen yet
-      } else {
-        const remote = await api('GET', 'api/progress');
-        doc = normalizeProgress(remote?.progress);
-        writeJson(local, KEY.data(k), doc);
-        status = 'saved';
+        return;
       }
+      const remote = await api('GET', 'api/progress');
+      if (!user) return; // signed out while the request was in flight
+      if (readJson(local, KEY.pending(k))) {
+        // The student answered something while we were asking: their work wins.
+        await pushNow();
+        return;
+      }
+      doc = normalizeProgress(remote?.progress);
+      writeJson(local, KEY.data(k), doc);
+      status = 'saved';
+      notify('replaced');
     } catch (err) {
-      if (err.code === 'unauthorized') dropSession();
-      else status = 'offline';
+      if (err.code === 'unauthorized') {
+        dropSession();
+        notify('auth');
+      } else {
+        status = 'offline';
+        notify('status');
+      }
     }
-    notify();
   }
 
   // ── accounts ──
@@ -272,7 +285,7 @@ export function createStore(env = {}) {
       if (!ok) throw new StoreError('storage', 'This browser would not let us save. Private browsing mode can block saving.');
       becomeUser(clean, 'device', doc);
     }
-    notify();
+    notify('auth');
     return { name: user.name, where: user.where };
   }
 
@@ -309,7 +322,7 @@ export function createStore(env = {}) {
       doc.updatedAt = now();
       persist();
     }
-    notify();
+    notify('auth');
     return { name: user.name, where: user.where, merged: bringGuest };
   }
 
@@ -327,7 +340,7 @@ export function createStore(env = {}) {
       }
     }
     dropSession();
-    notify();
+    notify('auth');
   }
 
   async function deleteAccount(password) {
@@ -345,7 +358,7 @@ export function createStore(env = {}) {
     remove(local, KEY.data(k));
     remove(local, KEY.pending(k));
     dropSession();
-    notify();
+    notify('auth');
   }
 
   return {
@@ -376,7 +389,7 @@ export function createStore(env = {}) {
       doc = emptyProgress();
       doc.updatedAt = now();
       persist();
-      notify();
+      notify('replaced');
     },
     subscribe(fn) {
       listeners.add(fn);

@@ -58,28 +58,6 @@ export function richEl(tag, props, text) {
   return node;
 }
 
-/** Plain-text version of a rich string (for labels and announcements). */
-export function plain(text) {
-  return String(text ?? '')
-    .replace(/\\\(|\\\)|\\\[|\\\]/g, '')
-    .replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '$1/$2')
-    .replace(/\\times/g, '×')
-    .replace(/\\div/g, '÷')
-    .replace(/\\cdot/g, '·')
-    .replace(/\\(le|leq)\b/g, '≤')
-    .replace(/\\(ge|geq)\b/g, '≥')
-    .replace(/\\neq?\b/g, '≠')
-    .replace(/\\pi\b/g, 'π')
-    .replace(/\\sqrt\{([^{}]*)\}/g, '√($1)')
-    .replace(/\\text\{([^{}]*)\}/g, '$1')
-    .replace(/\\[,;:! ]/g, ' ')
-    .replace(/\\([a-zA-Z]+)/g, '$1')
-    .replace(/[{}]/g, '')
-    .replace(/\*\*/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 /** Render one visual spec (or an array of them) into a wrapper element. Bad specs are skipped, never thrown. */
 export function visual(spec) {
   const wrap = h('div', { class: 'viz-wrap' });

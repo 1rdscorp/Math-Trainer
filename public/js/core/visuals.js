@@ -79,7 +79,8 @@ function fmt(v) {
 const FILLS = ['viz-fill-a', 'viz-fill-b', 'viz-fill-c', 'viz-fill-d'];
 const LINES = ['viz-line-a', 'viz-line-b', 'viz-line-c', 'viz-line-d'];
 const colorIndex = (c, fallback = 0) => {
-  const i = typeof c === 'number' ? c : 'abcd'.indexOf(c ?? '');
+  if (c == null || c === '') return fallback;
+  const i = typeof c === 'number' ? c : 'abcd'.indexOf(c);
   return i >= 0 && i < 4 ? i : fallback;
 };
 
@@ -97,9 +98,25 @@ function numberLine(s) {
   const x0 = 30;
   const x1 = 330;
   const labelsBelow = jumps.length > 0;
-  const yLine = jumps.length ? 62 : points.some((p) => p.label != null) ? 40 : 24;
-  const H = yLine + (labelsBelow && points.some((p) => p.label != null) ? 56 : 38);
   const X = (v) => x0 + ((v - min) / (max - min)) * (x1 - x0);
+  const textWidth = (str, per = 7.4) => String(str).length * per + 4;
+
+  // Lay out the jump labels first: a label that would touch its neighbour is lifted a row.
+  const jumpLayout = jumps.map((j) => {
+    const xa = X(j.from);
+    const xb = X(j.to);
+    return { xa, xb, xm: (xa + xb) / 2, lift: Math.min(40, 16 + Math.abs(xb - xa) * 0.3), row: 0 };
+  });
+  let rows = 1;
+  jumpLayout.forEach((j, i) => {
+    if (jumps[i].label == null) return;
+    const half = textWidth(jumps[i].label) / 2;
+    const clash = (row) => jumpLayout.slice(0, i).some((o, k) => jumps[k].label != null && o.row === row && Math.abs(o.xm - j.xm) < half + textWidth(jumps[k].label) / 2);
+    while (clash(j.row) && j.row < 3) j.row += 1;
+    rows = Math.max(rows, j.row + 1);
+  });
+  const yLine = jumps.length ? 62 + (rows - 1) * 15 : points.some((p) => p.label != null) ? 40 : 24;
+  const H = yLine + (labelsBelow && points.some((p) => p.label != null) ? 56 : 38);
   const out = [];
 
   out.push(line(12, yLine, 348, yLine, 'viz-axis'), arrowHead(8, yLine, Math.PI), arrowHead(352, yLine, 0));
@@ -111,7 +128,14 @@ function numberLine(s) {
     out.push(line(X(v), yLine - 6, X(v), yLine + 6, 'viz-axis'));
     if (!custom && i % every === 0) out.push(text(X(v), yLine + 20, fmt(v), 'viz-text-sm'));
   }
-  for (const l of custom ?? []) out.push(text(X(l.value), yLine + 20, l.text, 'viz-text-sm'));
+  // Custom tick labels: skip any that would run into the one before it.
+  let lastRight = -Infinity;
+  for (const l of [...(custom ?? [])].sort((a, b) => a.value - b.value)) {
+    const half = textWidth(l.text, 6.6) / 2;
+    if (X(l.value) - half < lastRight + 3) continue;
+    lastRight = X(l.value) + half;
+    out.push(text(X(l.value), yLine + 20, l.text, 'viz-text-sm'));
+  }
 
   if (s.segment) {
     const { from, to, openFrom, openTo } = s.segment;
@@ -127,15 +151,12 @@ function numberLine(s) {
   }
 
   jumps.forEach((j, i) => {
-    const xa = X(j.from);
-    const xb = X(j.to);
-    const lift = Math.min(40, 16 + Math.abs(xb - xa) * 0.3);
+    const { xa, xb, xm, lift, row } = jumpLayout[i];
     const yBase = yLine - 9;
-    const xm = (xa + xb) / 2;
     const yc = yBase - lift;
     out.push(path(`M ${n(xa)} ${n(yBase)} Q ${n(xm)} ${n(yc)} ${n(xb)} ${n(yBase)}`, `${LINES[i % 2 ? 1 : 0]} viz-thin`));
     out.push(arrowHead(xb, yBase, Math.atan2(yBase - yc, xb - xm), i % 2 ? 'viz-dot-b' : 'viz-dot-a', 7));
-    if (j.label != null) out.push(text(xm, yBase - lift / 2 - 12, j.label, 'viz-text-sm viz-text-b'));
+    if (j.label != null) out.push(text(xm, yBase - lift / 2 - 12 - row * 15, j.label, 'viz-text-sm viz-text-b'));
   });
 
   for (const p of points) {
@@ -486,8 +507,27 @@ function plot(s) {
     inside.push(rect(X(r.x), Y(yTop), X(r.x + r.w) - X(r.x), Y(yBot) - Y(yTop), `${FILLS[colorIndex(r.color, 1)]} viz-shade viz-outline`));
   }
 
-  // Curves.
+  // Labels are placed so that they do not sit on top of each other.
   const labels = [];
+  const taken = [];
+  const placeLabel = (x, y, str, cls, options) => {
+    const w = String(str).length * 7 + 6;
+    const hgt = 16;
+    for (const [dx, dy, anchor] of options) {
+      const left = anchor === 'end' ? x + dx - w : anchor === 'middle' ? x + dx - w / 2 : x + dx;
+      const box = [left, y + dy - hgt / 2, left + w, y + dy + hgt / 2];
+      const inside = box[0] >= 2 && box[2] <= W - 2 && box[1] >= 2 && box[3] <= H - 2;
+      const clash = taken.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1]);
+      if (inside && !clash) {
+        taken.push(box);
+        labels.push(text(x + dx, y + dy, str, cls, { 'text-anchor': anchor }));
+        return;
+      }
+    }
+    const [dx, dy, anchor] = options[0];
+    labels.push(text(x + dx, y + dy, str, cls, { 'text-anchor': anchor }));
+  };
+  // Curves.
   const curve = (xy, t0, t1, cls) => {
     const N = 320;
     let d = '';
@@ -516,7 +556,7 @@ function plot(s) {
       for (const lx of tries) {
         const ly = fn.f(lx);
         if (Number.isFinite(ly) && ly < yMax - 0.12 * span && ly > yMin + 0.05 * span) {
-          labels.push(text(X(lx), Y(ly) - 13, fn.label, 'viz-text-sm viz-text-b'));
+          placeLabel(X(lx), Y(ly), fn.label, 'viz-text-sm viz-text-b', [[0, -13, 'middle'], [0, 15, 'middle']]);
           break;
         }
       }
@@ -539,14 +579,15 @@ function plot(s) {
     if (sg.label != null) {
       const len = Math.hypot(bx - ax, by - ay) || 1;
       const off = 11 + String(sg.label).length * 2.2;
-      labels.push(text((ax + bx) / 2 - ((by - ay) / len) * off, (ay + by) / 2 + ((bx - ax) / len) * off, sg.label, 'viz-text-sm viz-text-b'));
+      const nx = -((by - ay) / len) * off;
+      const ny = ((bx - ax) / len) * off;
+      placeLabel((ax + bx) / 2, (ay + by) / 2, sg.label, 'viz-text-sm viz-text-b', [[nx, ny, 'middle'], [-nx, -ny, 'middle']]);
     }
   }
   for (const p of s.points ?? []) {
     inside.push(circle(X(p.x), Y(p.y), 4.5, p.open ? `viz-open-${'abcd'[colorIndex(p.color)]}` : `viz-dot-${'abcd'[colorIndex(p.color)]}`));
     if (p.label != null) {
-      const above = Y(p.y) > m.t + 22;
-      labels.push(text(Math.min(Math.max(X(p.x) + 8, m.l + 8), W - 30), Y(p.y) + (above ? -13 : 15), p.label, 'viz-text-sm viz-text-b', { 'text-anchor': X(p.x) > W - 70 ? 'end' : 'start' }));
+      placeLabel(X(p.x), Y(p.y), p.label, 'viz-text-sm viz-text-b', [[8, -13, 'start'], [8, 15, 'start'], [-8, -13, 'end'], [-8, 15, 'end'], [0, -24, 'middle'], [0, 26, 'middle']]);
     }
   }
 

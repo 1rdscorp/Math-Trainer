@@ -36,6 +36,15 @@ export function clear(node) {
   return node;
 }
 
+/**
+ * Replace a node's contents. Unlike the native append/replaceChildren, empty slots (null, false)
+ * are skipped and arrays are flattened, so conditional pieces can be passed straight in.
+ */
+export function fill(node, ...children) {
+  node.replaceChildren();
+  return append(node, children);
+}
+
 /** Build real SVG elements from a visuals.js vnode tree. */
 export function svgFromVnode(v) {
   if (typeof v === 'string' || typeof v === 'number') return document.createTextNode(String(v));

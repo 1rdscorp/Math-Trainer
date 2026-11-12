@@ -12,16 +12,27 @@ const opt = (name, fallback) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : fallback;
 };
-const target = args.find((a) => a.includes('/') && !a.startsWith('--'));
-if (!target) {
-  console.error('Usage: npm run sample -- <level>/<topic> [--n 3] [--tier easy|medium|hard|challenge] [--seed 1] [--models]');
-  process.exit(1);
+const fileArg = opt('file', null);
+let target = args.find((a, i) => a.includes('/') && !a.startsWith('--') && args[i - 1] !== '--file');
+let topic = null;
+if (fileArg) {
+  // --file <path>: a topic file that is not listed in its level's index.js yet.
+  const { pathToFileURL } = await import('node:url');
+  const pathMod = await import('node:path');
+  const file = pathMod.resolve(fileArg);
+  topic = (await import(pathToFileURL(file).href)).default;
+  target = `${pathMod.basename(pathMod.dirname(file))}/${topic?.id}`;
+} else {
+  if (!target) {
+    console.error('Usage: npm run sample -- <level>/<topic> [--n 3] [--tier easy|medium|hard|challenge] [--seed 1] [--models]\n       npm run sample -- --file <path to topic file> [same options]');
+    process.exit(1);
+  }
+  const [levelId, topicId] = target.split('/');
+  const level = LEVELS.find((l) => l.id === levelId);
+  topic = level && (await level.load()).default.find((t) => t.id === topicId);
 }
-const [levelId, topicId] = target.split('/');
-const level = LEVELS.find((l) => l.id === levelId);
-const topic = level && (await level.load()).default.find((t) => t.id === topicId);
 if (!topic) {
-  console.error(`No topic "${target}".`);
+  console.error(`No topic "${target ?? fileArg}".`);
   process.exit(1);
 }
 const n = Number(opt('n', 3));

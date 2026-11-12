@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Trainer</title>
+  <meta name="description" content="Practice math from 1st grade through Calculus 3: plain-language lessons, worked examples, interactive models and quizzes that adapt to you.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#3438c7">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/boot.js"></script>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main" id="skip-link">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#/"><span class="brand-mark" aria-hidden="true">∑</span><span class="brand-text">Math Trainer</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="#/" data-nav="learn">Learn</a>
+        <a href="#/times-table" data-nav="times">Times table</a>
+        <a href="#/memory" data-nav="memory">Memory</a>
+        <a href="#/progress" data-nav="progress">My progress</a>
+      </nav>
+      <div class="header-tools" id="header-tools"></div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <p class="muted">Loading Math Trainer…</p>
+    <noscript>
+      <div class="notice notice-warn">
+        <p><strong>Math Trainer needs JavaScript.</strong> The lessons, interactive models and quizzes are all built with it. Please turn JavaScript on in your browser settings and reload this page.</p>
+      </div>
+    </noscript>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p id="footer-status"></p>
+      <p><a href="#/about">How it works, privacy and accessibility</a></p>
+    </div>
+  </footer>
+
+  <div id="live-polite" class="sr-only" aria-live="polite" role="status"></div>
+  <div id="live-assertive" class="sr-only" aria-live="assertive" role="alert"></div>
+</body>
+</html>

@@ -27,7 +27,7 @@ function easyTwoStep(rng) {
     solution: [
       R`${b > 0 ? 'Subtract' : 'Add'} \(${Math.abs(b)}\) ${b > 0 ? 'from' : 'to'} both sides: \(${a}x = ${c - b}\).`,
       R`Divide both sides by \(${a}\): \(x = ${x}\).`,
-      R`Check: \(${a}${paren(x)} ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${c}\). ✓`,
+      R`Check: \(${a}(${x}) ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${c}\). ✓`,
     ],
     rule: 1,
     skill: 'two-step equations',

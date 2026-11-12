@@ -109,7 +109,7 @@ export function normalizeProgress(doc) {
     for (const [deck, cards] of Object.entries(doc.srs)) {
       if (!isObject(cards)) continue;
       out.srs[deck] = {};
-      for (const [id, c] of Object.entries(cards)) if (Array.isArray(c)) out.srs[deck][id] = [Math.min(5, count(c[0])), count(c[1])];
+      for (const [id, c] of Object.entries(cards)) if (Array.isArray(c)) out.srs[deck][id] = [Math.min(6, count(c[0])), count(c[1])];
     }
   }
   if (isObject(doc.memory)) {
