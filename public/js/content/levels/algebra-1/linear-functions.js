@@ -631,7 +631,7 @@ function twoPointModel({ x1, y1, x2, y2 }) {
       problem,
       steps: [
         R`Change in \(y\): \(${y2} - ${paren(y1)} = ${y2 - y1}\). Change in \(x\): \(${x2} - ${paren(x1)} = 0\).`,
-        R`The run is 0, and division by 0 is not possible, so this line has no slope. It is vertical.`,
+        R`The run is 0, and division by 0 is not possible, so the slope of this line is not defined. The line is vertical.`,
         R`Every point on it has \(x = ${x1}\), and that is its equation. It cannot be written as \(y = mx + b\).`,
       ],
       answer: R`\(x = ${x1}\) (a vertical line)`,
@@ -666,7 +666,7 @@ function standardModel({ A, B, C }) {
     const x0 = frac(C, A);
     return {
       problem,
-      steps: [R`There is no \(y\)-term, so the equation only fixes \(x\): \(x = ${x0.tex()}\).`, R`Every point with that \(x\)-value is on the line, so the line is vertical. It has an \(x\)-intercept, \((${x0.tex()}, 0)\), and no slope.`],
+      steps: [R`There is no \(y\)-term, so the equation only fixes \(x\): \(x = ${x0.tex()}\).`, R`Every point with that \(x\)-value is on the line, so the line is vertical. It has an \(x\)-intercept, \((${x0.tex()}, 0)\), and its slope is not defined.`],
       answer: R`\(x = ${x0.tex()}\) (a vertical line)`,
       visual: { type: 'plot', x: [x0.value - 5, x0.value + 5], y: [-5, 5], vlines: [{ x: x0.value, dashed: false, color: 'a' }], points: [{ x: x0.value, y: 0, label: pointText(x0, 0) }], alt: `A vertical line crossing the x-axis at ${x0.text()}.` },
     };
@@ -709,7 +709,7 @@ export default {
     rules: [
       {
         title: 'Slope is rise over run',
-        text: R`Between any two points on a line, slope \(m = \dfrac{y_2 - y_1}{x_2 - x_1}\): the change in \(y\) divided by the change in \(x\). A positive slope rises from left to right, a negative slope falls, and a slope of 0 is horizontal. A vertical line has a run of 0, so it has no slope.`,
+        text: R`Between any two points on a line, slope \(m = \dfrac{y_2 - y_1}{x_2 - x_1}\): the change in \(y\) divided by the change in \(x\). A positive slope rises from left to right, a negative slope falls, and a slope of 0 is horizontal. A vertical line has a run of 0, so its slope is not defined.`,
         example: R`Through \((1, 2)\) and \((4, 11)\): \(m = \frac{11 - 2}{4 - 1} = \frac{9}{3} = 3\).`,
       },
       {

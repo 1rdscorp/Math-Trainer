@@ -524,7 +524,7 @@ function challengeAreaWidth(rng) {
     const len = small();
     const wid = small();
     const area = len.mul(wid);
-    if (area.isInt() || area.d > 25 || len.eq(wid) || len.value < 1) continue;
+    if (area.isInt() || area.d > 25 || len.value <= wid.value || len.value < 1) continue; // the length is the longer side
     const thing = rng.pick(['garden bed', 'poster', 'tabletop', 'rug', 'window']);
     const [one, many] = rng.pick([['meter', 'meters'], ['foot', 'feet'], ['yard', 'yards']]);
     const u = (f) => (f.value > 1 ? many : one);

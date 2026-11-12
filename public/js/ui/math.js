@@ -2,6 +2,7 @@
 // and **bold**. Text is always inserted as text nodes, so content can never inject markup.
 
 import { h, svgFromVnode } from './dom.js';
+import { tidy } from '../core/tidy.js';
 import { renderVisual } from '../core/visuals.js';
 
 const MATH = /\\\((.+?)\\\)|\\\[(.+?)\\\]/gs;
@@ -40,7 +41,7 @@ function textNodes(text) {
 export function rich(text) {
   const frag = document.createDocumentFragment();
   if (text == null) return frag;
-  const str = String(text);
+  const str = tidy(String(text));
   let last = 0;
   for (const m of str.matchAll(MATH)) {
     if (m.index > last) frag.append(...textNodes(str.slice(last, m.index)));
@@ -86,4 +87,40 @@ export function visual(spec) {
 /** An ordered list of solution steps. */
 export function stepsList(steps) {
   return h('ol', { class: 'steps' }, (steps ?? []).map((s) => richEl('li', null, s)));
+}
+
+/**
+ * Shrink the text of any answer choice whose formula is too wide for its box, so the whole
+ * formula can be seen without scrolling sideways (what tells two choices apart is often at the
+ * far end). The text never goes below 58% of its size; past that the choice scrolls instead.
+ * Fits again whenever the box changes width (rotation, window resize, a new text size).
+ */
+export function fitChoices(group) {
+  const fit = () => {
+    for (const el of group.querySelectorAll('.choice-text')) {
+      el.style.fontSize = '';
+      const room = el.clientWidth;
+      const need = el.scrollWidth;
+      if (room > 0 && need > room + 1) el.style.fontSize = `${Math.round(Math.max(0.58, (room / need) * 0.97) * 1000) / 10}%`;
+    }
+  };
+  if (typeof ResizeObserver === 'function') {
+    let last = -1;
+    new ResizeObserver(() => {
+      const w = group.clientWidth;
+      if (w === last) return;
+      last = w;
+      fit();
+    }).observe(group);
+  } else if (typeof requestAnimationFrame === 'function') requestAnimationFrame(fit);
+  // The math fonts may arrive after the first measurement and change the widths: measure again then.
+  const fonts = typeof document !== 'undefined' ? document.fonts : null;
+  if (fonts?.addEventListener) {
+    const onFonts = () => {
+      if (group.isConnected) fit();
+      else fonts.removeEventListener('loadingdone', onFonts);
+    };
+    fonts.addEventListener('loadingdone', onFonts);
+  }
+  return group;
 }

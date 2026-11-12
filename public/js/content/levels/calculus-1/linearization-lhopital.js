@@ -700,7 +700,7 @@ export default {
         return {
           problem: `The ${S.name} is measured as ${txt(x)} cm, with a possible error of ${txt(dx)} cm. Estimate the possible error in the calculated ${S.q}.`,
           steps: [
-            R`Formula: \(${S.F}\), which gives a ${S.q} of about \(${num(round(value, 2))}\) ${S.unit}.`,
+            R`Formula: \(${S.F}\), which gives ${/^[aeiou]/.test(S.q) ? 'an' : 'a'} ${S.q} of about \(${num(round(value, 2))}\) ${S.unit}.`,
             R`Differential: \(${S.dF}\).`,
             R`Substitute \(${S.v} = ${num(x)}\) and \(d${S.v} = ${num(dx)}\): the error is about \(${num(round(err, 2))}\) ${S.unit}.`,
             R`As a percentage: the length is off by up to \(${num(round(pctIn, 2))}\%\), and the ${S.q} by about \(${S.n} \times ${num(round(pctIn, 2))}\% = ${num(round(S.n * pctIn, 2))}\%\).`,

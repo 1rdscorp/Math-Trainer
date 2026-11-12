@@ -109,7 +109,7 @@ function easyMedianModeRange(rng) {
 
 function easyDotPlot(rng) {
   for (;;) {
-    const [what, who, verb, thing] = rng.pick([['books read last month', 'students', 'read', 'books'], ['pets at home', 'students', 'have', 'pets'], ['goals scored in a game', 'players', 'scored', 'goals'], ['movies watched last month', 'students', 'watched', 'movies'], ['brothers and sisters', 'students', 'have', 'brothers and sisters']]);
+    const [what, who, verb, thing, oneThing] = rng.pick([['books read last month', 'students', 'read', 'books', 'book'], ['pets at home', 'students', 'have', 'pets', 'pet'], ['goals scored in a game', 'players', 'scored', 'goals', 'goal'], ['movies watched last month', 'students', 'watched', 'movies', 'movie'], ['brothers and sisters', 'students', 'have', 'brothers and sisters', 'brother or sister']]);
     const lo = rng.int(0, 2);
     const counts = Array.from({ length: 6 }, () => rng.int(0, 4));
     const values = counts.flatMap((c, i) => Array(c).fill(lo + i));
@@ -123,9 +123,10 @@ function easyDotPlot(rng) {
         visual,
         correct: values.length,
         wrong: [{ value: 6, why: 'That is the number of different values on the number line. Count every dot.' }, sum(values) !== values.length ? { value: sum(values), why: `That adds up the values. Each dot is one of the ${who}, so count the dots.` } : null, values.length + 1, values.length - 1],
-        solution: [`Each dot is one of the ${who}, so count all the dots.`, R`\(${plus(counts)} = ${values.length}\).`, `The dot plot shows ${values.length} ${who}.`],
+        solution: [`Each dot is one of the ${who}, so count all the dots.`, R`Add the stacks: \(${plus(counts.filter((c) => c > 0))} = ${values.length}\).`, `The dot plot shows ${values.length} ${who}.`],
         rule: 1,
         skill: 'reading a dot plot',
+        check: () => (sum(counts) === values.length ? true : 'the stacks do not add up to the number of dots'),
       });
     }
     if (kind === 'mode') {
@@ -138,19 +139,25 @@ function easyDotPlot(rng) {
         solution: ['The mode is the value that appears most often, so look for the tallest stack of dots.', `The tallest stack is above ${mode}, with ${top} dots.`, `The mode is ${mode}.`],
         rule: 1,
         skill: 'reading a dot plot',
+        // Tally the plotted values directly: no other value may appear as often as the mode.
+        check: () => {
+          const times = (v) => values.filter((w) => w === v).length;
+          return values.every((v) => v === mode || times(v) < times(mode)) ? true : 'the mode is not the most frequent value';
+        },
       });
     }
     const k = lo + rng.int(1, 3);
     const more = values.filter((v) => v > k).length;
     const atLeast = values.filter((v) => v >= k).length;
     return q({
-      prompt: `Each dot stands for one of the ${who}. How many of the ${who} ${verb} more than ${k} ${thing}?`,
+      prompt: `Each dot stands for one of the ${who}. How many of the ${who} ${verb} more than ${k} ${k === 1 ? oneThing : thing}?`,
       visual,
       correct: more,
       wrong: [atLeast !== more ? { value: atLeast, why: `"More than ${k}" does not include ${k} itself.` } : null, { value: values.length - more, why: `That counts the dots at ${k} or less. Count the dots to the right of ${k}.` }, lo + 5 - k !== more ? { value: lo + 5 - k, why: 'That counts the values on the number line. Count the dots above them.' } : null, more + 1, more + 2],
       solution: [`Values that are more than ${k} are to the right of ${k} on the plot.`, `Count the dots above ${Array.from({ length: lo + 5 - k }, (_, i) => k + 1 + i).join(', ')}: ${more} in all.`],
       rule: 1,
       skill: 'reading a dot plot',
+      check: () => (sum(counts.slice(k - lo + 1)) === more ? true : 'the stacks to the right do not add up to the answer'),
     });
   }
 }
@@ -397,7 +404,7 @@ function challengeOutlier(rng) {
   const [m0, m1] = [median(base), median(all)];
   const p = person(rng);
   return q({
-    prompt: `${p}'s first four scores in a game were ${list(base)}. In the fifth game ${p} scored ${x}. By how much does the fifth score ${up ? 'raise' : 'lower'} ${p}'s mean score?`,
+    prompt: `${p}'s scores in the first four games of a tournament were ${list(base)}. In the fifth game ${p} scored ${x}. By how much does the fifth score ${up ? 'raise' : 'lower'} ${p}'s mean score?`,
     correct: k,
     wrong: [{ value: Math.abs(x - a), why: `That is how far the new score is from the old mean. Its effect is shared among all 5 scores.` }, m1 !== m0 ? { value: Math.abs(m1 - m0), why: 'That is the change in the median. The question asks about the mean.' } : null, { value: a + (up ? k : -k), why: 'That is the new mean. The question asks how much the mean changed.' }, k + 1, k * 2],
     solution: [
@@ -412,33 +419,44 @@ function challengeOutlier(rng) {
 }
 
 const DICE_EVENTS = [
-  { text: 'the sum is 7', ok: (a, b) => a + b === 7 },
-  { text: 'the sum is 10 or more', ok: (a, b) => a + b >= 10 },
-  { text: 'the sum is 4 or less', ok: (a, b) => a + b <= 4 },
+  { text: 'the sum is 7', bySum: true, ok: (a, b) => a + b === 7 },
+  { text: 'the sum is 10 or more', bySum: true, ok: (a, b) => a + b >= 10 },
+  { text: 'the sum is 4 or less', bySum: true, ok: (a, b) => a + b <= 4 },
   { text: 'both cubes show the same number', ok: (a, b) => a === b },
-  { text: 'the sum is 9', ok: (a, b) => a + b === 9 },
-  { text: 'at least one cube shows a 6', ok: (a, b) => a === 6 || b === 6 },
-  { text: 'both cubes show an even number', ok: (a, b) => a % 2 === 0 && b % 2 === 0 },
-  { text: 'the product of the two numbers is odd', ok: (a, b) => (a * b) % 2 === 1 },
-  { text: 'the sum is 5', ok: (a, b) => a + b === 5 },
-  { text: 'the sum is greater than 8', ok: (a, b) => a + b > 8 },
+  { text: 'the sum is 9', bySum: true, ok: (a, b) => a + b === 9 },
+  { text: 'at least one cube shows a 6', ok: (a, b) => a === 6 || b === 6, slip: [12, 'The row for 6 and the column for 6 share the cell (6, 6). Count that cell once, not twice.'] },
+  { text: 'both cubes show an even number', ok: (a, b) => a % 2 === 0 && b % 2 === 0, slip: [18, 'That is the probability for one cube. Both cubes must show an even number, which leaves 3 × 3 cells.'] },
+  { text: 'the product of the two numbers is odd', ok: (a, b) => (a * b) % 2 === 1, slip: [18, 'A product is odd only when both numbers are odd. That leaves 3 × 3 cells, not half of the table.'] },
+  { text: 'the sum is 5', bySum: true, ok: (a, b) => a + b === 5 },
+  { text: 'the sum is greater than 8', bySum: true, ok: (a, b) => a + b > 8 },
   { text: 'the two numbers differ by exactly 1', ok: (a, b) => Math.abs(a - b) === 1 },
-  { text: 'the sum is an odd number', ok: (a, b) => (a + b) % 2 === 1 },
-  { text: 'the sum is 11 or 12', ok: (a, b) => a + b >= 11 },
-  { text: 'neither cube shows a 1', ok: (a, b) => a !== 1 && b !== 1 },
+  { text: 'the sum is an odd number', bySum: true, ok: (a, b) => (a + b) % 2 === 1 },
+  { text: 'the sum is 11 or 12', bySum: true, ok: (a, b) => a + b >= 11 },
+  { text: 'neither cube shows a 1', ok: (a, b) => a !== 1 && b !== 1, slip: [30, 'That is the probability for one cube. Both cubes must avoid 1, which leaves 5 × 5 cells.'] },
 ];
 
 function challengeTwoDice(rng) {
   const e = rng.pick(DICE_EVENTS);
   const six = [1, 2, 3, 4, 5, 6];
-  const count = six.flatMap((a) => six.map((b) => [a, b])).filter(([a, b]) => e.ok(a, b)).length;
+  const pairs = six.flatMap((a) => six.map((b) => [a, b])).filter(([a, b]) => e.ok(a, b));
+  const count = pairs.length;
   const ans = frac(count, 36);
+  const unordered = pairs.filter(([a, b]) => a <= b).length; // what a student counts who treats (2, 5) and (5, 2) as one outcome
+  const sums = new Set(pairs.map(([a, b]) => a + b)).size; // how many of the 11 possible sums fit
   const colors = rng.pick(['a red one and a blue one', 'a green one and a white one', 'a large one and a small one']);
   return q({
     prompt: `Two number cubes, ${colors}, are rolled. Each has faces numbered 1 to 6. What is the probability that ${e.text}?`,
     visual: { type: 'table', headers: ['+', ...six.map(String)], rowHeaders: true, rows: six.map((a) => [String(a), ...six.map((b) => a + b)]), caption: 'Sums of the two cubes', alt: 'A 6 by 6 table showing the sum for every pair of numbers on the two cubes.' },
     correct: ans,
-    wrong: [{ value: frac(count, 12), why: 'Two cubes give 6 × 6 = 36 equally likely outcomes, not 6 + 6 = 12.' }, count % 2 === 0 ? { value: frac(count / 2, 36), why: 'Count every cell of the table that fits. Pairs such as (2, 5) and (5, 2) are different outcomes.' } : { value: frac(count + 1, 36), why: 'Count the matching cells in the table carefully.' }, frac(count, 11).value < 1 ? { value: frac(count, 11), why: 'The 11 possible sums are not equally likely. Count outcomes in the table of 36.' } : null, frac(count + 2, 36)],
+    wrong: [
+      e.slip ? { value: frac(e.slip[0], 36), why: e.slip[1] } : null,
+      e.bySum ? { value: frac(sums, 11), why: 'The 11 possible sums (2 to 12) are not equally likely. Count the cells in the table of 36.' } : null,
+      unordered < count ? { value: frac(unordered, 36), why: 'Count every cell of the table that fits. Pairs such as (2, 5) and (5, 2) are different outcomes.' } : null,
+      count < 12 ? { value: frac(count, 12), why: 'Two cubes give 6 × 6 = 36 equally likely outcomes, not 6 + 6 = 12.' } : null,
+      { value: frac(unordered, 21), why: 'Ignoring which cube is which gives 21 pairs, but they are not equally likely. Use all 36 cells of the table.' },
+      frac(count + 1, 36),
+      frac(count + 2, 36),
+    ],
     solution: [R`List all the outcomes in a table: \(6 \times 6 = 36\) equally likely pairs.`, `Count the pairs where ${e.text}: there are ${count}.`, R`Probability \(= \frac{${count}}{36}${ans.d !== 36 ? ` = ${ans.tex()}` : ''}\).`],
     rule: 6,
     skill: 'compound events',

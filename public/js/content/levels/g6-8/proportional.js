@@ -1,4 +1,4 @@
-import { R, q, num, frac, money, txt, person, round, approx } from '../../lib/index.js';
+import { R, q, num, frac, Frac, money, txt, person, round, approx } from '../../lib/index.js';
 import { M, mixed, clean, unitFmt, usd, singular } from './_shared.js';
 
 const xyTable = (xs, k, headers = ['x', 'y'], b = 0) => ({ type: 'table', headers, rows: xs.map((x) => [x, round(k * x + b, 2)]), alt: `A table of values: ${xs.map((x) => `${headers[0]} = ${x}, ${headers[1]} = ${round(k * x + b, 2)}`).join('; ')}.` });
@@ -20,7 +20,7 @@ function easyUnitRateFraction(rng) {
   return q({
     prompt: c.text(amount, mixed(t)),
     correct: r,
-    fmt: (v) => `${mixed(v)} ${c.per}`,
+    fmt: (v) => `${mixed(v)} ${(v instanceof Frac ? v.value : v) <= 1 ? c.per.replace(/^\w+/, (w) => singular(w)) : c.per}`,
     wrong: [{ value: d.mul(t), why: 'A unit rate is found by dividing the amount by the time, not multiplying.' }, { value: t.div(d), why: `That divides the time by the amount. For ${c.per}, divide the amount by the time.` }, r + 1, r * 2],
     solution: [R`A unit rate is the amount for 1 unit of time. Divide the amount by the time: \(${d.mixedTex()} \div ${t.tex()}\).`, R`Multiply by the reciprocal: \(${d.tex()} \times ${t.inv().tex()} = ${r}\).`, `The unit rate is ${r} ${c.per}.`],
     rule: 0,
@@ -48,11 +48,12 @@ function easyFindK(rng) {
 function easyIsProportional(rng) {
   const k = rng.int(2, 9);
   const yes = rng.bool();
-  const b = rng.int(1, 6);
   const xs = yes ? rng.pick([[2, 3, 5, 8], [2, 3, 4, 9], [2, 5, 6, 10], [3, 4, 7, 9], [2, 4, 5, 7]]) : rng.pick([[2, 3, 4, 5], [2, 4, 6, 8], [3, 4, 5, 6]]);
+  // The amount added in the "no" tables is a multiple of the first x, so the first row still divides evenly.
+  const b = xs[0] * rng.int(1, 3);
   const ys = xs.map((x) => k * x + (yes ? 0 : b));
   const options = {
-    same: R`Yes, because \(y \div x\) is \(${yes ? k : ys[0]}\) in every row.`,
+    same: R`Yes, because \(y \div x\) is \(${ys[0] / xs[0]}\) in every row.`,
     differ: R`No, because \(y \div x\) is not the same in every row.`,
     steps: yes ? R`No, because \(y\) does not go up by the same amount from row to row.` : R`Yes, because \(y\) goes up by the same amount from row to row.`,
     other: yes ? R`No, because the table has no row for \(x = 0\).` : R`Yes, because \(y\) gets bigger whenever \(x\) gets bigger.`,
@@ -62,7 +63,7 @@ function easyIsProportional(rng) {
     visual: xyTable(xs, k, ['x', 'y'], yes ? 0 : b),
     correct: yes ? options.same : options.differ,
     wrong: [
-      yes ? options.differ : { value: options.same, why: R`That is true for the first row only. Check the others: \(${ys[1]} \div ${xs[1]} = ${num(ys[1] / xs[1], { places: 2 })}\).` },
+      yes ? options.differ : { value: options.same, why: R`That is true for the first row only. Check the others: \(${ys[1]} \div ${xs[1]} ${clean(ys[1] / xs[1]) != null ? '=' : R`\approx`} ${num(ys[1] / xs[1], { places: 2 })}\).` },
       { value: options.steps, why: yes ? R`The \(x\)-values do not go up evenly either. The test is whether \(y \div x\) stays the same.` : R`Going up in equal steps is not enough. The test is whether \(y \div x\) stays the same.` },
       options.other,
     ],
@@ -103,32 +104,30 @@ function mediumEquation(rng) {
 
 function mediumSolveProportion(rng) {
   for (;;) {
-    const u = rng.pick([0.75, 1.25, 1.5, 2.25, 2.5, 3.5, 4.5, 12.5, 9.5, 7.5]);
     const a = rng.int(2, 6);
     const c = rng.int(3, 12);
     if (c === a || c % a === 0) continue;
-    const [first, ans] = [round(u * a, 2), round(u * c, 2)];
     const s = rng.pick([
-      { text: `${a} pounds of apples cost ${money(first)}. At the same price per pound, how much do ${c} pounds cost?`, unit: 'pounds' },
-      { text: `${a} yards of fabric cost ${money(first)}. At the same price per yard, how much do ${c} yards cost?`, unit: 'yards' },
-      { text: `${person(rng)} earns ${money(first * 4)} for ${a} hours of work. At the same hourly rate, how much does ${c} hours of work pay?`, unit: 'hours', scale: 4 },
+      { rates: [0.75, 1.25, 1.5, 2.25, 2.5, 3.5], text: (p) => `${a} pounds of apples cost ${money(p)}. At the same price per pound, how much do ${c} pounds cost?`, unit: 'pounds' },
+      { rates: [2.5, 3.5, 4.5, 7.5, 9.5, 12.5], text: (p) => `${a} yards of fabric cost ${money(p)}. At the same price per yard, how much do ${c} yards cost?`, unit: 'yards' },
+      { rates: [9, 10.5, 12, 12.5, 13.5, 14, 15, 18], text: (p) => `${person(rng)} earns ${money(p)} for ${a} hours of work. At the same hourly rate, how much does ${c} hours of work pay?`, unit: 'hours' },
     ]);
-    const k = s.scale ?? 1;
-    const [p1, p2] = [round(first * k, 2), round(ans * k, 2)];
+    const u = rng.pick(s.rates);
+    const [p1, p2] = [round(u * a, 2), round(u * c, 2)];
     return q({
-      prompt: s.text,
+      prompt: s.text(p1),
       correct: p2,
       fmt: money,
       wrong: [
         { value: round(p1 + (c - a), 2), why: `The amount of money changes by multiplying, not by adding or subtracting $1 for each ${s.unit.slice(0, -1)}.` },
         { value: round((p1 * a) / c, 2), why: c > a ? `More ${s.unit} means more money, not less. Check which numbers are multiplied.` : `Fewer ${s.unit} means less money, not more. Check which numbers are multiplied.` },
         round(p1 * c, 2),
-        round(p2 + (u * k) / 2, 2),
+        round(p2 + u / 2, 2),
       ],
       solution: [
         R`The two ratios of dollars to ${s.unit} are equal: \(\frac{${usd(p1)}}{${a}} = \frac{x}{${c}}\).`,
-        R`Find the unit rate: \(${usd(p1)} \div ${a} = ${usd(round((u * k), 2))}\) dollars for each ${s.unit.slice(0, -1)}.`,
-        R`Multiply by ${c}: \(${usd(round(u * k, 2))} \times ${c} = ${usd(p2)}\). The answer is ${money(p2)}.`,
+        R`Find the unit rate: \(${usd(p1)} \div ${a} = ${usd(u)}\) dollars for each ${s.unit.slice(0, -1)}.`,
+        R`Multiply by ${c}: \(${usd(u)} \times ${c} = ${usd(p2)}\). The answer is ${money(p2)}.`,
       ],
       rule: 4,
       skill: 'solving proportions',
@@ -141,7 +140,7 @@ function mediumGraphPoint(rng) {
   const k = rng.pick([0.5, 1.5, 2, 2.5, 3, 4, 0.25, 0.75, 1.25, 5]);
   const a = (Number.isInteger(k) ? 1 : Number.isInteger(k * 2) ? 2 : 4) * rng.int(1, 3) + (Number.isInteger(k) ? 1 : 0);
   const b = k * a;
-  const [xl, yl, what] = rng.pick([['hours', 'dollars', 'the pay in dollars for each hour'], ['pounds', 'dollars', 'the cost in dollars of each pound'], ['minutes', 'liters', 'the liters pumped each minute'], ['seconds', 'meters', 'the meters travelled each second']]);
+  const [xl, yl, what] = rng.pick([['hours', 'dollars', 'the number of dollars for each hour'], ['pounds', 'dollars', 'the cost in dollars of each pound'], ['minutes', 'liters', 'the liters pumped each minute'], ['seconds', 'meters', 'the meters travelled each second']]);
   const xMax = a + 2;
   return q({
     prompt: R`The graph shows a proportional relationship between ${xl} (\(x\)) and ${yl} (\(y\)). The line passes through \((${a}, ${num(b)})\). What is the constant of proportionality?`,
@@ -176,9 +175,9 @@ function hardComplexUnitRate(rng) {
     return q({
       prompt: c.text,
       correct: r,
-      fmt: (v) => `${mixed(v)} ${v.eq(1) ? c.per.replace(/^\w+/, (w) => singular(w)) : c.per}`,
+      fmt: (v) => `${mixed(v)} ${v.value <= 1 ? c.per.replace(/^\w+/, (w) => singular(w)) : c.per}`,
       wrong: [{ value: A.mul(B), why: 'A unit rate comes from dividing the two amounts, not multiplying them.' }, { value: B.div(A), why: `That divides the wrong way round. For ${c.per}, divide by ${c.by}.` }, r.add(frac(1, r.d)), A.add(B)],
-      solution: [R`The rate for 1 ${c.one} is the first amount divided by the second: \(${A.tex()} \div ${B.tex()}\).`, R`Multiply by the reciprocal: \(${A.tex()} \times ${B.inv().tex()} = \frac{${A.n * B.d}}{${A.d * B.n}}\).`, R`In simplest form the unit rate is \(${r.mixedTex()}\) ${c.per}.`],
+      solution: [R`The rate for 1 ${c.one} is the first amount divided by the second: \(${A.tex()} \div ${B.tex()}\).`, R`Multiply by the reciprocal: \(${A.tex()} \times ${B.inv().tex()} = \frac{${A.n * B.d}}{${A.d * B.n}}\).`, `In simplest form the unit rate is ${mixed(r)} ${r.value <= 1 ? c.per.replace(/^\w+/, (w) => singular(w)) : c.per}.`],
       rule: 0,
       skill: 'unit rates with fractions',
       check: () => (r.mul(B).eq(A) ? true : 'rate times the second amount is not the first'),
@@ -191,7 +190,11 @@ function hardScaleDrawing(rng) {
   const s = rng.pick([2, 2.5, 4, 5, 8, 10, 20, 50]);
   const L = rng.pick([1.5, 2.5, 3, 3.5, 4, 4.5, 6, 7.5, 9]);
   const actual = round(L * s, 2);
-  const thing = big === 'kilometers' || big === 'miles' ? rng.pick(['a road', 'a river', 'a hiking trail']) : rng.pick(['a room', 'a garden', 'a swimming pool', 'a stage']);
+  // Something whose real size suits the numbers: a 4-foot room and a 400-meter room are both wrong.
+  const thing =
+    big === 'kilometers' || big === 'miles'
+      ? rng.pick(actual > 60 ? ['a highway', 'a river', 'a railway line'] : ['a road', 'a river', 'a hiking trail'])
+      : rng.pick(actual <= 12 ? ['a room', 'a garden bed', 'a hallway'] : actual <= 60 ? ['a garden', 'a swimming pool', 'a stage'] : ['a bridge', 'a playing field', 'a runway']);
   const many = `${small === 'inch' ? 'inches' : 'centimeters'}`;
   const toActual = rng.bool(0.6);
   return q({
@@ -287,7 +290,7 @@ function challengeAreaScale(rng) {
   const [unit, real] = rng.pick([['centimeters', 'meters'], ['inches', 'feet']]);
   const one = unit === 'inches' ? 'inch' : 'centimeter';
   const area = w * s * (h * s);
-  const thing = rng.pick(['a classroom', 'a garden', 'a parking lot', 'a stage', 'a patio']);
+  const thing = rng.pick(Math.max(w, h) * s <= 16 ? ['a patio', 'a garden bed', 'a deck'] : ['a garden', 'a parking lot', 'a playground']);
   return q({
     prompt: `On a scale drawing with the scale 1 ${one} to ${s} ${real}, ${thing} is a rectangle ${w} ${unit} by ${h} ${unit}. What is its real area?`,
     visual: { type: 'polygon', points: [[0, 0], [w, 0], [w, h], [0, h]], sides: [`${w} ${unit === 'inches' ? 'in' : 'cm'}`, `${h} ${unit === 'inches' ? 'in' : 'cm'}`, '', ''], right: [0, 1, 2, 3], alt: `A rectangle on a scale drawing, ${w} ${unit} by ${h} ${unit}.` },
@@ -307,7 +310,7 @@ function challengeCompareRates(rng) {
     const kB = rng.pick([12, 14, 16, 18, 21, 24, 26, 28, 31]);
     const xs = rng.pick([[2, 4, 6], [2, 6, 8], [4, 6, 10]]);
     const diff = round(Math.abs(kA - kB), 1);
-    const [what, unit, A, B] = rng.pick([['pages', 'minutes', 'Printer A', 'Printer B'], ['liters', 'minutes', 'Pump A', 'Pump B'], ['meters', 'seconds', 'Robot A', 'Robot B']]);
+    const [what, unit, A, B, does] = rng.pick([['pages', 'minutes', 'Printer A', 'Printer B', 'prints'], ['liters', 'minutes', 'Pump A', 'Pump B', 'moves'], ['meters', 'seconds', 'Drone A', 'Drone B', 'flies']]);
     const one = unit.slice(0, -1);
     const [fast, slow] = kA > kB ? [A, B] : [B, A];
     const y1 = kA * xs[0];
@@ -316,7 +319,7 @@ function challengeCompareRates(rng) {
     const say = (who, d) => `${who}, by ${amount(d)}`;
     if (naive === diff) continue;
     return q({
-      prompt: R`${A}'s output is shown in the table. ${B}'s output is given by \(y = ${kB}x\), where \(x\) is the number of ${unit} and \(y\) is the number of ${what}. Which is faster, and by how much?`,
+      prompt: R`The table shows the ${what} that ${A} ${does}. For ${B}, \(y = ${kB}x\), where \(x\) is the number of ${unit} and \(y\) is the number of ${what}. Which is faster, and by how much?`,
       visual: xyTable(xs, kA, [`${unit} (x)`, `${what} (y)`]),
       correct: say(fast, diff),
       wrong: [{ value: say(slow, diff), why: `The difference is right, but the faster one has the greater unit rate.` }, { value: say(y1 > kB ? A : B, naive), why: `The first row of the table is for ${xs[0]} ${unit}, not 1. Divide to find ${A}'s unit rate.` }, say(fast, round(diff + 2, 1)), say(slow, round(diff + 2, 1))],

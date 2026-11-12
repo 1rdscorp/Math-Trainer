@@ -2,6 +2,8 @@
 // (an accessible name is a flat string, so math needs a spoken form), and for live announcements.
 // Pure string work; no DOM.
 
+import { tidy } from './tidy.js';
+
 const PIECES = { 2: ['half', 'halves'], 3: ['third', 'thirds'], 4: ['fourth', 'fourths'], 5: ['fifth', 'fifths'], 6: ['sixth', 'sixths'], 7: ['seventh', 'sevenths'], 8: ['eighth', 'eighths'], 9: ['ninth', 'ninths'], 10: ['tenth', 'tenths'], 12: ['twelfth', 'twelfths'], 100: ['hundredth', 'hundredths'] };
 
 const WORDS = {
@@ -87,7 +89,7 @@ export function mathToWords(tex) {
 
 /** Turn a rich-text string (plain text with \( … \) math and **bold**) into plain words. */
 export function toSpeech(rich) {
-  return String(rich ?? '')
+  return tidy(String(rich ?? ''))
     .replace(/\\\((.+?)\\\)|\\\[(.+?)\\\]/gs, (_, a, b) => ` ${mathToWords(a ?? b)} `)
     .replace(/\*\*/g, '')
     .replace(/−(?=\d)/g, 'negative ')

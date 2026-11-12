@@ -169,7 +169,7 @@ function easyQuadricName(rng) {
     prompt: R`What kind of surface is \(${quadricTex(type, names, dens)}\)?`,
     correct: SURFACES[type],
     wrong: surfaceChoices(type),
-    solution: [REASON[type], `The surface is ${type === 'ell' || type === 'ep' ? 'an' : 'a'} ${SURFACES[type]}.`],
+    solution: [REASON[type], `The surface is ${/^[aeiou]/.test(SURFACES[type]) ? 'an' : 'a'} ${SURFACES[type]}.`],
     rule: 5,
     skill: 'quadric surfaces',
   });

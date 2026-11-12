@@ -59,8 +59,12 @@ function easySphereRead(rng) {
 }
 
 function easyCombination(rng) {
-  const u = rvec(rng, -5, 5);
-  const v = rvec(rng, -5, 5);
+  let u;
+  let v;
+  do {
+    u = rvec(rng, -5, 5);
+    v = rvec(rng, -5, 5);
+  } while (parallel(u, v));
   const a = rng.int(2, 4);
   const b = rng.pick([-3, -2, -1, 2, 3]);
   const ans = vadd(vscale(u, a), vscale(v, b));
@@ -73,6 +77,8 @@ function easyCombination(rng) {
       M(V(vadd(u, v))),
       M(V(vscale(vadd(u, v), a))),
       M(V(vadd(ans, [0, 1, -1]))),
+      M(V(vscale(u, a))),
+      M(V(vadd(ans, [1, 0, 0]))),
     ],
     solution: [
       R`Multiply each vector by its scalar: \(${a}\mathbf{u} = ${V(vscale(u, a))}\) and \(${b === -1 ? '-' : b}\mathbf{v} = ${V(vscale(v, b))}\).`,

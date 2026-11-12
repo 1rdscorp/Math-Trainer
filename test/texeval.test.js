@@ -151,3 +151,32 @@ test('terms() separates a coefficient from a symbol that starts with a digit; fr
   assert.deepEqual([2, 4, 13, 24, 30, 40, 64, 100, 300].map((d) => fractionWord(d)), ['halves', 'fourths', 'thirteenths', 'twenty-fourths', 'thirtieths', 'fortieths', 'sixty-fourths', 'hundredths', '300ths']);
   assert.equal(fractionWord(30, 1), 'thirtieth');
 });
+
+test('grammar safety net: one of a unit, an before a vowel sound, ordinal endings; formulas are left alone', async () => {
+  const { tidy } = await import('../public/js/core/tidy.js');
+  const { toSpeech } = await import('../public/js/core/speech-text.js');
+  const cases = [
+    [R`\(1\) liters`, R`\(1\) liter`],
+    [R`What is its velocity at \(t = 1\) seconds?`, R`What is its velocity at \(t = 1\) second?`],
+    ['How much drains during the first 1 minutes?', 'How much drains during the first 1 minute?'],
+    ['It is 1 feet and 1 inches long.', 'It is 1 foot and 1 inch long.'],
+    [R`about \(\approx 1\) liters`, R`about \(\approx 1\) liter`],
+    // not a bare 1
+    [R`The width is \(x + 1\) metres.`, R`The width is \(x + 1\) metres.`],
+    [R`The widths are \(2, 3, 4, 1\) minutes.`, R`The widths are \(2, 3, 4, 1\) minutes.`],
+    ['It takes 0.1 seconds, then 21 seconds, then x + 1 seconds.', 'It takes 0.1 seconds, then 21 seconds, then x + 1 seconds.'],
+    [R`\(n - 1\) steps`, R`\(n - 1\) steps`],
+    // a / an
+    ['Jada leaves a 18% tip.', 'Jada leaves an 18% tip.'],
+    [R`Jada leaves a \(18\%\) tip.`, R`Jada leaves an \(18\%\) tip.`],
+    ['a 15% tip, a 8,000 m run, a 110 m dash, a 11-sided shape', 'a 15% tip, an 8,000 m run, a 110 m dash, an 11-sided shape'],
+    ['The surface is a elliptic cone with a area of 5.', 'The surface is an elliptic cone with an area of 5.'],
+    ['A obtuse angle is more than 90 degrees.', 'An obtuse angle is more than 90 degrees.'],
+    ['a is negative, so the graph opens down. Plan A average cost is lower.', 'a is negative, so the graph opens down. Plan A average cost is lower.'],
+    // ordinals, outside formulas only
+    ['There are 5 values, so the middle one is the 3th.', 'There are 5 values, so the middle one is the 3rd.'],
+    [R`\(y = 2st\) is the 2th, 11st, 22th and 103th.`, R`\(y = 2st\) is the 2nd, 11th, 22nd and 103rd.`],
+  ];
+  for (const [before, after] of cases) assert.equal(tidy(before), after);
+  assert.equal(toSpeech(R`It takes \(1\) minutes.`), 'It takes 1 minute.');
+});

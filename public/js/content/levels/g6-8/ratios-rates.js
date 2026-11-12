@@ -289,6 +289,8 @@ function mediumPartOfWhole(rng) {
     ],
     rule: 0,
     skill: 'part to whole',
+    // The two groups together are the whole, so their fractions must add to 1.
+    check: () => (frac(parts, a + b).add(frac(otherParts, a + b)).eq(1) ? true : 'the two fractions do not make the whole'),
   });
 }
 
@@ -732,10 +734,10 @@ function challengeAverageSpeed(rng) {
 
 const RATE_CHANGES = [
   { from: 'inches per minute', to: 'feet per hour', up: 60, down: 12, values: [2, 3, 4, 5, 6, 8, 10, 12], facts: '1 hour = 60 minutes and 1 foot = 12 inches', mid: 'inches per hour', thing: 'A snail crawls' },
-  { from: 'feet per second', to: 'yards per minute', up: 60, down: 3, values: [2, 3, 4, 5, 6, 7, 8, 9], facts: '1 minute = 60 seconds and 1 yard = 3 feet', mid: 'feet per minute', thing: 'A dog runs' },
+  { from: 'feet per second', to: 'yards per minute', up: 60, down: 3, values: [2, 3, 4, 5, 6, 7, 8, 9], facts: '1 minute = 60 seconds and 1 yard = 3 feet', mid: 'feet per minute', thing: 'A remote-control car travels' },
   { from: 'meters per second', to: 'kilometers per hour', up: 3600, down: 1000, values: [5, 10, 15, 20, 25, 30], facts: '1 hour = 3,600 seconds and 1 kilometer = 1,000 meters', mid: 'meters per hour', thing: 'A train moves' },
-  { from: 'cups per minute', to: 'gallons per hour', up: 60, down: 16, values: [4, 8, 12, 16, 20, 24], facts: '1 hour = 60 minutes and 1 gallon = 16 cups', mid: 'cups per hour', thing: 'A tap drips' },
-  { from: 'ounces per day', to: 'pounds per week', up: 7, down: 16, values: [16, 32, 48, 64, 80], facts: '1 week = 7 days and 1 pound = 16 ounces', mid: 'ounces per week', thing: 'A puppy eats' },
+  { from: 'cups per minute', to: 'gallons per hour', up: 60, down: 16, values: [4, 8, 12, 16, 20, 24], facts: '1 hour = 60 minutes and 1 gallon = 16 cups', mid: 'cups per hour', thing: 'Water flows from a tap at' },
+  { from: 'ounces per day', to: 'pounds per week', up: 7, down: 16, values: [16, 32, 48, 64, 80], facts: '1 week = 7 days and 1 pound = 16 ounces', mid: 'ounces per week', thing: 'A large dog eats' },
   { from: 'centimeters per second', to: 'meters per minute', up: 60, down: 100, values: [5, 10, 15, 20, 25, 35, 40, 45], facts: '1 minute = 60 seconds and 1 meter = 100 centimeters', mid: 'centimeters per minute', thing: 'A toy car rolls' },
 ];
 

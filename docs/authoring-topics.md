@@ -219,9 +219,9 @@ users; `plot` requires it. Colours are `'a'` blue, `'b'` orange, `'c'` green, `'
 | type | fields |
 | --- | --- |
 | `numberLine` | `min`, `max`, `step?`, `labels?: [{ value, text }]`, `points?: [{ value, label?, open?, color? }]`, `jumps?: [{ from, to, label? }]`, `ray?: { from, dir: 'left'/'right', open? }` (or a list of rays, for "x < a or x > b"), `segment?: { from, to, openFrom?, openTo? }` |
-| `counters` | `groups: [n or { count, color? }]`, `crossed?` (how many of the last ones are crossed out), `frame?: true` for ten-frames. At most 120. |
+| `counters` | `groups: [n or { count, color? }]`, `crossed?` (how many of the last ones are crossed out), `frame?: true` for ten-frames, `perRow?` (counters per row, 10 by default; use it to show equal groups one row each). At most 120. |
 | `baseTen` | `value` (0–9999): thousands, hundreds, tens and ones blocks |
-| `array` | `rows`, `cols` (1–12), `style?: 'squares'`, `split?: { cols: k }` or `{ rows: k }`, `labels?: false` |
+| `array` | `rows`, `cols` (1–12), `style?: 'squares'`, `split?: { cols: k }`, `{ rows: k }` or both at once (the area picture for a fraction times a fraction), `labels?: false` |
 | `fractionBars` | `bars: [{ n, d, label?, color? }]` (up to 6 wholes) |
 | `barModel` | tape diagram: `rows: [{ label?, parts: [{ value, label?, shade? }], total? }]` (`shade: 'none'` for an empty part) |
 | `areaModel` | `rows: ['20', '3']`, `cols: ['10', '4']`, `cells?: [['200', '80'], ['30', '12']]` |
@@ -234,7 +234,7 @@ users; `plot` requires it. Colours are `'a'` blue, `'b'` orange, `'c'` green, `'
 | `clock` | `hour`, `minute` |
 | `barChart` | `bars: [{ label, value }]`, `yLabel?`, `xLabel?`, `step?` |
 | `dotPlot` | `values: [whole numbers]`, `label?` |
-| `table` | `headers?`, `rows: [[…]]`, `caption?`, `rowHeaders?`. Cells are rich text, so LaTeX is allowed here. |
+| `table` | `headers?`, `rows: [[…]]`, `caption?`, `rowHeaders?`. Cells are rich text, so LaTeX is allowed here. A cell may be `''` for a blank place. |
 
 A visual may also be an array of visuals. Use pictures where they carry the idea (ten-frames for
 making ten, number lines for negatives, tape diagrams for ratios, graphs for functions); skip them

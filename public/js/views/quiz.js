@@ -2,7 +2,7 @@
 // a visible tier ladder and a points bar that fills to 100.
 
 import { h, announce, focusOn, confetti, duration, fill } from '../ui/dom.js';
-import { rich, richEl, visual, stepsList } from '../ui/math.js';
+import { rich, richEl, visual, stepsList, fitChoices } from '../ui/math.js';
 import { ruleCard, guestNotice } from '../ui/components.js';
 import { speakButton, toSpeech } from '../ui/speech.js';
 import { tone } from '../ui/tone.js';
@@ -111,6 +111,7 @@ export function quizSection(ctx, { topic, level }) {
         ),
       ),
     );
+    fitChoices(group);
     const check = h('button', { type: 'submit', class: 'btn btn-primary btn-big' }, 'Check my answer');
     const feedback = h('div', { class: 'feedback' });
     const speak = canSpeak ? speakButton(() => [question.prompt, ...question.choices.map((c, i) => `${LETTERS[i]}. ${c}`)], 'Read the question aloud') : null;

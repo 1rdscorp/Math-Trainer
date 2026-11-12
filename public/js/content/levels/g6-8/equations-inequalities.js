@@ -1,4 +1,4 @@
-import { R, q, num, frac, Frac, linear, terms, paren, money, txt, person, round, checkRoots } from '../../lib/index.js';
+import { R, q, num, frac, Frac, lcm, linear, terms, paren, money, txt, person, round, checkRoots } from '../../lib/index.js';
 import { lineFor, clean, tape, unitFmt } from './_shared.js';
 
 const asX = (v) => R`\(x = ${num(v)}\)`;
@@ -163,12 +163,16 @@ function mediumRationalOneStep(rng) {
     const a = frac(rng.int(1, d1 - 1), d1);
     const x = frac(rng.int(1, d2 - 1), d2);
     const sum = x.add(a);
+    // The subtraction written out over the common denominator, leaving out any form that repeats.
+    const L = lcm(sum.d, a.d);
+    const [S, A] = [sum.n * (L / sum.d), a.n * (L / a.d)];
+    const chain = [R`${sum.mixedTex()} - ${a.tex()}`, R`\frac{${S}}{${L}} - \frac{${A}}{${L}}`, R`\frac{${S - A}}{${L}}`, x.tex()].filter((t, i, all) => i === 0 || t !== all[i - 1]);
     return q({
       prompt: R`Solve for \(x\): \(\;x + ${a.tex()} = ${sum.mixedTex()}\)`,
       correct: x,
       fmt: asX,
       wrong: [{ value: sum.add(a), why: R`To undo adding \(${a.tex()}\), subtract it from both sides.` }, { value: sum, why: R`That is the right side of the equation. Subtract \(${a.tex()}\) from it to find \(x\).` }, x.add(frac(1, x.d)), x.add(1)],
-      solution: [R`Subtract \(${a.tex()}\) from both sides: \(x = ${sum.mixedTex()} - ${a.tex()}\).`, R`Use a common denominator and subtract: \(x = ${x.tex()}\).`, R`Check: \(${x.tex()} + ${a.tex()} = ${sum.mixedTex()}\). ✓`],
+      solution: [R`Subtract \(${a.tex()}\) from both sides: \(x = ${sum.mixedTex()} - ${a.tex()}\).`, R`Subtract over the common denominator \(${L}\): \(${chain.join(' = ')}\). So \(x = ${x.tex()}\).`, R`Check: \(${x.tex()} + ${a.tex()} = ${sum.mixedTex()}\). ✓`],
       rule: 1,
       skill: 'equations with fractions',
       check: solves((t) => t + a.value - sum.value, x),

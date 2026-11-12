@@ -72,8 +72,8 @@ function easyAreaStory(rng) {
   const tri = rng.bool();
   const area = tri ? (b * h) / 2 : b * h;
   const [text, unit] = tri
-    ? rng.pick([[`A triangular sail has a base of ${b} feet and a height of ${h} feet. One of its other sides is ${slant} feet long. How much cloth is in the sail?`, 'ft'], [`A triangular flower bed has a base of ${b} meters and a height of ${h} meters. What is its area?`, 'm'], [`A triangular road sign has a base of ${b} inches and a height of ${h} inches. What is the area of the sign?`, 'in']])
-    : rng.pick([[`A parking space is a parallelogram with a base of ${b} feet and a height of ${h} feet. Its slanted sides are ${slant} feet long. What is the area of the space?`, 'ft'], [`A floor tile is a parallelogram with a base of ${b} centimeters and a height of ${h} centimeters. What is the area of the tile?`, 'cm'], [`A solar panel is a parallelogram with a base of ${b} meters and a height of ${h} meters. What is its area?`, 'm']]);
+    ? rng.pick([[`A triangular sail has a base of ${b} feet and a height of ${h} feet. One of its other sides is ${slant} feet long. How much cloth is in the sail?`, 'ft'], [`A triangular flower bed has a base of ${b} meters and a height of ${h} meters. One of its other sides is ${slant} meters long. What is its area?`, 'm'], [`A triangular road sign has a base of ${b} inches and a height of ${h} inches. One of its other sides is ${slant} inches long. What is the area of the sign?`, 'in']])
+    : rng.pick([[`A parking space is a parallelogram with a base of ${b} feet and a height of ${h} feet. Its slanted sides are ${slant} feet long. What is the area of the space?`, 'ft'], [`A floor tile is a parallelogram with a base of ${b} centimeters and a height of ${h} centimeters. Its slanted sides are ${slant} centimeters long. What is the area of the tile?`, 'cm'], [`A solar panel is a parallelogram with a base of ${b} meters and a height of ${h} meters. Its slanted sides are ${slant} meters long. What is its area?`, 'm']]);
   return q({
     prompt: text,
     correct: area,
@@ -165,14 +165,15 @@ function mediumFractionVolume(rng) {
   const unit = 'ft';
   const whole = (f) => Math.floor(f.value);
   const partwise = frac(whole(l) * whole(w) * h.n).add(l.sub(whole(l)).mul(w.sub(whole(w))));
-  const thing = rng.pick(['planter box', 'fish tank', 'storage chest', 'sandbox']);
+  const thing = rng.pick(['shipping crate', 'water tank', 'storage locker', 'packing crate']);
+  const improper = l.eq(w) ? R`Write the mixed number as an improper fraction: \(${l.mixedTex()} = ${l.tex()}\).` : R`Write the mixed numbers as improper fractions: \(${l.mixedTex()} = ${l.tex()}\) and \(${w.mixedTex()} = ${w.tex()}\).`;
   return q({
     prompt: R`A ${thing} is \(${l.mixedTex()}\) ${unit} long, \(${w.mixedTex()}\) ${unit} wide and \(${h.n}\) ${unit} high. What is its volume?`,
     correct: v,
     fmt: (x) => `${mixed(x)} ${unit}³`,
     wrong: [{ value: partwise, why: 'Mixed numbers cannot be multiplied part by part. Change them to improper fractions first.' }, { value: l.mul(w), why: `That is the area of the bottom. Multiply by the height, ${h.n}, as well.` }, { value: l.add(w).add(h), why: 'Volume multiplies the three edges. Adding them gives a length.' }, v.add(frac(1, 2))],
     solution: [
-      R`Volume \(= \text{length} \times \text{width} \times \text{height}\). Write the mixed numbers as improper fractions: \(${l.mixedTex()} = ${l.tex()}\) and \(${w.mixedTex()} = ${w.tex()}\).`,
+      R`Volume \(= \text{length} \times \text{width} \times \text{height}\). ${improper}`,
       R`\(${l.tex()} \times ${w.tex()} = ${l.mul(w).tex()}\), the area of the bottom.`,
       R`\(${l.mul(w).tex()} \times ${h.n} = ${v.tex()}${v.isInt() ? '' : ` = ${v.mixedTex()}`}\). The volume is \(${v.mixedTex()}\) ${unit}³.`,
     ],

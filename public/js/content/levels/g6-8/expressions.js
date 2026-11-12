@@ -41,6 +41,7 @@ function easyExponent(rng) {
       m(`${a + 1}^{${n}}`),
     ],
     solution: [R`Count the factors: \(${a}\) is used ${n} times.`, R`Write the repeated factor as the base and the count as the exponent: \(${a}^{${n}}\).`],
+    check: () => (Array(n).fill(a).reduce((p, f) => p * f, 1) === a ** n ? true : 'power does not match the product'),
     rule: 0,
     skill: 'exponents',
   });
@@ -422,7 +423,7 @@ function hardPerimeter(rng) {
   const d = rng.nonzero(-4, 9);
   const [len, wid] = [linear(a, b), linear(c, d)];
   const plain = (s) => s.replace(/-/g, '−');
-  const thing = rng.pick(['garden', 'picture frame', 'playing field', 'tabletop', 'patio']);
+  const thing = rng.pick(['garden', 'swimming pool', 'playing field', 'parking lot', 'patio']);
   return q({
     prompt: R`A rectangular ${thing} has length \(${len}\) and width \(${wid}\), both in meters. Which expression gives its perimeter?`,
     visual: { type: 'polygon', points: [[0, 0], [5, 0], [5, 3], [0, 3]], sides: [plain(len), plain(wid), '', ''], right: [0, 1, 2, 3], alt: `A rectangle with length ${plain(len)} and width ${plain(wid)}.` },

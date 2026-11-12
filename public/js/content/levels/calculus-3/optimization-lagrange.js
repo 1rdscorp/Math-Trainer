@@ -388,7 +388,7 @@ function challengeSaddleK(rng) {
   const saddle = rng.bool();
   const f = terms([[a, 'x^{2}'], [1, 'kxy'], [c, 'y^{2}']]);
   return q({
-    prompt: R`For which values of \(k\) does \(f(x, y) = ${f}\) have a ${saddle ? 'saddle point' : 'local minimum'} at the origin, according to the second derivative test?`,
+    prompt: R`Find all values of \(k\) for which \(f(x, y) = ${f}\) has a ${saddle ? 'saddle point' : 'local minimum'} at the origin, according to the second derivative test.`,
     correct: M(saddle ? `|k| > ${s}` : `|k| < ${s}`),
     wrong: [
       { value: M(saddle ? `|k| < ${s}` : `|k| > ${s}`), why: R`\(D = ${4 * a * c} - k^{2}\). A saddle needs \(D < 0\); a minimum needs \(D > 0\).` },

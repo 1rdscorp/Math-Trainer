@@ -1,7 +1,7 @@
 // Placement quiz: a short set of questions that suggests where to start.
 
 import { h, announce, focusOn, fill } from '../ui/dom.js';
-import { rich, visual } from '../ui/math.js';
+import { rich, visual, fitChoices } from '../ui/math.js';
 import { loading } from '../ui/components.js';
 import { speakButton, toSpeech } from '../ui/speech.js';
 import { LEVELS, findLevel, loadTopic, topicList } from '../content/index.js';
@@ -95,6 +95,7 @@ export default function placementView(ctx) {
       { class: 'choices', role: 'radiogroup', 'aria-labelledby': 'place-prompt' },
       question.choices.map((choice, i) => h('div', { class: 'choice' }, h('input', { type: 'radio', name: 'answer', id: `choice-${i}`, value: String(i), 'aria-label': `${LETTERS[i]}: ${toSpeech(choice)}` }), h('label', { for: `choice-${i}` }, h('span', { class: 'letter', 'aria-hidden': 'true' }, LETTERS[i]), h('span', null, rich(choice)), h('span', { class: 'mark' })))),
     );
+    fitChoices(group);
 
     const settle = (correct, skipped) => {
       locked = true;
