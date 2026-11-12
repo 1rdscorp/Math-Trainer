@@ -38,6 +38,9 @@ test('choices that are equal in value are recognised', () => {
     [R`\(2e^{x} + 2xe^{x}\)`, R`\(2xe^{x} + 2e^{x}\)`],
     [R`\(2^{4}\)`, R`\(4^{2}\)`],
     [R`\(\langle 1, 2, 3 \rangle\)`, R`\(\langle 1, \frac{4}{2}, 3 \rangle\)`],
+    ['$12', '$12.00'],
+    ['1,200 miles', '1200 miles'],
+    ['45%', '45.0%'],
   ];
   for (const [a, b] of pairs) assert.equal(same(a, b), true, `${a}  should equal  ${b}`);
 });
@@ -59,6 +62,10 @@ test('choices that differ are not confused, and nothing is guessed', () => {
     [R`\(7 \times 3 = 21\)`, R`\(7 + 14 = 21\)`],
     // A list separated by commas is ordered.
     [R`\(-1,\; -0.75,\; \frac{1}{2},\; 3\)`, R`\(-0.75,\; -1,\; \frac{1}{2},\; 3\)`],
+    ['$12', '$13'],
+    ['$12', '12%'],
+    ['12 miles', '12 hours'],
+    ['3 points', '-3 points'],
   ];
   for (const [a, b] of pairs) assert.equal(same(a, b), false, `${a}  should differ from  ${b}`);
   for (const odd of [R`\(\int x\,dx\)`, R`\(\overline{AB}\)`, 'Converges absolutely', R`\(\lim_{x \to 2} f(x)\)`, R`\(1.2.3\)`]) assert.equal(compileChoice(odd), null, odd);
@@ -166,6 +173,9 @@ test('grammar safety net: one of a unit, an before a vowel sound, ordinal ending
     [R`The widths are \(2, 3, 4, 1\) minutes.`, R`The widths are \(2, 3, 4, 1\) minutes.`],
     ['It takes 0.1 seconds, then 21 seconds, then x + 1 seconds.', 'It takes 0.1 seconds, then 21 seconds, then x + 1 seconds.'],
     [R`\(n - 1\) steps`, R`\(n - 1\) steps`],
+    ['The points are 9 and 1 units away from zero.', 'The points are 9 and 1 units away from zero.'],
+    [R`The points are \(9\) and \(1\) units away.`, R`The points are \(9\) and \(1\) units away.`],
+    ['Uma has 3 apples and 1 dollars.', 'Uma has 3 apples and 1 dollar.'],
     // a / an
     ['Jada leaves a 18% tip.', 'Jada leaves an 18% tip.'],
     [R`Jada leaves a \(18\%\) tip.`, R`Jada leaves an \(18\%\) tip.`],

@@ -48,8 +48,10 @@ export function tidy(text) {
   if (typeof text !== 'string' || !text) return text;
   let out = text;
   if (out.includes('1')) {
-    out = out.replace(UNIT_AFTER_MATH, (_, before, close, gap, word) => `${before}1${close}${gap}${SINGULAR[word]}`);
-    out = out.replace(UNIT_IN_TEXT, (_, before, word) => `${before}1 ${SINGULAR[word]}`);
+    // "9 and 1 units away" and "from 5 to 1 units": the unit belongs to both numbers, so it stays plural.
+    const shared = (str, at) => /(?:\d|\\\))\s+(?:and|or|to)\s+(?:\\\(\s*)?$/.test(str.slice(Math.max(0, at - 24), at));
+    out = out.replace(UNIT_AFTER_MATH, (all, before, close, gap, word, at, str) => (shared(str, at + (before.startsWith('\\(') ? 0 : before.length)) ? all : `${before}1${close}${gap}${SINGULAR[word]}`));
+    out = out.replace(UNIT_IN_TEXT, (all, before, word, at, str) => (shared(str, at + before.length) ? all : `${before}1 ${SINGULAR[word]}`));
   }
   if (/\ba /i.test(out)) {
     out = out.replace(A_BEFORE_NUMBER, (all, before, open = '', digits) => (vowelSound(digits) ? `${before}an ${open}${digits}` : all));

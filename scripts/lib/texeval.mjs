@@ -363,7 +363,14 @@ export function compileChoice(choice) {
     for (const v of ps.vars) vars.add(v);
   }
   pushText(choice.slice(last));
-  if (!items.some((it) => it.f)) return null;
+  if (!items.some((it) => it.f)) {
+    // A plain-text amount with no formula: "$12.50", "45%", "1,200 miles", "-3 points".
+    const plain = /^\s*([-−]?)\s*(\$?)\s*(\d[\d,]*(?:\.\d+)?)\s*(%?)\s*([^\d]*)$/.exec(choice.replace(/\*\*/g, ''));
+    if (!plain) return null;
+    const v = (plain[1] ? -1 : 1) * Number(plain[3].replace(/,/g, ''));
+    const unit = `${plain[2]}${plain[4]} ${plain[5].replace(/\s+/g, ' ').trim().toLowerCase()}`.trim();
+    return { items: [{ f: () => v }, ...(unit ? [{ str: unit }] : [])], vars: new Set() };
+  }
   const relation = items.some((it) => !it.f && ['=', '<', '>', '≤', '≥', '≠', '≈'].includes(it.str));
   if (relation && vars.size === 0) return null;
   return { items, vars };
