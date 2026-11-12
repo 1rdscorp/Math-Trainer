@@ -20,6 +20,15 @@ test('every level has topics, with unique ids', () => {
   }
 });
 
+test('each topic lives in a file named after its id (the app loads topics one file at a time)', async () => {
+  for (const level of LEVELS) {
+    for (const topic of loaded.get(level.id)) {
+      const mod = await import(`../public/js/content/levels/${level.id}/${topic.id}.js`);
+      assert.equal(mod.default, topic, `${level.id}/${topic.id}.js exports that topic`);
+    }
+  }
+});
+
 test('the catalogue matches the topic files (run `npm run catalog` after changing topics)', async () => {
   assert.deepEqual(CATALOG, await buildCatalog());
 });

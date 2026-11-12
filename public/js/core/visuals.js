@@ -79,7 +79,8 @@ function fmt(v) {
 const FILLS = ['viz-fill-a', 'viz-fill-b', 'viz-fill-c', 'viz-fill-d'];
 const LINES = ['viz-line-a', 'viz-line-b', 'viz-line-c', 'viz-line-d'];
 const colorIndex = (c, fallback = 0) => {
-  const i = typeof c === 'number' ? c : 'abcd'.indexOf(c ?? '');
+  if (c == null || c === '') return fallback;
+  const i = typeof c === 'number' ? c : 'abcd'.indexOf(c);
   return i >= 0 && i < 4 ? i : fallback;
 };
 
@@ -97,9 +98,25 @@ function numberLine(s) {
   const x0 = 30;
   const x1 = 330;
   const labelsBelow = jumps.length > 0;
-  const yLine = jumps.length ? 62 : points.some((p) => p.label != null) ? 40 : 24;
-  const H = yLine + (labelsBelow && points.some((p) => p.label != null) ? 56 : 38);
   const X = (v) => x0 + ((v - min) / (max - min)) * (x1 - x0);
+  const textWidth = (str, per = 7.4) => String(str).length * per + 4;
+
+  // Lay out the jump labels first: a label that would touch its neighbour is lifted a row.
+  const jumpLayout = jumps.map((j) => {
+    const xa = X(j.from);
+    const xb = X(j.to);
+    return { xa, xb, xm: (xa + xb) / 2, lift: Math.min(40, 16 + Math.abs(xb - xa) * 0.3), row: 0 };
+  });
+  let rows = 1;
+  jumpLayout.forEach((j, i) => {
+    if (jumps[i].label == null) return;
+    const half = textWidth(jumps[i].label) / 2;
+    const clash = (row) => jumpLayout.slice(0, i).some((o, k) => jumps[k].label != null && o.row === row && Math.abs(o.xm - j.xm) < half + textWidth(jumps[k].label) / 2);
+    while (clash(j.row) && j.row < 3) j.row += 1;
+    rows = Math.max(rows, j.row + 1);
+  });
+  const yLine = jumps.length ? 62 + (rows - 1) * 15 : points.some((p) => p.label != null) ? 40 : 24;
+  const H = yLine + (labelsBelow && points.some((p) => p.label != null) ? 56 : 38);
   const out = [];
 
   out.push(line(12, yLine, 348, yLine, 'viz-axis'), arrowHead(8, yLine, Math.PI), arrowHead(352, yLine, 0));
@@ -111,7 +128,14 @@ function numberLine(s) {
     out.push(line(X(v), yLine - 6, X(v), yLine + 6, 'viz-axis'));
     if (!custom && i % every === 0) out.push(text(X(v), yLine + 20, fmt(v), 'viz-text-sm'));
   }
-  for (const l of custom ?? []) out.push(text(X(l.value), yLine + 20, l.text, 'viz-text-sm'));
+  // Custom tick labels: skip any that would run into the one before it.
+  let lastRight = -Infinity;
+  for (const l of [...(custom ?? [])].sort((a, b) => a.value - b.value)) {
+    const half = textWidth(l.text, 6.6) / 2;
+    if (X(l.value) - half < lastRight + 3) continue;
+    lastRight = X(l.value) + half;
+    out.push(text(X(l.value), yLine + 20, l.text, 'viz-text-sm'));
+  }
 
   if (s.segment) {
     const { from, to, openFrom, openTo } = s.segment;
@@ -127,15 +151,12 @@ function numberLine(s) {
   }
 
   jumps.forEach((j, i) => {
-    const xa = X(j.from);
-    const xb = X(j.to);
-    const lift = Math.min(40, 16 + Math.abs(xb - xa) * 0.3);
+    const { xa, xb, xm, lift, row } = jumpLayout[i];
     const yBase = yLine - 9;
-    const xm = (xa + xb) / 2;
     const yc = yBase - lift;
     out.push(path(`M ${n(xa)} ${n(yBase)} Q ${n(xm)} ${n(yc)} ${n(xb)} ${n(yBase)}`, `${LINES[i % 2 ? 1 : 0]} viz-thin`));
     out.push(arrowHead(xb, yBase, Math.atan2(yBase - yc, xb - xm), i % 2 ? 'viz-dot-b' : 'viz-dot-a', 7));
-    if (j.label != null) out.push(text(xm, yBase - lift / 2 - 12, j.label, 'viz-text-sm viz-text-b'));
+    if (j.label != null) out.push(text(xm, yBase - lift / 2 - 12 - row * 15, j.label, 'viz-text-sm viz-text-b'));
   });
 
   for (const p of points) {

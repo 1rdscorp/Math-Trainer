@@ -15,6 +15,7 @@
 
 import http from 'node:http';
 import crypto from 'node:crypto';
+import zlib from 'node:zlib';
 import path from 'node:path';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, writeFile, rename, unlink, readdir, stat } from 'node:fs/promises';
@@ -23,6 +24,8 @@ import { promisify } from 'node:util';
 import { normalizeProgress } from '../public/js/core/progress.js';
 
 const scrypt = promisify(crypto.scrypt);
+const gzip = promisify(zlib.gzip);
+const COMPRESSIBLE = new Set(['.html', '.js', '.mjs', '.css', '.json', '.webmanifest', '.svg', '.txt']);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 const MIME = {
@@ -112,6 +115,7 @@ export function createApp(options = {}) {
   const ipFails = createLimiter(options.ipLimit ?? 60, 10 * 60 * 1000);
   const signupLimiter = createLimiter(options.signupLimit ?? 40, 60 * 60 * 1000);
 
+  const gzipCache = new Map(); // file path → { etag, body }
   let sessions = new Map(); // sha256(token) → { key, expires }
   let ready = null;
   const writeQueues = new Map();
@@ -422,17 +426,30 @@ export function createApp(options = {}) {
     }
     if (!info?.isFile()) throw new HttpError(404, 'not-found', 'Not found.');
 
+    const ext = path.extname(file).toLowerCase();
     const etag = `"${info.size.toString(16)}-${Math.floor(info.mtimeMs).toString(16)}"`;
     const vendor = file.startsWith(path.join(publicDir, 'vendor') + path.sep);
     const headers = {
       ...SECURITY_HEADERS,
-      'Content-Type': MIME[path.extname(file).toLowerCase()] ?? 'application/octet-stream',
+      'Content-Type': MIME[ext] ?? 'application/octet-stream',
       'Cache-Control': vendor ? 'public, max-age=604800' : 'no-cache',
       ETag: etag,
+      Vary: 'Accept-Encoding',
     };
     if (req.headers['if-none-match'] === etag) {
       res.writeHead(304, headers);
       return res.end();
+    }
+    // Text assets are sent gzipped (lesson files shrink to about a fifth of their size).
+    if (COMPRESSIBLE.has(ext) && info.size > 1024 && /\bgzip\b/.test(String(req.headers['accept-encoding'] ?? ''))) {
+      let hit = gzipCache.get(file);
+      if (!hit || hit.etag !== etag) {
+        hit = { etag, body: await gzip(await readFile(file)) };
+        if (gzipCache.size > 600) gzipCache.clear();
+        gzipCache.set(file, hit);
+      }
+      res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', 'Content-Length': hit.body.length });
+      return res.end(req.method === 'HEAD' ? undefined : hit.body);
     }
     headers['Content-Length'] = info.size;
     res.writeHead(200, headers);

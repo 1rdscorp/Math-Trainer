@@ -4,7 +4,7 @@ import { h, announce, focusOn, fill } from '../ui/dom.js';
 import { rich, visual } from '../ui/math.js';
 import { loading } from '../ui/components.js';
 import { speakButton, toSpeech } from '../ui/speech.js';
-import { LEVELS, findLevel, loadLevel, topicList } from '../content/index.js';
+import { LEVELS, findLevel, loadTopic, topicList } from '../content/index.js';
 import { TIERS, nextQuestion } from '../core/engine.js';
 import { makeRng } from '../core/rng.js';
 import { RUNGS, STARTS, startPlacement, advance, placementResult } from '../core/placement.js';
@@ -52,18 +52,19 @@ export default function placementView(ctx) {
   }
 
   async function makeQuestion(rung) {
-    const topics = await loadLevel(rung.level);
-    const sources = rung.sources.map(([topicId, tier]) => ({ topic: topics.find((t) => t.id === topicId), tier })).filter((s) => s.topic);
+    const known = topicList(rung.level);
+    const sources = rung.sources.filter(([topicId]) => known.some((t) => t.id === topicId));
     // Prefer a topic not used yet on this rung, so the two questions test different skills.
-    const fresh = sources.filter((s) => !usedTopics.includes(s.topic.id));
+    const fresh = sources.filter(([topicId]) => !usedTopics.includes(topicId));
     const pool = fresh.length ? fresh : sources;
     for (let attempt = 0; attempt < 6; attempt++) {
-      const src = pool[Math.floor(rng.next() * pool.length)];
+      const [topicId, tier] = pool[Math.floor(rng.next() * pool.length)];
       try {
-        const state = { tier: TIERS.findIndex((t) => t.id === src.tier), asked: [], lastGen: -1, answered: 0, review: null };
-        const { question } = nextQuestion(src.topic, state, rng);
-        usedTopics.push(src.topic.id);
-        return { question, topic: src.topic };
+        const topic = await loadTopic(rung.level, topicId);
+        const state = { tier: TIERS.findIndex((t) => t.id === tier), asked: [], lastGen: -1, answered: 0, review: null };
+        const { question } = nextQuestion(topic, state, rng);
+        usedTopics.push(topicId);
+        return { question, topic };
       } catch (err) {
         console.warn(err);
       }

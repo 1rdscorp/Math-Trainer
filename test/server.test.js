@@ -213,6 +213,14 @@ test('static files: served with security headers, cached with ETags, no escaping
   assert.match(res.headers.get('cache-control'), /max-age/);
   await res.arrayBuffer();
 
+  // Text is compressed when the browser accepts it, and still correct after decompression.
+  res = await fetch(`${base}/css/styles.css`, { headers: { 'Accept-Encoding': 'gzip' } });
+  assert.equal(res.headers.get('content-encoding'), 'gzip');
+  assert.match(await res.text(), /Math Trainer — styles/);
+  res = await fetch(`${base}/vendor/katex/fonts/KaTeX_Main-Regular.woff2`, { headers: { 'Accept-Encoding': 'gzip' } });
+  assert.equal(res.headers.get('content-encoding'), null, 'fonts are already compressed');
+  await res.arrayBuffer();
+
   for (const bad of ['/..%2fpackage.json', '/%2e%2e/%2e%2e/etc/passwd', '/js/../../server/server.js', '/nope.html']) {
     res = await fetch(base + bad);
     assert.ok([403, 404].includes(res.status), `${bad} → ${res.status}`);

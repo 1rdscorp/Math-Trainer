@@ -138,3 +138,26 @@ test('numeric checks accept right answers and reject wrong ones', () => {
   assert.ok(Math.abs(integrate2((x, y) => x * y, 0, 1, 0, (x) => x) - 1 / 8) < 1e-6);
   assert.ok(Math.abs(numPartial((x, y) => x * x * y, [2, 3], 0) - 12) < 1e-6);
 });
+
+test('pictures: groups get different colours by default, and bad specs throw instead of drawing nonsense', async () => {
+  const { renderVisual, vnodeToString, VISUAL_TYPES } = await import('../public/js/core/visuals.js');
+  const svg = (spec) => vnodeToString(renderVisual(spec).vnode);
+  const counters = svg({ type: 'counters', groups: [8, 5], frame: true });
+  assert.equal((counters.match(/viz-fill-a/g) ?? []).length, 8);
+  assert.equal((counters.match(/viz-fill-b/g) ?? []).length, 5);
+  assert.match(svg({ type: 'counters', groups: [{ count: 3, color: 'c' }] }), /viz-fill-c/);
+  const bars = svg({ type: 'fractionBars', bars: [{ n: 1, d: 2 }, { n: 2, d: 4 }] });
+  assert.ok(bars.includes('viz-fill-a') && bars.includes('viz-fill-b'));
+  const plot = svg({ type: 'plot', x: [-2, 2], y: [-2, 2], alt: 'two lines', fns: [{ f: (x) => x }, { f: (x) => -x }] });
+  assert.ok(plot.includes('viz-line-a') && plot.includes('viz-line-b'));
+  assert.ok(VISUAL_TYPES.length >= 17);
+  for (const bad of [{ type: 'nope' }, { type: 'numberLine', min: 5, max: 5 }, { type: 'fractionBars', bars: [{ n: 1, d: 0 }] }, { type: 'array', rows: 0, cols: 3 }, { type: 'plot', x: [0, 0], y: [0, 1] }, { type: 'baseTen', value: -1 }, { type: 'polygon', points: [[0, 0], [1, NaN], [2, 2]] }, null]) {
+    assert.throws(() => renderVisual(bad));
+  }
+  // Every picture carries a text alternative and never leaks a bad number into the markup.
+  for (const spec of [{ type: 'clock', hour: 3, minute: 25 }, { type: 'solid', kind: 'cone', labels: { r: '3', h: '4' } }, { type: 'transversal', labels: { 1: '65°' } }, { type: 'circle', radius: 'r = 5' }, { type: 'barModel', rows: [{ parts: [{ value: 3 }, { value: 4 }] }] }]) {
+    const r = renderVisual(spec);
+    assert.ok(r.alt.length > 5);
+    assert.ok(!/NaN|undefined|Infinity/.test(vnodeToString(r.vnode)));
+  }
+});
