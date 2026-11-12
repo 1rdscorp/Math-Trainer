@@ -6,5 +6,7 @@ import linearFunctions from './linear-functions.js';
 import systems from './systems.js';
 import exponentsExponential from './exponents-exponential.js';
 import polynomials from './polynomials.js';
+import factoring from './factoring.js';
+import quadraticEquations from './quadratic-equations.js';
 
-export default [linearEquations, inequalities, functions, linearFunctions, systems, exponentsExponential, polynomials];
+export default [linearEquations, inequalities, functions, linearFunctions, systems, exponentsExponential, polynomials, factoring, quadraticEquations];

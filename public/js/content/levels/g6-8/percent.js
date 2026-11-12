@@ -1,10 +1,12 @@
 import { R, q, num, frac, gcd, money, txt, person, round, approx } from '../../lib/index.js';
-import { pct, usd, clean } from './_shared.js';
+import { pct, usd, clean, unitFmt } from './_shared.js';
 
 // A percent for use inside math mode: P(25) → "25\%".
 const P = (x) => R`${num(x)}\%`;
 // A percent as a decimal, for math mode: D(35) → "0.35".
 const D = (p) => num(p / 100);
+// A dollar amount for math mode with a thousands separator, to match "$1,200" in the prompt.
+const dollars = (x) => (Number.isInteger(round(x, 2)) ? num(round(x, 2), { commas: true }) : num(x, { fixed: 2, commas: true }));
 
 /** One bar cut into equal boxes, the first `shaded` of them coloured. */
 function percentBar(boxes, shaded, total) {
@@ -146,7 +148,8 @@ function easyStory(rng) {
       N > p && N - p !== ans ? { value: N - p, why: `${p}% is not ${p} things. It is ${p} out of every 100.` } : null,
       { value: p, why: `${p} is the percent, not the count. Find ${p}% of ${N}.` },
       ans + 10,
-      ans / 2,
+      Number.isInteger(ans / 2) ? ans / 2 : null,
+      ans + 5,
     ],
     solution: [
       R`"\(${P(p)}\) of ${N}" means multiply: write the percent as a decimal, \(${P(p)} = ${D(p)}\).`,
@@ -225,16 +228,17 @@ function mediumFindWhole(rng) {
     const a = (p * b) / 100;
     if (!Number.isInteger(a)) continue;
     const story = p < 100 && rng.bool(0.5);
-    const text = story
+    const s = story
       ? rng.pick([
-          `${a} students in a school play are sixth graders. That is ${p}% of the cast. How many students are in the cast?`,
-          `A down payment of ${money(a)} is ${p}% of the price of a used scooter. What is the price of the scooter?`,
-          `${person(rng)} has read ${a} pages of a book, which is ${p}% of the book. How many pages does the book have?`,
+          { text: `${a} students in a school play are sixth graders. That is ${p}% of the cast. How many students are in the cast?` },
+          { text: `A down payment of ${money(a)} is ${p}% of the price of a used scooter. What is the price of the scooter?`, fmt: money },
+          { text: `${person(rng)} has read ${a} pages of a book, which is ${p}% of the book. How many pages does the book have?` },
         ])
-      : R`\(${a}\) is \(${P(p)}\) of what number?`;
+      : { text: R`\(${a}\) is \(${P(p)}\) of what number?` };
     return q({
-      prompt: text,
+      prompt: s.text,
       correct: b,
+      fmt: s.fmt,
       wrong: [
         { value: clean((a * p) / 100), why: R`That is \(${P(p)}\) of \(${a}\). Here \(${a}\) is already the part, so divide by the percent to get the whole.` },
         { value: clean(a / p), why: R`Divide by the percent as a decimal, \(${D(p)}\), not by \(${p}\).` },
@@ -400,7 +404,7 @@ function hardSimpleInterest(rng) {
   const interest = round(yearly * t, 2);
   const name = person(rng);
   const lead = `${name} puts ${money(principal)} in an account that pays ${r}% simple interest each year.`;
-  const work = [R`Use \(I = Prt\) with the rate as a decimal: \(${P(r)} = ${D(r)}\).`, R`\(I = ${num(principal)} \times ${D(r)} \times ${t} = ${usd(interest)}\). The interest is ${money(interest)}.`];
+  const work = [R`Use \(I = Prt\) with the rate as a decimal: \(${P(r)} = ${D(r)}\).`, R`\(I = ${dollars(principal)} \times ${D(r)} \times ${t} = ${dollars(interest)}\). The interest is ${money(interest)}.`];
   const ok = () => (approx((interest / principal / t) * 100, r) ? true : 'interest is wrong');
   if (rng.bool()) {
     return q({
@@ -429,7 +433,7 @@ function hardSimpleInterest(rng) {
       round(principal + interest * 10, 2),
       round(principal + interest + yearly, 2),
     ],
-    solution: [...work, R`Total: \(${num(principal)} + ${usd(interest)} = ${usd(principal + interest)}\), or ${money(principal + interest)}.`],
+    solution: [...work, R`Total: \(${dollars(principal)} + ${dollars(interest)} = ${dollars(principal + interest)}\), or ${money(principal + interest)}.`],
     rule: 6,
     skill: 'simple interest',
     check: ok,
@@ -458,7 +462,7 @@ function hardFindOriginal(rng) {
       fmt: money,
       wrong: [
         { value: round(result * (1 - (sign * p) / 100), 2), why: `The ${p}% was a percent of the original amount, not of ${money(result)}. Undoing it needs a division.` },
-        { value: round(result - sign * p, 2), why: `${p}% is not ${money(p)}. It is a percent of the original amount.` },
+        result - sign * p > 0 ? { value: round(result - sign * p, 2), why: `${p}% is not ${money(p)}. It is a percent of the original amount.` } : null,
         { value: round((result * p) / 100, 2), why: `That is ${p}% of ${money(result)}. The question asks for the amount before the change.` },
         orig + 10,
       ],
@@ -484,9 +488,10 @@ function challengePercentError(rng) {
     if (!Number.isInteger(diff)) continue;
     const guess = actual + rng.sign() * diff;
     const name = person(rng);
-    const [thing, unit] = rng.pick([['the length of a table', 'centimeters'], ['the mass of a rock', 'grams'], ['the height of a door', 'centimeters'], ['the time for a bus trip', 'minutes'], ['the number of beans in a jar', 'beans'], ['the distance to the park', 'meters']]);
+    const [thing, unit, counted] = rng.pick([['the length of a table', 'centimeters'], ['the mass of a rock', 'grams'], ['the width of a window', 'centimeters'], ['the time for a bus trip', 'minutes'], ['the number of beans in a jar', 'beans', true], ['the distance to the park', 'meters']]);
+    const u = counted ? '' : ` ${unit}`;
     return q({
-      prompt: `${name} estimates that ${thing} is ${guess} ${unit}. The actual value is ${actual} ${unit}. What is the percent error?`,
+      prompt: `${name} estimates that ${thing} is ${guess}${u}. The actual value is ${actual}${u}. What is the percent error?`,
       correct: p,
       fmt: pct,
       wrong: [
@@ -563,8 +568,8 @@ function challengeInterestSolve(rng) {
       ],
       solution: [
         R`Interest for one year: \(${interest} \div ${t} = ${yearly}\).`,
-        R`Rate = yearly interest ÷ starting amount: \(${yearly} \div ${num(principal)} = ${num(yearly / principal)}\).`,
-        R`As a percent: \(${P(r)}\) per year. Check with \(I = Prt\): \(${num(principal)} \times ${D(r)} \times ${t} = ${interest}\). ✓`,
+        R`Rate = yearly interest ÷ starting amount: \(${yearly} \div ${dollars(principal)} = ${num(yearly / principal)}\).`,
+        R`As a percent: \(${P(r)}\) per year. Check with \(I = Prt\): \(${dollars(principal)} \times ${D(r)} \times ${t} = ${interest}\). ✓`,
       ],
       rule: 6,
       skill: 'simple interest',
@@ -574,7 +579,7 @@ function challengeInterestSolve(rng) {
   return q({
     prompt: `${name} puts ${money(principal)} in an account that pays ${r}% simple interest each year. After how many years will the account have earned ${money(interest)} in interest?`,
     correct: t,
-    unit: 'years',
+    fmt: unitFmt('year'),
     wrong: [
       { value: clean((interest / principal) * 100, 2), why: `That is the total interest as a percent of the starting amount. Divide it by the yearly rate, ${r}%.` },
       { value: clean(interest / r, 2), why: `Divide by the interest earned each year, ${money(yearly)}, not by the rate.` },
@@ -583,9 +588,9 @@ function challengeInterestSolve(rng) {
       t + 2,
     ],
     solution: [
-      R`Interest for one year: \(${num(principal)} \times ${D(r)} = ${yearly}\).`,
+      R`Interest for one year: \(${dollars(principal)} \times ${D(r)} = ${yearly}\).`,
       R`Years needed: \(${interest} \div ${yearly} = ${t}\).`,
-      R`Check with \(I = Prt\): \(${num(principal)} \times ${D(r)} \times ${t} = ${interest}\). ✓`,
+      R`Check with \(I = Prt\): \(${dollars(principal)} \times ${D(r)} \times ${t} = ${interest}\). ✓`,
     ],
     rule: 6,
     skill: 'simple interest',
@@ -710,7 +715,7 @@ export default {
       {
         title: 'Simple interest and percent error',
         text: R`Simple interest is \(I = Prt\): the starting amount \(P\) times the yearly rate \(r\) (as a decimal) times the number of years \(t\). Percent error compares the size of an error with the **actual** value: error ÷ actual.`,
-        example: R`$500 at \(3\%\) for 4 years earns \(500 \times 0.03 \times 4 = 60\) dollars. An estimate of 46 for an actual 50 is off by 4, and \(4 \div 50 = 8\%\).`,
+        example: R`$500 at \(3\%\) for 4 years earns \(500 \times 0.03 \times 4 = 60\) dollars. An estimate of 46 for an actual 50 is off by 4, and \(4 \div 50 = 0.08 = 8\%\).`,
       },
     ],
     vocab: [

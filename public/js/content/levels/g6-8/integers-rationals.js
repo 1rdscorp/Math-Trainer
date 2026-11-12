@@ -80,7 +80,7 @@ function easyOpposite(rng) {
         -x + 1,
         -x - 1,
       ],
-      solution: [R`\(${x}\) is \(${Math.abs(x)}\) units to the ${x < 0 ? 'left' : 'right'} of 0.`, R`Its opposite is \(${Math.abs(x)}\) units to the ${x < 0 ? 'right' : 'left'} of 0: \(${-x}\).`],
+      solution: [R`\(${x}\) is \(${Math.abs(x)}\) ${Math.abs(x) === 1 ? 'unit' : 'units'} to the ${x < 0 ? 'left' : 'right'} of 0.`, R`Its opposite is \(${Math.abs(x)}\) ${Math.abs(x) === 1 ? 'unit' : 'units'} to the ${x < 0 ? 'right' : 'left'} of 0: \(${-x}\).`],
       rule: 0,
       skill: 'opposites',
       check: () => (x + -x === 0 ? true : 'a number and its opposite must add to 0'),
@@ -96,7 +96,7 @@ function easyOpposite(rng) {
       -2 * n,
       n + 1,
     ],
-    solution: [R`Read \(-(-${n})\) as "the opposite of \(-${n}\)".`, R`\(-${n}\) is \(${n}\) units left of 0, so its opposite is \(${n}\) units right of 0.`, R`\(-(-${n}) = ${n}\).`],
+    solution: [R`Read \(-(-${n})\) as "the opposite of \(-${n}\)".`, R`\(-${n}\) is \(${n}\) ${n === 1 ? 'unit' : 'units'} left of 0, so its opposite is \(${n}\) ${n === 1 ? 'unit' : 'units'} right of 0.`, R`\(-(-${n}) = ${n}\).`],
     rule: 0,
     skill: 'opposites',
   });
@@ -113,11 +113,11 @@ function easyAbsolute(rng) {
     fmt: asDistance ? unitFmt('unit') : undefined,
     wrong: [
       { value: -a, why: 'Absolute value is a distance from 0, and a distance is never negative.' },
-      { value: 0, why: R`Only 0 is at distance 0 from 0. \(${x}\) is \(${a}\) units away.` },
+      { value: 0, why: R`Only 0 is at distance 0 from 0. \(${x}\) is \(${a}\) ${a === 1 ? 'unit' : 'units'} away.` },
       a + 1,
       a - 1,
     ],
-    solution: [R`The absolute value of a number is its distance from 0.`, R`\(${x}\) is \(${a}\) units from 0, so \(|${x}| = ${a}\).`],
+    solution: [R`The absolute value of a number is its distance from 0.`, R`\(${x}\) is \(${a}\) ${a === 1 ? 'unit' : 'units'} from 0, so \(|${x}| = ${a}\).`],
     rule: 1,
     skill: 'absolute value',
   });
@@ -294,6 +294,8 @@ function mediumOrder(rng) {
     const asc = [...picks].sort((a, b) => a[1] - b[1]);
     const byAbs = [...picks].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
     const negsFlipped = [...asc.filter((p) => p[1] < 0).reverse(), ...asc.filter((p) => p[1] >= 0)];
+    // The fractions, each with its decimal value ("≈" when the decimal is rounded).
+    const asDecimals = picks.filter((p) => p[0] !== num(p[1])).map((p) => R`\(${p[0]} ${clean(p[1], 2) == null ? R`\approx` : '='} ${num(p[1], { places: 2 })}\)`);
     return q({
       prompt: `Which list shows these numbers in order from least to greatest? ${list(picks)}`,
       correct: list(asc),
@@ -305,10 +307,10 @@ function mediumOrder(rng) {
         list([asc[0], asc[1], asc[3], asc[2]]),
       ],
       solution: [
-        R`Write each number as a decimal to compare: \(${asc.map((p) => (p[0] === num(p[1]) ? p[0] : `${p[0]} = ${num(p[1], { places: 2 })}`)).join(R`,\;\; `)}\).`,
+        asDecimals.length ? `Write ${asDecimals.length > 1 ? 'the fractions as decimals' : 'the fraction as a decimal'} to compare: ${asDecimals.length > 2 ? `${asDecimals.slice(0, -1).join(', ')} and ${asDecimals.at(-1)}` : asDecimals.join(' and ')}.` : null,
         'Negative numbers are to the left of 0, and the farther left a number is, the smaller it is.',
         `From left to right on the number line: ${list(asc)}.`,
-      ],
+      ].filter(Boolean),
       rule: 1,
       skill: 'ordering',
       check: () => (asc.every((p, i) => i === 0 || asc[i - 1][1] < p[1]) ? true : 'list is not increasing'),
@@ -542,7 +544,7 @@ function hardExpression(rng) {
   if (kind === 'paren') {
     const a = rng.intExcept(-6, 6, [-1, 0, 1]);
     const b = rng.int(-9, 9);
-    const c = rng.intExcept(-9, 9, [b]);
+    const c = rng.intExcept(-9, 9, [b - 1, b, b + 1]);
     const e = rng.intExcept(-6, 6, [-1, 0, 1]);
     const k = rng.nonzero(-6, 6);
     const d = e * k;
@@ -695,7 +697,7 @@ function hardStory(rng) {
 
 function challengeMissing(rng) {
   const kind = rng.pick(['+', '-', 'times', 'div']);
-  const x = rng.nonzero(-12, 12);
+  const x = rng.intExcept(-12, 12, kind === '+' || kind === '-' ? [0] : [-1, 0, 1]);
   const b = rng.intExcept(-12, 12, [-1, 0, 1]);
   const box = R`\square`;
   if (kind === '+') {

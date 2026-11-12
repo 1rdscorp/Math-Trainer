@@ -65,6 +65,8 @@ export function mathToWords(tex) {
     t = t.replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g, (_, n, a) => ` the ${n === '3' ? 'cube' : `${n}th`} root of ${a} ${simple(a) ? '' : ', end root '}`);
     t = t.replace(/\\sqrt\{([^{}]*)\}/g, (_, a) => ` the square root of ${a} ${simple(a) ? '' : ', end root '}`);
     t = t.replace(/\^\{?\\circ\}?/g, ' degrees ');
+    // f^{-1} and \sin^{-1} are inverse functions, not powers.
+    t = t.replace(/\\(sin|cos|tan|sec|csc|cot)\s*\^\{-1\}/g, ' inverse \\$1 ').replace(/\b([fghFGH])\s*\^\{-1\}/g, ' $1 inverse ');
     t = t.replace(/\^\{2\}|\^2(?!\d)/g, ' squared ').replace(/\^\{3\}|\^3(?!\d)/g, ' cubed ');
     t = t.replace(/\^\{([^{}]*)\}/g, (_, a) => ` to the power ${a} ${simple(a) ? '' : ', end power '}`).replace(/\^(-?\w)/g, ' to the power $1 ');
     t = t.replace(/_\{([^{}]*)\}/g, ' sub $1 ').replace(/_(\w)/g, ' sub $1 ');

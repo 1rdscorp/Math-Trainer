@@ -286,7 +286,7 @@ function hardStory(rng) {
   const name = person(rng);
   const g = rng.int(3, 9);
   const n = rng.int(3, 9);
-  const extra = rng.int(2, 9);
+  const extra = rng.int(2, Math.min(9, g * n - 2));
   const more = rng.bool();
   const total = more ? g * n + extra : g * n - extra;
   return q({

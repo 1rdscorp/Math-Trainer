@@ -607,7 +607,7 @@ export default {
           problem: R`Find the area enclosed by \(y = x^{2}\) and \(y = ${line}\).`,
           steps: [
             R`Intersections: \(x^{2} = ${line}\), so \(${poly([1, -m, -c])} = 0\). The quadratic formula gives \(x = \dfrac{${m} \pm \sqrt{${disc}}}{2}\): \(x_{1} ${exact ? '=' : '\\approx'} ${num(x1, p2)}\) and \(x_{2} ${exact ? '=' : '\\approx'} ${num(x2, p2)}\).`,
-            R`Between the intersections the line is above the parabola, so the height of a thin strip is \((${line}) - x^{2}\).`,
+            R`Between the intersections the line is above the parabola, so the height of a thin strip is \(${line.includes(' ') ? `(${line})` : line} - x^{2}\).`,
             R`Area \(= \displaystyle\int_{${num(x1, p2)}}^{${num(x2, p2)}} \left(${terms([[m, 'x'], [c, ''], [-1, 'x^{2}']])}\right)dx = \Big[${terms([[frac(m, 2), 'x^{2}'], [c, 'x'], [frac(-1, 3), 'x^{3}']])}\Big]_{${num(x1, p2)}}^{${num(x2, p2)}}\).`,
             R`Evaluating gives \(${exact ? frac(root ** 3, 6).tex() : num(area, p2)}\). (For any line and \(y = x^{2}\), the area is \(\frac{(x_{2} - x_{1})^{3}}{6}\).)`,
           ],

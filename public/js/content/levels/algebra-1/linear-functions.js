@@ -439,8 +439,8 @@ function hardStoryTwoPoints(rng) {
     unit: c.unit,
     wrong: [
       prop?.isInt() ? { value: prop, why: 'That treats the two quantities as proportional. They are not, because the amount is not 0 at the start. Find the rate and the starting value.' } : null,
-      { value: v2 + r * t3, why: R`From ${t2} to ${t3} ${c.time} is only \(${t3 - t2}\) more, so add \(${paren(r)} \cdot ${t3 - t2}\) to the second reading.` },
-      { value: r * t3, why: R`That leaves out the starting value, \(${s}\).` },
+      v2 + r * t3 > 0 ? { value: v2 + r * t3, why: R`From ${t2} to ${t3} ${c.time} is only \(${t3 - t2}\) more, so add \(${paren(r)} \cdot ${t3 - t2}\) to the second reading.` } : null,
+      r > 0 ? { value: r * t3, why: R`That leaves out the starting value, \(${s}\).` } : { value: v2, why: `That is the second reading. The amount keeps changing between ${t2} and ${t3} ${c.time}.` },
       v3 + r,
       v3 - r,
     ],
@@ -890,7 +890,7 @@ export default {
             R`Intercept (the starting level): \(b = ${h1} - ${paren(m)} \cdot ${t1} = ${dec(b)}\). So \(h = ${terms([[m, 't'], [b, '']])}\).`,
             R`At \(t = ${t3}\): \(h = ${dec(h3)}\).`,
           ],
-          answer: h3.value < 0 ? `The model gives ${txt(h3.value, { places: 2 })} cm, which is impossible: the tank is empty before ${t3} minutes.` : `${h3.isInt() ? '' : 'About '}${txt(h3.value, { places: 2 })} cm after ${t3} ${t3 === 1 ? 'minute' : 'minutes'}`,
+          answer: h3.value < 0 ? `The model gives ${txt(h3.value, { places: 2 })} cm, which is impossible: the tank is empty before ${t3} ${t3 === 1 ? 'minute' : 'minutes'}.` : `${h3.isInt() ? '' : 'About '}${txt(h3.value, { places: 2 })} cm after ${t3} ${t3 === 1 ? 'minute' : 'minutes'}`,
           note: b.value < 0 ? 'The intercept is negative, so this straight-line model cannot hold all the way back to 0 minutes.' : undefined,
           visual: {
             type: 'plot', x: [0, hi], y: fitY(f, 0, hi), axisLabels: ['t', 'h'], fns: [{ f }],

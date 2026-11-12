@@ -209,6 +209,27 @@ export function antiChoices(correct, wrongs, xs = ANTI_POINTS) {
   return { correct: C(correct.tex), wrong: out };
 }
 
+/**
+ * Choices that are functions of one variable (for example solutions of a differential equation).
+ * `correct` and each wrong answer are { tex, f, why? }. A wrong answer that takes the same values as the
+ * correct function at the sample points (or as an earlier wrong answer) is dropped, so two forms of one
+ * function can never appear together. `wrap` turns the LaTeX into the choice text.
+ */
+export function funcChoices(correct, wrongs, xs = [0.3, 0.8, 1.4], wrap = M) {
+  const sig = (f) => xs.map((x) => f(x));
+  const same = (a, b) => a.every((v, i) => (Number.isFinite(v) && Number.isFinite(b[i]) ? close(v, b[i], 1e-7) : !Number.isFinite(v) && !Number.isFinite(b[i])));
+  const seen = [sig(correct.f)];
+  const out = [];
+  for (const w of wrongs) {
+    if (!w) continue;
+    const s = sig(w.f);
+    if (seen.some((t) => same(s, t))) continue;
+    seen.push(s);
+    out.push(w.why ? { value: wrap(w.tex), why: w.why } : wrap(w.tex));
+  }
+  return { correct: wrap(correct.tex), wrong: out };
+}
+
 // ───────────── plots ─────────────
 
 /** A plot window that fits the given functions on [x0, x1]: { x: [x0, x1], y: [lo, hi] }. Always includes y = 0. */

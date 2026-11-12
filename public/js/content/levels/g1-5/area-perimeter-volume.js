@@ -38,7 +38,8 @@ const longWide = (rng, lo, hi) => {
   const [x, y] = rng.sample(Array.from({ length: hi - lo + 1 }, (_, i) => lo + i), 2);
   return [Math.max(x, y), Math.min(x, y)];
 };
-const boxPic = (l, w, h, u) => ({ type: 'solid', kind: 'box', labels: { l: `${l} ${u}`, w: `${w} ${u}`, h: `${h} ${u}` }, alt: `A box ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall.` });
+// A box picture. Pass short = true to label the edges with numbers only (the unit is long, such as "cubes").
+const boxPic = (l, w, h, u, short = false) => ({ type: 'solid', kind: 'box', labels: short ? { l: `${l}`, w: `${w}`, h: `${h}` } : { l: `${l} ${u}`, w: `${w} ${u}`, h: `${h} ${u}` }, alt: `A box ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall.` });
 
 // ───────────── Easy: unit squares, sides of a rectangle ─────────────
 
@@ -246,7 +247,7 @@ function hardVolumeCubes(rng) {
   const v = l * w * h;
   return q({
     prompt: `A box is built from unit cubes. It is ${l} cubes long, ${w} cubes wide and ${h} cubes tall. How many cubes are in the box?`,
-    visual: boxPic(l, w, h, 'cubes'),
+    visual: boxPic(l, w, h, 'cubes', true),
     correct: v,
     unit: 'cubes',
     wrong: [
@@ -376,7 +377,7 @@ function challengeStory(rng) {
     const b = rng.int(1, Math.min(3, w - 2));
     const left = l * w - a * b;
     return q({
-      prompt: `${name} paints a wall that is ${l} ${u} long and ${w} ${u} high. The wall has a window ${a} ${u} long and ${b} ${u} high that is not painted. How much wall does ${name} paint?`,
+      prompt: `${name} paints a wall that is ${l} ${u} long and ${w} ${u} high. A window in the wall is ${a} ${u} long and ${b} ${u} high. It is not painted. How much wall does ${name} paint?`,
       correct: left,
       unit: sq(u),
       wrong: [{ value: l * w, why: 'That is the whole wall. Take away the window.' }, { value: l * w + a * b, why: 'The window is not painted, so subtract its area.' }, { value: 2 * (l + w) - 2 * (a + b), why: 'Paint covers a surface. Use area, not perimeter.' }, left + a, left - b],
@@ -424,7 +425,7 @@ export default {
       },
       {
         title: 'Finding a missing side',
-        text: 'If you know the area and one side, divide. If you know the perimeter and one side, take away two of that side, then halve what is left.',
+        text: 'If you know the area and one side, divide. If you know the perimeter and one side, take away two of that side. Then halve what is left.',
         example: R`Area 48 square cm, length 8 cm: width is \(48 \div 8 = 6\) cm.`,
       },
       {

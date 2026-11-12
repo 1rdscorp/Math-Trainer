@@ -10,5 +10,6 @@ import areaPerimeterVolume from './area-perimeter-volume.js';
 import multiDigitMultDiv from './multi-digit-mult-div.js';
 import fractionsAddSub from './fractions-add-sub.js';
 import fractionsMultDiv from './fractions-mult-div.js';
+import decimals from './decimals.js';
 
-export default [addSub20, placeValue, addSubMulti, timeMoney, multiplication, division, fractionsIntro, areaPerimeterVolume, multiDigitMultDiv, fractionsAddSub, fractionsMultDiv];
+export default [addSub20, placeValue, addSubMulti, timeMoney, multiplication, division, fractionsIntro, areaPerimeterVolume, multiDigitMultDiv, fractionsAddSub, fractionsMultDiv, decimals];

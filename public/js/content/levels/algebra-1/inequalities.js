@@ -271,7 +271,7 @@ function mediumAbsEquation(rng) {
     prompt: R`Solve: \(\;|${inner}| = ${d}\)`,
     correct: eq(roots),
     wrong: [
-      { value: eq([h + d]), why: R`Two numbers are \(${d}\) units from \(${h}\). The inside can equal \(${d}\) or \(${-d}\).` },
+      { value: eq([h + d]), why: R`Two numbers are \(${d}\) ${d === 1 ? 'unit' : 'units'} from \(${h}\). The inside can equal \(${d}\) or \(${-d}\).` },
       { value: eq([-h - d, -h + d]), why: R`Solve \(${inner} = ${d}\) and \(${inner} = ${-d}\) carefully: the constant changes sign when it moves across.` },
       eq([-(h + d), h + d]),
       eq([h - d]),
@@ -745,16 +745,16 @@ function absModel({ c, rel, d }) {
     const w = lineWindow([lo, hi]);
     return {
       problem,
-      steps: [first, R`Two numbers are exactly \(${d}\) units from \(${c}\). The inside is \(${d}\) or \(${-d}\): \(${inside} = ${d}\) or \(${inside} = ${-d}\).`, R`${c === 0 ? 'So' : R`${move(-c)} both sides of each:`} \(x = ${hi}\) or \(x = ${lo}\).`],
+      steps: [first, R`Two numbers are exactly \(${d}\) ${d === 1 ? 'unit' : 'units'} from \(${c}\). The inside is \(${d}\) or \(${-d}\): \(${inside} = ${d}\) or \(${inside} = ${-d}\).`, R`${c === 0 ? 'So' : R`${move(-c)} both sides of each:`} \(x = ${hi}\) or \(x = ${lo}\).`],
       answer: R`\(${rootsTex([lo, hi])}\)`,
-      visual: { type: 'numberLine', ...w, points: [{ value: lo, label: show(lo) }, { value: hi, label: show(hi) }], alt: `Number line with points at ${show(lo)} and ${show(hi)}, each ${d} units from ${show(c)}.` },
+      visual: { type: 'numberLine', ...w, points: [{ value: lo, label: show(lo) }, { value: hi, label: show(hi) }], alt: `Number line with points at ${show(lo)} and ${show(hi)}, each ${d} ${d === 1 ? 'unit' : 'units'} from ${show(c)}.` },
     };
   }
   const less = !isRight(rel);
   const s = less ? between(lo, rel, rel, hi) : outside(FLIP[rel], lo, rel, hi);
   const steps = less
-    ? [first, R`"Less than" means \(x\) is within \(${d}\) units of \(${c}\). Write a chain: \(${-d} ${SYM[rel]} ${inside} ${SYM[rel]} ${d}\).${shift}`, R`So \(${s.tex}\): the numbers between the two boundary points.`]
-    : [first, R`"Greater than" means \(x\) is more than \(${d}\) units from \(${c}\). Split it: \(${inside} ${SYM[FLIP[rel]]} ${-d}\) or \(${inside} ${SYM[rel]} ${d}\).${shift}`, R`So \(${s.tex}\): the numbers outside the two boundary points.`];
+    ? [first, R`"Less than" means \(x\) is within \(${d}\) ${d === 1 ? 'unit' : 'units'} of \(${c}\). Write a chain: \(${-d} ${SYM[rel]} ${inside} ${SYM[rel]} ${d}\).${shift}`, R`So \(${s.tex}\): the numbers between the two boundary points.`]
+    : [first, R`"Greater than" means \(x\) is more than \(${d}\) ${d === 1 ? 'unit' : 'units'} from \(${c}\). Split it: \(${inside} ${SYM[FLIP[rel]]} ${-d}\) or \(${inside} ${SYM[rel]} ${d}\).${shift}`, R`So \(${s.tex}\): the numbers outside the two boundary points.`];
   return { problem, steps, answer: set(s), visual: s.visual() };
 }
 

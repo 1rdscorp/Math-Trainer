@@ -606,7 +606,7 @@ function challengeNormalize(rng) {
     return q({
       prompt: prompt(R`\dfrac{k}{x^{${p}}}`, R`\(x \ge ${a}\)`),
       ...exactChoices(N(k), [{ k: N(frac(1, k)), why: R`\(\frac{1}{${k}}\) is the area when \(k = 1\). To make the area 1, \(k\) must be its reciprocal.` }, N(p - 1), N(p * a ** p), N(a ** (p - 1)), N(k + 1), N(frac(1, p)), N(k + 2)], wrap),
-      solution: [total1, R`\(\displaystyle\int_{${a}}^{\infty} \frac{k}{x^{${p}}}\,dx = \lim_{b\to\infty}\Big[-\frac{k}{${p - 1 === 1 ? '' : p - 1}${power('x', p - 1)}}\Big]_{${a}}^{b} = \frac{k}{${k}}\).`, R`Set \(\dfrac{k}{${k}} = 1\): \(k = ${k}\).`],
+      solution: [total1, R`\(\displaystyle\int_{${a}}^{\infty} \frac{k}{x^{${p}}}\,dx = \lim_{b\to\infty}\Big[-\frac{k}{${p - 1 === 1 ? '' : p - 1}${power('x', p - 1)}}\Big]_{${a}}^{b} = ${k === 1 ? 'k' : R`\frac{k}{${k}}`}\).`, k === 1 ? R`The area must equal 1, so \(k = 1\).` : R`Set \(\dfrac{k}{${k}} = 1\): \(k = ${k}\).`],
       rule: 4,
       skill: 'finding a constant',
       check: () => checkQuad((x) => k / x ** p, a, Infinity, 1),
@@ -635,7 +635,7 @@ function challengeNormalize(rng) {
   const over = (top, bottom) => ({ tex: R`\dfrac{${top}}{${bottom}}`, value: 0 });
   const opt = (top, bottom, value) => ({ ...over(top, bottom), value });
   return q({
-    prompt: prompt(R`\dfrac{k}{x^{2} + ${a * a}}`, 'all real \\(x\\)'.replace('\\\\', '\\')),
+    prompt: prompt(R`\dfrac{k}{x^{2} + ${a * a}}`, R`all real \(x\)`),
     ...exactChoices(
       opt(a, '\\pi', a / Math.PI),
       [

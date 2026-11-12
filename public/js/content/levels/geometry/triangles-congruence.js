@@ -98,6 +98,8 @@ function easyExterior(rng) {
   const A = rng.int(30, 80);
   const C = rng.int(30, 75);
   const E = A + C;
+  // Keep the slips (180 − one angle, the interior angle) well away from the right answer.
+  if ([180 - A, 180 - C, 180 - E].some((v) => Math.abs(v - E) < 4)) return easyExterior(rng);
   const pts = triAA(A, 180 - E, 8);
   return q({
     prompt: R`A triangle has interior angles of \(${deg(A)}\) and \(${deg(C)}\). At the third vertex, one side is extended to form an exterior angle, as shown. Find \(x\), the measure of that exterior angle.`,
@@ -484,7 +486,7 @@ function hardIsoscelesAlgebra(rng) {
       const b1 = leg - a1 * x;
       const b2 = leg - a2 * x;
       const b3 = base - a3 * x;
-      if ([b1, b2, b3].some((b) => Math.abs(b) > 25 || b === 0) || base === leg) continue;
+      if ([b1, b2, b3].some((b) => Math.abs(b) > 25 || b === 0) || Math.abs(base - leg) < 3) continue;
       const P = 2 * leg + base;
       const h = Math.sqrt(leg * leg - (base * base) / 4);
       return q({
@@ -874,6 +876,8 @@ function challengeAngleChase(rng) {
         base,
         180 - base,
         V + base,
+        180 - base / 2,
+        base / 2,
       ],
       solution: [
         R`The base angles are congruent: \(m\angle ABC = m\angle C = \frac{180 - ${V}}{2} = ${base}\) degrees.`,

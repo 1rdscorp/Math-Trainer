@@ -139,6 +139,24 @@ test('numeric checks accept right answers and reject wrong ones', () => {
   assert.ok(Math.abs(numPartial((x, y) => x * x * y, [2, 3], 0) - 12) < 1e-6);
 });
 
+test('number lines: several rays, off-range segments drawn as arrows, and a description of what is shaded', async () => {
+  const { renderVisual, vnodeToString } = await import('../public/js/core/visuals.js');
+  const count = (spec, re) => (vnodeToString(renderVisual(spec).vnode).match(re) ?? []).length;
+  const circles = /<circle/g;
+  // "x < 2 or x > 7" written as a segment that starts off the left edge plus a ray.
+  const or1 = { type: 'numberLine', min: 0, max: 10, step: 1, segment: { from: -10, to: 2, openTo: true }, ray: { from: 7, dir: 'right', open: true } };
+  assert.equal(count(or1, circles), 2, 'no end circle is drawn for the end that is off the line');
+  assert.equal(renderVisual(or1).alt, 'Number line from 0 to 10, shaded to the left of 2 (an open circle) and shaded to the right of 7 (an open circle).');
+  // The same thing written as two rays.
+  const or2 = { type: 'numberLine', min: 0, max: 10, step: 1, ray: [{ from: 2, dir: 'left', open: true }, { from: 7, dir: 'right', open: true }] };
+  assert.equal(count(or2, circles), 2);
+  assert.equal(renderVisual(or2).alt, renderVisual(or1).alt);
+  // An ordinary segment keeps both end circles.
+  const seg = { type: 'numberLine', min: -5, max: 5, segment: { from: -3, to: 2, openFrom: true } };
+  assert.equal(count(seg, circles), 2);
+  assert.match(renderVisual(seg).alt, /shaded between −3 \(an open circle\) and 2 \(a closed circle\)/);
+});
+
 test('pictures: groups get different colours by default, and bad specs throw instead of drawing nonsense', async () => {
   const { renderVisual, vnodeToString, VISUAL_TYPES } = await import('../public/js/core/visuals.js');
   const svg = (spec) => vnodeToString(renderVisual(spec).vnode);

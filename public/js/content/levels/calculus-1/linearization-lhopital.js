@@ -1,5 +1,5 @@
 import { R, q, frac, terms, poly, polyEval, linear, power, num, txt, round, factorial, checkEqual, checkAll, numDeriv } from '../../lib/index.js';
-import { M, lim, fit } from './_shared.js';
+import { M, lim, fit, piTimes } from './_shared.js';
 
 const INF = M('\\infty');
 const DNE = 'does not exist';
@@ -48,7 +48,7 @@ function easyLinearization(rng) {
     correct: L(m, k),
     wrong: [
       { value: L(m, f(a)), why: R`The line must pass through \((${a}, ${f(a)})\): use \(L(x) = ${pointSlope}\) and simplify.` },
-      { value: L(b, k), why: R`The slope is \(f'(${a}) = 3(${a})^{2} ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${m}\).` },
+      { value: L(b, k), why: R`The slope is \(f'(${a}) = ${terms([[3, `(${a})^{2}`], [b, '']])} = ${m}\).` },
       L(m, -k === k ? k + 2 : -k),
       L(-m, k),
       L(m + 1, k - 1),
@@ -238,7 +238,7 @@ function mediumDifferential(rng) {
     { text: 'The radius of a circular disc', v: 'r', what: 'area', F: 'A = \\pi r^{2}', dF: R`dA = 2\pi r\,dr`, sub: R`2\pi(${x})(${num(dx)})`, ans: 2 * x * dx, pi: '\\pi', unit: 'cm²', wrong: [x * dx, 2 * x, x * x * dx], f: (t) => Math.PI * t * t },
     { text: 'The radius of a sphere', v: 'r', what: 'volume', F: 'V = \\tfrac{4}{3}\\pi r^{3}', dF: R`dV = 4\pi r^{2}\,dr`, sub: R`4\pi(${x})^{2}(${num(dx)})`, ans: 4 * x * x * dx, pi: '\\pi', unit: 'cm³', wrong: [x * x * dx, 4 * x * x, 4 * x * dx], f: (t) => (4 / 3) * Math.PI * t ** 3 },
   ]);
-  const fmt = (v) => R`\(${num(round(v, 4))}${s.pi}\) ${s.unit}`;
+  const fmt = (v) => R`\(${s.pi ? piTimes(round(v, 4)) : num(round(v, 4))}\) ${s.unit}`;
   return q({
     prompt: `${s.text} is measured as ${x} cm, with a possible error of ${txt(dx)} cm. Use differentials to estimate the largest possible error in the calculated ${s.what}.`,
     correct: round(s.ans, 4),
@@ -285,7 +285,7 @@ function hardLHopitalInfinity(rng) {
     {
       tex: R`\dfrac{\ln x}{${xn}}`, f: (x) => Math.log(x) / x ** n, probe: 1e40, ans: 0,
       wrong: [{ value: INF, why: R`\(\ln x\) grows more slowly than any positive power of \(x\).` }, { value: frac(1, n), why: R`After one application the quotient is \(\dfrac{1}{${n === 1 ? 'x' : `${n}x^{${n}}`}}\), which still depends on \(x\).` }, n === 1 ? 2 : 1, DNE],
-      steps: [R`The form is \(\frac{\infty}{\infty}\). Apply L'Hôpital's rule: \(${lim('\\infty')} \dfrac{\frac{1}{x}}{${n === 1 ? '1' : `${n}x^{${n - 1}}`}} = ${lim('\\infty')} \dfrac{1}{${n === 1 ? 'x' : `${n}x^{${n}}`}}\).`, R`The denominator grows without bound, so the limit is \(0\).`],
+      steps: [R`The form is \(\frac{\infty}{\infty}\). Apply L'Hôpital's rule: \(${lim('\\infty')} \dfrac{\frac{1}{x}}{${n === 1 ? '1' : `${n}${power('x', n - 1)}`}} = ${lim('\\infty')} \dfrac{1}{${n === 1 ? 'x' : `${n}x^{${n}}`}}\).`, R`The denominator grows without bound, so the limit is \(0\).`],
     },
     {
       tex: R`\dfrac{${terms([[p, 'x'], [c, '\\ln x']])}}{${r}x}`, f: (x) => (p * x + c * Math.log(x)) / (r * x), probe: 1e40, ans: frac(p, r),
@@ -584,8 +584,8 @@ export default {
       x: [0, 9],
       y: [0, 4],
       step: [1, 1],
-      fns: [{ f: Math.sqrt, label: 'y = √x', labelAt: 7.6 }, { f: (x) => 2 + 0.25 * (x - 4), color: 'b', dashed: true, label: 'L(x)', labelAt: 6.2 }],
-      points: [{ x: 4, y: 2, label: '(4, 2)' }],
+      fns: [{ f: Math.sqrt }, { f: (x) => 2 + 0.25 * (x - 4), color: 'b', dashed: true, label: 'L', labelAt: 0.9 }],
+      points: [{ x: 4, y: 2 }],
       alt: 'Graph of y = √x with its tangent line at the point (4, 2). Near x = 4 the line and the curve are almost indistinguishable; farther away the line lies above the curve, because the curve is concave down.',
     },
   },
@@ -670,8 +670,8 @@ export default {
           visual: {
             type: 'plot',
             ...fit([F.f, (t) => fa + F.d * (t - a)], lo, a + 3, { pad: 0.1, minPad: 0.2 }),
-            fns: [{ f: F.f, label: F.label }, { f: (t) => fa + F.d * (t - a), color: 'b', dashed: true }],
-            points: [{ x: a, y: fa }, { x, y: est, color: 'b', label: 'estimate' }],
+            fns: [{ f: F.f }, { f: (t) => fa + F.d * (t - a), color: 'b', dashed: true }],
+            points: [{ x: a, y: fa }, { x, y: est, color: 'b' }],
             alt: `Graph of ${F.label} with its tangent line at x = ${a}. The estimate is read from the tangent line at x = ${txt(x)}; the curve is ${F.up ? 'above' : 'below'} the line there.`,
           },
         };

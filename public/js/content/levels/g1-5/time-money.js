@@ -22,6 +22,13 @@ function clockPic(h, m) {
   return { type: 'clock', hour: h, minute: m, alt: `A clock. ${short} ${long}` };
 }
 
+// Checks: read an answer such as "3:05" back as minutes, and compare it with the time the picture shows.
+const minutesOf = (text) => {
+  const [h, m] = text.split(':').map(Number);
+  return (h % 12) * 60 + m;
+};
+const showsTime = (pic, text) => () => (minutesOf(text) === (pic.hour % 12) * 60 + pic.minute ? true : 'answer does not match the clock picture');
+
 // Count up from one time to another: to the next full hour, then whole hours, then the rest.
 function countUp(start, end) {
   const jumps = [];
@@ -47,8 +54,8 @@ function timeLine(start, end) {
     max: hi,
     step: hi - lo > 180 ? 15 : 5,
     labels,
-    jumps: countUp(start, end).map((j) => ({ from: j.from, to: j.to, label: (j.to - j.from) % 60 === 0 ? `+${(j.to - j.from) / 60} h` : `+${j.to - j.from} min` })),
-    alt: `A time line from ${timeOf(lo)} to ${timeOf(hi)} with jumps from ${timeOf(start)} to ${timeOf(end)}.`,
+    jumps: countUp(start, end).map((j) => ({ from: j.from, to: j.to, label: (j.to - j.from) % 60 === 0 ? `+${(j.to - j.from) / 60} h` : `+${j.to - j.from}` })),
+    alt: `A time line from ${timeOf(lo)} to ${timeOf(hi)}. Jumps go from ${timeOf(start)} to ${timeOf(end)}. The numbers on the jumps are minutes.`,
   };
 }
 
@@ -97,6 +104,7 @@ function easyHour(rng) {
     solution: [`The short hand points at the ${h}. The hour is ${h}.`, 'The long hand points at the 12. That means 0 minutes.', `The time is ${T(h, 0)}.`],
     rule: 0,
     skill: 'time to the hour',
+    check: showsTime(clockPic(h, 0), T(h, 0)),
   });
 }
 
@@ -115,6 +123,7 @@ function easyHalfHour(rng) {
     solution: [`The short hand is between the ${h} and the ${nextHour(h)}. The hour is ${h}.`, `The long hand points at the 6. Count by fives: ${fives(6)}.`, `The time is ${T(h, 30)}.`],
     rule: 0,
     skill: 'time to the half hour',
+    check: showsTime(clockPic(h, 30), T(h, 30)),
   });
 }
 
@@ -133,6 +142,7 @@ function easyWords(rng) {
       solution: ['An hour has 60 minutes. Half of that is 30 minutes.', `"Half past ${h}" is 30 minutes after ${h} o'clock.`, `That is ${T(h, 30)}.`],
       rule: 2,
       skill: 'time words',
+      check: () => (minutesOf(T(h, 30)) - 30 === (h % 12) * 60 ? true : 'not 30 minutes after the hour'),
     });
   }
   return q({
@@ -142,6 +152,7 @@ function easyWords(rng) {
     solution: [`"O'clock" means exactly on the hour.`, `The hour is ${h} and the minutes are 0.`, `That is ${T(h, 0)}.`],
     rule: 2,
     skill: 'time words',
+    check: () => (minutesOf(T(h, 0)) === (h % 12) * 60 ? true : 'not on the hour'),
   });
 }
 
@@ -209,6 +220,7 @@ function mediumFiveMinutes(rng) {
     solution: [`The short hand is between the ${h} and the ${nextHour(h)}. The hour is ${h}.`, `The long hand points at the ${at}. Count by fives: ${fives(at)}.`, `The time is ${T(h, m)}.`],
     rule: 1,
     skill: 'time to five minutes',
+    check: showsTime(clockPic(h, m), T(h, m)),
   });
 }
 
@@ -229,6 +241,7 @@ function mediumWords(rng) {
       solution: ['A quarter of an hour is 15 minutes.', `"Quarter to ${H}" is 15 minutes before ${H} o'clock.`, `That is ${T(h, 45)}.`],
       rule: 2,
       skill: 'time words',
+      check: () => ((minutesOf(T(h, 45)) + 15) % 720 === (H % 12) * 60 ? true : 'not 15 minutes before the hour'),
     });
   }
   const m = form === 'half past' ? 30 : 15;
@@ -244,6 +257,7 @@ function mediumWords(rng) {
     solution: [m === 15 ? 'A quarter of an hour is 15 minutes.' : 'Half of an hour is 30 minutes.', `"${form} ${h}" is ${m} minutes after ${h} o'clock.`, `That is ${T(h, m)}.`],
     rule: 2,
     skill: 'time words',
+    check: () => (minutesOf(T(h, m)) - (h % 12) * 60 === (form === 'half past' ? 30 : 15) ? true : 'not the right number of minutes after the hour'),
   });
 }
 
@@ -374,6 +388,7 @@ function hardMinute(rng) {
     ],
     rule: 1,
     skill: 'time to the minute',
+    check: showsTime(clockPic(h, m), T(h, m)),
   });
 }
 
@@ -510,7 +525,9 @@ function challengeStartTime(rng) {
       timeOf(start + 10),
       timeOf(start - 60),
     ],
-    solution: [m2 ? `Go back ${m2} minutes to ${T(h2, 0)}.` : `Start at ${T(h2, 0)}.`, R`That leaves \(${dur} - ${m2} = ${dur - m2}\) more minutes to go back.`, `${dur - m2} minutes before ${T(h2, 0)} is ${timeOf(start)}.`],
+    solution: m2
+      ? [`Go back ${m2} minutes to ${T(h2, 0)}.`, R`That leaves \(${dur} - ${m2} = ${dur - m2}\) more minutes to go back.`, `${dur - m2} minutes before ${T(h2, 0)} is ${timeOf(start)}.`]
+      : [`Count back ${dur} minutes from ${T(h2, 0)}.`, R`An hour has 60 minutes, and \(60 - ${dur} = ${60 - dur}\).`, `So the start is ${timeOf(start)}.`],
     rule: 3,
     skill: 'elapsed time',
     check: () => (start + dur === end && countUp(start, end).reduce((s, j) => s + j.to - j.from, 0) === dur ? true : 'start time does not match'),
@@ -628,7 +645,7 @@ function challengeTotalTime(rng) {
   if (total % 60 === 0) return challengeTotalTime(rng);
   const asHundred = total >= 100 && total % 100 < 60 ? `${plural(Math.floor(total / 100), 'hour')} ${plural(total % 100, 'minute')}` : null;
   return q({
-    prompt: `${name} reads for ${a} minutes on Monday, ${b} minutes on Tuesday and ${c} minutes on Wednesday. How long does ${name} read in all?`,
+    prompt: `${name} reads on three days: ${a} minutes, ${b} minutes and ${c} minutes. How long does ${name} read in all?`,
     correct: span(total),
     wrong: [
       asHundred && asHundred !== span(total) ? { value: asHundred, why: 'An hour is 60 minutes, not 100.' } : null,

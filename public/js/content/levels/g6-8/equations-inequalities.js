@@ -330,6 +330,7 @@ function hardTwoStepRational(rng) {
     const [n, d] = rng.pick([[1, 2], [2, 3], [3, 4], [1, 4], [2, 5], [3, 5], [1, 3], [5, 6]]);
     const sign = rng.sign();
     const k = rng.nonzero(-6, 6);
+    if (Math.abs(n * k) === 1) return hardTwoStepRational(rng);
     const q0 = rng.nonzero(-9, 9);
     const x = d * k;
     const r = sign * n * k + q0;

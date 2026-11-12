@@ -88,7 +88,7 @@ function easyIdentifyLayers(rng) {
   const item = rng.pick([
     { y: `(${p})^{${n}}`, ok: pair(`u^{${n}}`, p), wrong: [{ value: pair(terms([[1, 'u^{2}'], [b, 'u']]), `x^{${n}}`), why: reversed }, { value: pair(`${n}u^{${n - 1}}`, p), why: deriv }, pair(`u^{${n}}`, 'x^{2}')], last: `raising to the power ${n}` },
     { y: `\\sin(x^{${k}})`, ok: pair('\\sin u', `x^{${k}}`), wrong: [{ value: pair(`u^{${k}}`, '\\sin x'), why: R`That describes \(\sin^{${k}} x = (\sin x)^{${k}}\). Here the power is applied first and the sine last.` }, { value: pair('\\cos u', `x^{${k}}`), why: deriv }, pair('\\sin u', `${k}${xk(k - 1)}`)], last: 'taking the sine' },
-    { y: `\\cos^{${k}} x`, ok: pair(`u^{${k}}`, '\\cos x'), wrong: [{ value: pair('\\cos u', `x^{${k}}`), why: R`\(\cos^{${k}} x\) means \((\cos x)^{${k}}\): the cosine is taken first and the power last.` }, { value: pair(`${k}u^{${k - 1}}`, '\\cos x'), why: deriv }, pair(`u^{${k}}`, '-\\sin x')], last: `raising to the power ${k}` },
+    { y: `\\cos^{${k}} x`, ok: pair(`u^{${k}}`, '\\cos x'), wrong: [{ value: pair('\\cos u', `x^{${k}}`), why: R`\(\cos^{${k}} x\) means \((\cos x)^{${k}}\): the cosine is taken first and the power last.` }, { value: pair(`${k}${power('u', k - 1)}`, '\\cos x'), why: deriv }, pair(`u^{${k}}`, '-\\sin x')], last: `raising to the power ${k}` },
     { y: `e^{${q2}}`, ok: pair('e^{u}', q2), wrong: [{ value: pair(terms([[a, 'u^{2}'], [b, '']]), 'e^{x}'), why: reversed }, { value: pair('e^{u}', terms([[2 * a, 'x']])), why: 'That is the derivative of the inside. The inside function is the whole exponent.' }, pair('u^{2}', `e^{${a}x}`)], last: 'applying the exponential function' },
     { y: `\\sqrt{${lin}}`, ok: pair('\\sqrt{u}', lin), wrong: [{ value: pair(terms([[a, 'u'], [b, '']]), '\\sqrt{x}'), why: reversed }, { value: pair('\\dfrac{1}{2\\sqrt{u}}', lin), why: deriv }, pair('\\sqrt{u}', String(a))], last: 'taking the square root' },
     { y: `\\ln(${terms([[1, 'x^{2}'], [a, '']])})`, ok: pair('\\ln u', terms([[1, 'x^{2}'], [a, '']])), wrong: [{ value: pair(terms([[1, 'u^{2}'], [a, '']]), '\\ln x'), why: reversed }, { value: pair('\\dfrac{1}{u}', terms([[1, 'x^{2}'], [a, '']])), why: deriv }, pair('\\ln u', '2x')], last: 'taking the logarithm' },
@@ -155,7 +155,7 @@ function mediumPowerRoot(rng) {
       correct: T(2 * a * n, `x${pw(n - 1)}`),
       wrong: [
         { value: T(n, pw(n - 1)), why: R`Multiply by the derivative of the inside: \(\frac{d}{dx}(${u}) = ${2 * a}x\).` },
-        { value: M(`${n}(${2 * a}x)^{${n - 1}}`), why: 'In the derivative of the outside, the inside stays exactly as it was.' },
+        { value: M(n === 2 ? `2(${2 * a}x)` : `${n}(${2 * a}x)^{${n - 1}}`), why: 'In the derivative of the outside, the inside stays exactly as it was.' },
         T(2 * a * n, `x${pw(n)}`),
         T(a * n, `x${pw(n - 1)}`),
       ],
@@ -184,7 +184,7 @@ function mediumPowerRoot(rng) {
       check: () => checkDeriv((x) => Math.sqrt(a * x + b), (x) => a / (2 * Math.sqrt(a * x + b))),
     });
   }
-  const den = (k) => `(${u})^{${k}}`;
+  const den = (k) => (k === 1 ? u : `(${u})^{${k}}`);
   return q({
     prompt: R`Differentiate \(y = \dfrac{1}{${den(n)}}\).`,
     correct: M(over(-a * n, den(n + 1))),
@@ -493,7 +493,7 @@ function hardInverseFunction(rng) {
         R`\(g'(b) = \dfrac{1}{f'(a)}\), where \(f(a) = b\).`,
         R`Find the input that gives \(${b}\): \(f(${a}) = ${b}\), so \(g(${b}) = ${a}\).`,
         R`\(f'(x) = ${poly(polyDeriv(coefs))}\), so \(f'(${a}) = ${slope}\).`,
-        R`\(g'(${b}) = \dfrac{1}{${slope}}\).`,
+        R`\(g'(${b}) = \dfrac{1}{${slope}}${slope === 1 ? ' = 1' : ''}\).`,
       ],
       rule: 4,
       skill: 'derivative of an inverse function',
@@ -614,8 +614,8 @@ function challengeTableNested(rng) {
     power: () => ({
       h: `\\left[f(x)\\right]^{${n}}`,
       ans: frac(n * fa ** (n - 1) * dfa, 1),
-      wrong: [{ value: dfa ** n, why: R`Differentiate the outside power and keep \(f\) inside: \(${n}\left[f(x)\right]^{${n - 1}} \cdot f'(x)\).` }, { value: n * fa ** (n - 1), why: R`Multiply by the derivative of the inside, \(f'(${a}) = ${dfa}\).` }, fa ** n, n * dfa],
-      steps: [R`Chain rule: \(h'(x) = ${n}\left[f(x)\right]^{${n - 1}} \cdot f'(x)\).`, R`\(h'(${a}) = ${n}(${fa})^{${n - 1}}(${dfa})\).`],
+      wrong: [{ value: dfa ** n, why: R`Differentiate the outside power and keep \(f\) inside: \(${n === 2 ? '2f(x)' : R`${n}\left[f(x)\right]^{${n - 1}}`} \cdot f'(x)\).` }, { value: n * fa ** (n - 1), why: R`Multiply by the derivative of the inside, \(f'(${a}) = ${dfa}\).` }, fa ** n, n * dfa],
+      steps: [R`Chain rule: \(h'(x) = ${n === 2 ? '2f(x)' : R`${n}\left[f(x)\right]^{${n - 1}}`} \cdot f'(x)\).`, R`\(h'(${a}) = ${n}(${fa})${n === 2 ? '' : `^{${n - 1}}`}(${dfa})\).`],
       g: (x) => local(x, a) ** n,
     }),
     'square-in': () => ({
@@ -952,7 +952,7 @@ export default {
       steps: [
         R`The growth rate is the derivative \(P'(t)\), in bacteria per hour.`,
         R`Chain rule: the exponent \(0.2t\) has derivative \(0.2\), so \(P'(t) = 500 \cdot 0.2\,e^{0.2t} = 100e^{0.2t}\).`,
-        R`At \(t = 5\): \(P'(5) = 100e^{1} \approx 271.8\).`,
+        R`At \(t = 5\): \(P'(5) = 100e \approx 271.8\).`,
       ],
       answer: 'About 272 bacteria per hour.',
     },
@@ -974,15 +974,16 @@ export default {
         const u = linear(a, b);
         const up = a * p + b;
         const value = a * n * up ** (n - 1);
+        const pw = (inner) => (n === 2 ? `(${inner})` : `(${inner})^{${n - 1}}`);
         return {
           problem: R`Differentiate \(y = (${u})^{${n}}\) and find the slope at \(x = ${p}\).`,
           steps: [
-            R`Outside: \(y = u^{${n}}\), so \(\dfrac{dy}{du} = ${n}u^{${n - 1}}\). Inside: \(u = ${u}\), so \(\dfrac{du}{dx} = ${a}\).`,
-            R`Chain rule: \(\dfrac{dy}{dx} = ${n}(${u})^{${n - 1}} \cdot (${a}) = ${terms([[a * n, `(${u})^{${n - 1}}`]])}\).`,
+            R`Outside: \(y = u^{${n}}\), so \(\dfrac{dy}{du} = ${n}${power('u', n - 1)}\). Inside: \(u = ${u}\), so \(\dfrac{du}{dx} = ${a}\).`,
+            R`Chain rule: \(\dfrac{dy}{dx} = ${n}${pw(u)} \cdot (${a}) = ${terms([[a * n, pw(u)]])}\).`,
             R`At \(x = ${p}\) the inside is \(u = ${up}\).`,
-            R`Slope: \(${a * n}(${up})^{${n - 1}} = ${num(value)}\).`,
+            R`Slope: \(${a * n}${pw(up)} = ${num(value)}\).`,
           ],
-          answer: R`\(\dfrac{dy}{dx} = ${terms([[a * n, n - 1 === 1 ? `(${u})` : `(${u})^{${n - 1}}`]])}\); at \(x = ${p}\) the slope is \(${num(value)}\).`,
+          answer: R`\(\dfrac{dy}{dx} = ${terms([[a * n, pw(u)]])}\); at \(x = ${p}\) the slope is \(${num(value)}\).`,
         };
       },
     },
@@ -1034,13 +1035,13 @@ export default {
         { name: 't', label: 'Time (hours)', type: 'number', min: 0, max: 20, step: 0.5, value: 5 },
       ],
       compute({ P0, pct, t }) {
-        if (pct === 0) return { problem: R`A culture starts with ${txt(P0)} bacteria and changes at a continuous rate of 0% per hour, so \(P(t) = ${P0}\). How fast is the population changing after ${num(t)} hours?`, steps: [R`With a rate of 0% the population is the constant \(${P0}\).`, 'The derivative of a constant is 0.'], answer: R`\(P'(${num(t)}) = 0\): the population is not changing.` };
+        if (pct === 0) return { problem: R`A culture starts with ${txt(P0)} bacteria and changes at a continuous rate of 0% per hour, so \(P(t) = ${P0}\). How fast is the population changing after ${num(t)} ${t === 1 ? 'hour' : 'hours'}?`, steps: [R`With a rate of 0% the population is the constant \(${P0}\).`, 'The derivative of a constant is 0.'], answer: R`\(P'(${num(t)}) = 0\): the population is not changing.` };
         const k = pct / 100;
         const P = (x) => P0 * Math.exp(k * x);
         const rate = k * P(t);
         const kTex = num(k);
         return {
-          problem: R`A culture starts with ${txt(P0)} bacteria and changes at a continuous rate of ${pct}% per hour, so \(P(t) = ${P0}e^{${kTex}t}\). How fast is the population changing after ${num(t)} hours?`,
+          problem: R`A culture starts with ${txt(P0)} bacteria and changes at a continuous rate of ${txt(pct)}% per hour, so \(P(t) = ${P0}e^{${kTex}t}\). How fast is the population changing after ${num(t)} ${t === 1 ? 'hour' : 'hours'}?`,
           steps: [
             R`The rate of change is \(P'(t)\), in bacteria per hour.`,
             R`Chain rule: the exponent \(${kTex}t\) has derivative \(${kTex}\), so \(P'(t) = ${P0} \cdot (${kTex})\,e^{${kTex}t} = ${num(round(k * P0, 4))}e^{${kTex}t}\).`,
@@ -1050,10 +1051,10 @@ export default {
           answer: R`About \(${num(round(rate, 1))}\) bacteria per hour${rate < 0 ? ' (the population is shrinking)' : ''}.`,
           visual: {
             type: 'plot',
-            x: [0, Math.max(10, t + 4)],
+            x: [-0.17 * Math.max(10, t + 4), Math.max(10, t + 4)],
             y: [0, Math.max(P0, P(Math.max(10, t + 4))) * 1.1],
-            fns: [{ f: P }, { f: (x) => P(t) + rate * (x - t), color: 'b', dashed: true }],
-            points: [{ x: t, y: P(t), label: `slope ≈ ${txt(round(rate, 1))}` }],
+            fns: [{ f: P, domain: [0, Math.max(10, t + 4)] }, { f: (x) => P(t) + rate * (x - t), color: 'b', dashed: true, domain: [0, Math.max(10, t + 4)] }],
+            points: [{ x: t, y: P(t) }],
             axisLabels: ['t (h)', 'P'],
             alt: `Graph of the population P(t) = ${P0}e^(${txt(k)}t) with its tangent line at t = ${txt(t)} hours, where the slope is about ${txt(round(rate, 1))} bacteria per hour.`,
           },

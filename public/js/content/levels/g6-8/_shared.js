@@ -78,3 +78,9 @@ export function lineFor(values, extra = {}) {
 
 /** A signed number as plain text for picture labels: "+5", "−3", "0". */
 export const signedLabel = (x) => (x > 0 ? `+${num(x)}` : num(x).replace('-', '−'));
+
+/** "a" or "an" for a number read aloud: an(8) → "an", an(18) → "an", an(12) → "a". */
+export const an = (n) => (/^(8|11(\D|$)|18(\D|$))/.test(String(n)) ? 'an' : 'a');
+
+/** Singular of a plural unit word: "feet" → "foot", "inches" → "inch", "miles" → "mile". */
+export const singular = (word) => ({ feet: 'foot', inches: 'inch', boxes: 'box', glasses: 'glass' }[word] ?? word.replace(/s$/, ''));

@@ -5,6 +5,7 @@ const pt = (x, y) => R`\(${point(x, y)}\)`;
 const eqTex = (a, b, c) => `${terms([[a, 'x'], [b, 'y']])} = ${num(c)}`;
 const sys = (e1, e2) => R`\[\begin{cases} ${e1} \\ ${e2} \end{cases}\]`;
 const plug = (a, b, x, y) => terms([[a, `(${num(x)})`], [b, `(${num(y)})`]]); // ax + by with numbers put in
+const litres = (v) => `${txt(v, { places: 2 })} ${v === 1 ? 'litre' : 'litres'}`;
 const art = (n) => (/^(8|11|18)/.test(String(n)) ? 'an' : 'a'); // "an 80% solution"
 const fits = (a, b, c) => (x, y) => Math.abs(a * val(x) + b * val(y) - c) < 1e-9;
 
@@ -296,6 +297,8 @@ function hardEliminationMultiply(rng) {
       [y0, x0],
       [x0, y0.neg()],
       [x0.neg(), y0],
+      [x0.add(1), y0],
+      [x0, y0.add(1)],
     ], ok),
     solution: [...e.steps, R`Check in the second equation: \(${plug(a2, b2, x0, y0)} = ${c2.n}\). ✓ The solution is \(${point(x0, y0)}\).`],
     rule: 2,
@@ -341,7 +344,7 @@ function hardStory(rng) {
   return q({
     prompt: `A lab technician mixes ${art(p1)} ${p1}% salt solution with ${art(p2)} ${p2}% salt solution to make ${V} litres of ${art(pt0)} ${pt0}% salt solution. How many litres of the ${p1}% solution are needed?`,
     correct: x,
-    unit: 'litres',
+    fmt: (v) => R`\(${num(v)}\) ${v === 1 ? 'litre' : 'litres'}`,
     wrong: [
       { value: y, why: `That is the amount of the ${p2}% solution. The question asks for the ${p1}% solution.` },
       { value: V / 2, why: `Equal amounts would give a strength halfway between the two, ${(p1 + p2) / 2}%.` },
@@ -352,7 +355,7 @@ function hardStory(rng) {
       R`Let \(x\) be the litres of ${p1}% solution and \(y\) the litres of ${p2}% solution. Total volume: \(x + y = ${V}\).`,
       R`Amount of salt: \(${num(p1 / 100)}x + ${num(p2 / 100)}y = ${num(pt0 / 100)}(${V}) = ${num((pt0 * V) / 100)}\). Multiply by 100: \(${p1}x + ${p2}y = ${pt0 * V}\).`,
       R`Substitute \(y = ${V} - x\): \(${p1}x + ${p2}(${V} - x) = ${pt0 * V}\), so \(${p1 - p2}x = ${pt0 * V - p2 * V}\) and \(x = ${x}\).`,
-      `So ${txt(x)} litres of the ${p1}% solution and ${txt(y)} litres of the ${p2}% solution.`,
+      `So ${litres(x)} of the ${p1}% solution and ${litres(y)} of the ${p2}% solution.`,
     ],
     rule: 4,
     skill: 'systems word problems',
@@ -741,7 +744,7 @@ export default {
             R`Substitute \(y = ${V} - x\): \(${terms([[p1, 'x'], [p2, `(${V} - x)`]])} = ${pt * V}\), so \(${terms([[p1 - p2, 'x']])} = ${pt * V - p2 * V}\).`,
             R`So \(x = ${dec(x)}\) and \(y = ${V} - x = ${dec(y)}\).`,
           ],
-          answer: `${txt(x.value, { places: 2 })} litres of the ${p1}% solution and ${txt(y.value, { places: 2 })} litres of the ${p2}% solution`,
+          answer: `${litres(x.value)} of the ${p1}% solution and ${litres(y.value)} of the ${p2}% solution`,
           visual: {
             type: 'barModel',
             rows: [{ label: 'Mixture', parts: [{ value: x.value, label: `${p1}%` }, { value: y.value, label: `${p2}%` }], total: `${V} litres at ${pt}%` }],

@@ -123,7 +123,7 @@ const MEANING_BANK = [
     };
   },
   (rng) => {
-    const t = rng.int(1, 6);
+    const t = rng.int(2, 8);
     const v = rng.int(4, 12) * 10;
     return {
       prompt: R`A car's distance from home after \(t\) hours is \(s(t)\) kilometers. What does \(s'(${t}) = ${v}\) mean?`,
@@ -158,7 +158,7 @@ function easySlopeFromGraph(rng) {
       y: [-5, 10],
       step: [1, 1],
       fns: [{ f }, { f: (x) => y0 + m.value * (x - a), color: 'b', dashed: true }],
-      points: [{ x: a, y: y0, label: `(${txt(a)}, ${y0})` }, { x: a + 2, y: y1, color: 'b', label: `(${txt(a + 2)}, ${txt(y1)})` }],
+      points: [{ x: a, y: y0 }, { x: a + 2, y: y1, color: 'b' }],
       alt: `Graph of a curve f with a dashed tangent line touching it at (${txt(a)}, ${y0}). The tangent line also passes through (${txt(a + 2)}, ${txt(y1)}).`,
     },
     correct: m,
@@ -757,7 +757,7 @@ export default {
       },
       {
         title: 'The derivative at a point',
-        text: R`The instantaneous rate of change of \(f\) at \(x = a\) is \(f'(a) = \lim\limits_{h \to 0} \dfrac{f(a + h) - f(a)}{h}\), which can also be written \(f'(a) = \lim\limits_{x \to a} \dfrac{f(x) - f(a)}{x - a}\). It is the slope of the **tangent line** at \((a, f(a))\): the limit of secant slopes as the second point slides toward the first.`,
+        text: R`The instantaneous rate of change of \(f\) at \(x = a\) is \(f'(a) = \lim\limits_{h \to 0} \dfrac{f(a + h) - f(a)}{h}\), which can also be written \(f'(a) = \lim\limits_{x \to a} \dfrac{f(x) - f(a)}{x - a}\). It is the slope of the **tangent line** at \((a, f(a))\): the limit of secant slopes as the second point slides toward the first. In the graph, the solid line through two points of the curve is a secant line, and the dashed line is the tangent line at the first point.`,
         example: R`For \(f(x) = x^{2}\): \(f'(1) = \lim\limits_{h \to 0} \dfrac{(1 + h)^{2} - 1}{h} = \lim\limits_{h \to 0} (2 + h) = 2\).`,
       },
       {
@@ -800,8 +800,8 @@ export default {
       x: [-1, 4],
       y: [-1, 6],
       step: [1, 1],
-      fns: [{ f: (x) => 0.5 * x * x }, { f: (x) => 2 * x - 1.5, color: 'b', label: 'secant', labelAt: 3.3 }, { f: (x) => x - 0.5, color: 'c', dashed: true, label: 'tangent', labelAt: 3.4 }],
-      points: [{ x: 1, y: 0.5, label: '(a, f(a))' }, { x: 3, y: 4.5, color: 'b', label: '(a + h, f(a + h))' }],
+      fns: [{ f: (x) => 0.5 * x * x }, { f: (x) => 2 * x - 1.5, color: 'b' }, { f: (x) => x - 0.5, color: 'c', dashed: true }],
+      points: [{ x: 1, y: 0.5 }, { x: 3, y: 4.5, color: 'b' }],
       alt: 'Graph of a curve with two lines through the point (a, f(a)). The secant line also passes through a second point (a + h, f(a + h)) of the curve. The dashed tangent line touches the curve only at (a, f(a)). As h shrinks, the secant line turns toward the tangent line.',
     },
   },
@@ -893,7 +893,7 @@ export default {
             type: 'plot',
             ...fit(f, p - 3, p + 3, { include: [f(p)] }),
             fns: [{ f }, { f: (x) => f(p) + sec * (x - p), color: 'b' }, { f: (x) => f(p) + m * (x - p), color: 'c', dashed: true }],
-            points: [{ x: p, y: f(p), label: `(${txt(p)}, ${txt(f(p))})` }, { x: x2, y: f(x2), color: 'b' }],
+            points: [{ x: p, y: f(p) }, { x: x2, y: f(x2), color: 'b' }],
             alt: `Graph of f with the secant line through x = ${txt(p)} and x = ${txt(x2)} (slope ${txt(sec)}) and the dashed tangent line at x = ${txt(p)} (slope ${txt(m)}).`,
           },
         };

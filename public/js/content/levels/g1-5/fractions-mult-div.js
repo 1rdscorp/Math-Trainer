@@ -33,7 +33,7 @@ function easyWholeTimes(rng) {
   const max = Math.max(1, Math.ceil(ans.value));
   return q({
     prompt: R`What is \(${w} \times ${fracTex(n, d)}\)?`,
-    visual: { type: 'numberLine', min: 0, max, step: 1 / d, labels: Array.from({ length: max + 1 }, (_, i) => ({ value: i, text: String(i) })), jumps: Array.from({ length: w }, (_, i) => ({ from: (i * n) / d, to: ((i + 1) * n) / d })), alt: `A number line with ${w} equal jumps. Each jump is ${n} ${fractionWord(d)} long.` },
+    visual: { type: 'numberLine', min: 0, max, step: 1 / d, labels: Array.from({ length: max + 1 }, (_, i) => ({ value: i, text: String(i) })), jumps: Array.from({ length: w }, (_, i) => ({ from: (i * n) / d, to: ((i + 1) * n) / d })), alt: `A number line with ${w} equal jumps. Each jump is ${n} ${fractionWord(d, n)} long.` },
     correct: mixed(ans),
     wrong: [
       { value: F(w * n, w * d), why: 'Multiply only the top number. The bottom number is the size of the pieces, and that stays the same.' },
@@ -65,6 +65,7 @@ function easyRepeated(rng) {
     solution: [`${w} times ${F(n, d)} means ${w} groups of ${F(n, d)}.`, `Add ${F(n, d)} ${w} times.`, R`\(${Array(w).fill(f).join(' + ')} = ${frac(w * n, d).mixedTex()}\).`],
     rule: 0,
     skill: 'whole number times fraction',
+    check: () => (Array(w).fill(frac(n, d)).reduce((s, x) => s.add(x), frac(0)).eq(frac(n, d).mul(w)) ? true : 'repeated addition does not match'),
   });
 }
 
@@ -77,7 +78,7 @@ function easyPartOfSet(rng) {
     visual: { type: 'barModel', rows: [{ parts: [{ value: 1, label: '?', shade: 'a' }, ...Array(d - 1).fill({ value: 1, shade: 'none' })], total: `${w} in all` }], alt: `A bar for ${w}, cut into ${d} equal parts. One part is marked with a question mark.` },
     correct: k,
     wrong: [
-      { value: w - d, why: `Finding ${F(1, d)} of a number means splitting it into ${d} equal parts, not taking ${d} away.` },
+      { value: w - d, why: `To find ${F(1, d)} of a number, split it into ${d} equal parts. Do not take ${d} away.` },
       { value: w * d, why: `${F(1, d)} of ${w} is a part of ${w}, so it is smaller than ${w}.` },
       k + 1,
       k - 1,
@@ -161,7 +162,7 @@ function mediumFractionOf(rng) {
   const w = d * k;
   return q({
     prompt: R`What is \(${fracTex(n, d)}\) of ${w}?`,
-    visual: { type: 'barModel', rows: [{ parts: [...Array(n).fill({ value: 1, label: `${k}`, shade: 'a' }), ...Array(d - n).fill({ value: 1, shade: 'none' })], total: `${w} in all` }], alt: `A bar for ${w}, cut into ${d} equal parts of ${k}. ${n} of the parts are shaded.` },
+    visual: { type: 'barModel', rows: [{ parts: [...Array(n).fill({ value: 1, shade: 'a' }), ...Array(d - n).fill({ value: 1, shade: 'none' })], total: `${w} in all` }], alt: `A bar for ${w}, cut into ${d} equal parts. ${n} of the parts are shaded.` },
     correct: n * k,
     wrong: [
       { value: k, why: `That is ${F(1, d)} of ${w}. Take ${n} of those parts.` },
@@ -170,7 +171,7 @@ function mediumFractionOf(rng) {
       n * k - 1,
       w - n,
     ],
-    solution: [R`"Of" means multiply: \(${fracTex(n, d)} \times ${w}\).`, R`Find one part: \(${w} \div ${d} = ${k}\).`, R`Take ${n} parts: \(${n} \times ${k} = ${n * k}\).`],
+    solution: [R`"Of" means multiply: \(${fracTex(n, d)} \times ${w}\).`, R`Find one part: \(${w} \div ${d} = ${k}\).`, R`Take ${plural(n, 'part')}: \(${n} \times ${k} = ${n * k}\).`],
     rule: 1,
     skill: 'fraction of a number',
     check: () => (frac(n, d).mul(w).eq(n * k) ? true : 'product does not match'),
@@ -448,7 +449,7 @@ function challengeTwoStep(rng) {
     unit: stuff.split(' ')[0],
     wrong: [
       { value: afterFirst, why: `That is what is left after ${use1}. Some of it is then used for ${use2}.` },
-      fromStart > 0 && fromStart !== end ? { value: fromStart, why: `The second fraction is ${F(c, d)} of what is left, not of the ${start} at the start.` } : null,
+      fromStart > 0 && fromStart !== end ? { value: fromStart, why: `The second fraction is ${F(c, d)} of what is left. It is not ${F(c, d)} of the ${start} at the start.` } : null,
       { value: start - end, why: 'That is how much was used. The question asks how much is left.' },
       end + 1,
       end + 2,
@@ -502,7 +503,7 @@ export default {
   standards: ['CCSS 4.NF.B.4', 'CCSS 5.NF.B.4', 'CCSS 5.NF.B.6', 'CCSS 5.NF.B.7'],
 
   explain: {
-    intro: 'Multiplying by a fraction means taking part of an amount. It can also mean adding a fraction again and again. Dividing with a unit fraction asks how many small pieces there are, or how big each share is.',
+    intro: 'Multiplying by a fraction means taking part of an amount. It can also mean adding a fraction again and again. Dividing with a unit fraction asks one of two things. How many small pieces are there? Or how big is each share?',
     rules: [
       {
         title: 'A whole number times a fraction',
@@ -511,7 +512,7 @@ export default {
       },
       {
         title: '"Of" means multiply',
-        text: 'To find a fraction of a number, split the number into equal parts using the bottom number. Then take as many parts as the top number says.',
+        text: 'To find a fraction of a number, first split the number into equal parts. The bottom number tells how many parts. Then take as many parts as the top number says.',
         example: R`\(\frac{3}{4}\) of 20: one fourth of 20 is 5, so three fourths is \(3 \times 5 = 15\).`,
       },
       {

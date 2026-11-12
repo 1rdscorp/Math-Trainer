@@ -4,6 +4,9 @@ const M = (tex) => R`\(${tex}\)`;
 // a·xⁿ as LaTeX (n may be negative or a Frac).
 const mono = (a, n) => terms([[a, power('x', n)]]);
 
+// True when two functions agree at a few sample points (used to drop a "wrong" choice that is really right).
+const sameFunction = (f, g) => [0.7, 1.3, 2.1].every((x) => Math.abs(f(x) - g(x)) < 1e-9 * Math.max(1, Math.abs(f(x))));
+
 // ───────────── Easy ─────────────
 
 function easyPower(rng) {
@@ -272,14 +275,18 @@ function hardProductMixed(rng) {
   const xn = power('x', n);
   const xn1 = power('x', n - 1);
   const right = terms([[a * n, xn1 + g.tex], [a * g.sign, xn + g.dtex]]);
+  const rightJs = (x) => a * n * x ** (n - 1) * g.js(x) + a * x ** n * g.djs(x);
   return q({
     prompt: R`Find \(f'(x)\) for \(f(x) = ${terms([[a, xn + g.tex]])}\).`,
     correct: M(right),
     wrong: [
       { value: M(terms([[a * n * g.sign, xn1 + g.dtex]])), why: R`That multiplies the two derivatives. The product rule is \(u'v + uv'\).` },
       { value: M(terms([[a * n, xn1 + g.tex], [-a * g.sign, xn + g.dtex]])), why: R`Check the sign of the second term: the derivative of \(${g.tex}\) is \(${g.sign < 0 ? '-' : ''}${g.dtex}\).` },
-      M(terms([[a * n, xn + g.tex], [a * g.sign, xn1 + g.dtex]])),
+      // Swapping the powers gives the right answer again when n = 1 and v = eˣ, so test the value first.
+      sameFunction(rightJs, (x) => a * n * x ** n * g.js(x) + a * x ** (n - 1) * g.djs(x)) ? null : M(terms([[a * n, xn + g.tex], [a * g.sign, xn1 + g.dtex]])),
       M(terms([[a, xn1 + g.tex], [a * g.sign, xn + g.dtex]])),
+      M(terms([[a * g.sign, xn + g.dtex]])),
+      M(terms([[a * n, xn1 + g.tex], [a * g.sign, power('x', n + 1) + g.dtex]])),
     ],
     solution: [
       R`Let \(u = ${mono(a, n)}\) and \(v = ${g.tex}\). Then \(u' = ${mono(a * n, n - 1)}\) and \(v' = ${g.sign < 0 ? '-' : ''}${g.dtex}\).`,
@@ -288,7 +295,7 @@ function hardProductMixed(rng) {
     ],
     rule: 3,
     skill: 'product rule',
-    check: () => checkDeriv((x) => a * x ** n * g.js(x), (x) => a * n * x ** (n - 1) * g.js(x) + a * x ** n * g.djs(x)),
+    check: () => checkDeriv((x) => a * x ** n * g.js(x), rightJs),
   });
 }
 

@@ -139,11 +139,17 @@ function numberLine(s) {
 
   if (s.segment) {
     const { from, to, openFrom, openTo } = s.segment;
-    out.push(line(X(from), yLine, X(to), yLine, 'viz-line-a viz-thick'));
-    out.push(circle(X(from), yLine, 6, openFrom ? 'viz-open-a' : 'viz-dot-a'), circle(X(to), yLine, 6, openTo ? 'viz-open-a' : 'viz-dot-a'));
+    // An end that lies beyond the visible range runs off the line as an arrow.
+    const offLeft = from < min;
+    const offRight = to > max;
+    const xa = offLeft ? 14 : X(from);
+    const xb = offRight ? 346 : X(to);
+    out.push(line(xa, yLine, xb, yLine, 'viz-line-a viz-thick'));
+    out.push(offLeft ? arrowHead(6, yLine, Math.PI, 'viz-dot-a', 11) : circle(xa, yLine, 6, openFrom ? 'viz-open-a' : 'viz-dot-a'));
+    out.push(offRight ? arrowHead(354, yLine, 0, 'viz-dot-a', 11) : circle(xb, yLine, 6, openTo ? 'viz-open-a' : 'viz-dot-a'));
   }
-  if (s.ray) {
-    const { from, dir, open } = s.ray;
+  // `ray` may be one ray or a list of rays (for "x < a or x > b").
+  for (const { from, dir, open } of [].concat(s.ray ?? [], s.rays ?? [])) {
     const right = dir !== 'left';
     const end = right ? 346 : 14;
     out.push(line(X(from), yLine, end, yLine, 'viz-line-a viz-thick'), arrowHead(right ? 354 : 6, yLine, right ? 0 : Math.PI, 'viz-dot-a', 11));
@@ -164,7 +170,20 @@ function numberLine(s) {
     if (p.label != null) out.push(text(X(p.value), labelsBelow ? yLine + 40 : yLine - 18, p.label, 'viz-text-b'));
   }
 
-  const alt = s.alt ?? `Number line from ${fmt(min)} to ${fmt(max)}${points.length ? ` with ${points.map((p) => p.label ?? fmt(p.value)).join(', ')} marked` : ''}.`;
+  // Default description: the range, any marked points, and any shaded part.
+  const shaded = [];
+  if (s.segment) {
+    const { from, to, openFrom, openTo } = s.segment;
+    const end = (v, open) => `${fmt(v)} (${open ? 'an open' : 'a closed'} circle)`;
+    if (from < min && to > max) shaded.push('the whole line is shaded');
+    else if (from < min) shaded.push(`shaded to the left of ${end(to, openTo)}`);
+    else if (to > max) shaded.push(`shaded to the right of ${end(from, openFrom)}`);
+    else shaded.push(`shaded between ${end(from, openFrom)} and ${end(to, openTo)}`);
+  }
+  for (const r of [].concat(s.ray ?? [], s.rays ?? [])) shaded.push(`shaded to the ${r.dir !== 'left' ? 'right' : 'left'} of ${fmt(r.from)} (${r.open ? 'an open' : 'a closed'} circle)`);
+  const alt =
+    s.alt ??
+    `Number line from ${fmt(min)} to ${fmt(max)}${points.length ? ` with ${points.map((p) => p.label ?? fmt(p.value)).join(', ')} marked` : ''}${shaded.length ? `, ${shaded.join(' and ')}` : ''}.`;
   return svg(W, H, alt, out);
 }
 

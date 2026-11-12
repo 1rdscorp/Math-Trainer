@@ -85,7 +85,9 @@ function easyCombination(rng) {
 }
 
 function easyMagnitude(rng) {
-  const v = rvec(rng, -6, 6);
+  let v;
+  do v = rvec(rng, -6, 6);
+  while (v.filter((x) => x === 0).length > 1);
   const n = vlen2(v);
   const s = v.reduce((t, x) => t + Math.abs(x), 0);
   const { coef, rad: inside } = simplifySqrt(n);
@@ -98,6 +100,7 @@ function easyMagnitude(rng) {
       M(sqrtTex(s)),
       M(sqrtTex(n + 1)),
       M(sqrtTex(n + 3)),
+      M(sqrtTex(n + 2)),
     ],
     solution: [
       R`\(|\mathbf{v}| = \sqrt{${sumSq(v)}}\).`,

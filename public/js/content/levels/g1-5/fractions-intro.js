@@ -7,7 +7,7 @@ const bar = (n, d, label = 'One whole') => ({ n, d, label });
 
 function linePic(n, d, max = 1) {
   const labels = Array.from({ length: max + 1 }, (_, i) => ({ value: i, text: String(i) }));
-  return { type: 'numberLine', min: 0, max, step: 1 / d, labels, points: [{ value: n / d, label: '?' }], alt: `A number line from 0 to ${max}. Each whole is cut into ${d} equal jumps. A point is ${n} jumps from 0.` };
+  return { type: 'numberLine', min: 0, max, step: 1 / d, labels, points: [{ value: n / d, label: '?' }], alt: `A number line from 0 to ${max}. Each whole is cut into ${d} equal jumps. A point is ${plural(n, 'jump')} from 0.` };
 }
 
 // Four statements comparing two fractions; only the first is true.
@@ -133,15 +133,16 @@ function mediumCompare(rng) {
   let y;
   let less;
   let steps;
+  let values;
   if (rng.bool()) {
     const d = rng.pick(DENS.filter((v) => v > 2));
     const [a, b] = rng.sample(Array.from({ length: d - 1 }, (_, i) => i + 1), 2);
-    [x, y, less] = [fracTex(a, d), fracTex(b, d), a < b];
-    steps = [`Both fractions are ${fractionWord(d)}, so the parts are the same size.`, `${a} parts is ${less ? 'fewer' : 'more'} than ${b} parts.`];
+    [x, y, less, values] = [fracTex(a, d), fracTex(b, d), a < b, [a / d, b / d]];
+    steps = [`Both fractions are ${fractionWord(d)}, so the parts are the same size.`, `${plural(a, 'part')} is ${less ? 'fewer' : 'more'} than ${plural(b, 'part')}.`];
   } else {
     const n = rng.int(1, 5);
     const [a, b] = rng.sample(DENS.filter((v) => v > n), 2);
-    [x, y, less] = [fracTex(n, a), fracTex(n, b), a > b];
+    [x, y, less, values] = [fracTex(n, a), fracTex(n, b), a > b, [n / a, n / b]];
     steps = [`Both fractions have ${plural(n, 'part')}.`, `${fractionWord(a)[0].toUpperCase()}${fractionWord(a).slice(1)} are ${less ? 'smaller' : 'bigger'} parts than ${fractionWord(b)}.`];
   }
   const c = compareChoices(x, y, less);
@@ -152,6 +153,7 @@ function mediumCompare(rng) {
     solution: [...steps, `So ${c.correct}.`],
     rule: 2,
     skill: 'comparing fractions',
+    check: () => (values[0] !== values[1] && values[0] < values[1] === less ? true : 'comparison does not match'),
   });
 }
 
@@ -374,7 +376,7 @@ function challengeHalf(rng) {
       prompt: R`Which fraction is greater than \(\frac{1}{2}\)?`,
       correct: F(top, big),
       wrong: lows.map(([n, d]) => ({ value: F(n, d), why: 2 * n === d ? `${F(n, d)} is exactly one half, not more.` : `Half of ${d} is ${d / 2}. ${n} is less than that.` })),
-      solution: ['A fraction is more than one half when its top is more than half of its bottom.', `Half of ${big} is ${big / 2}. ${top} is more than that.`, `So ${F(top, big)} is greater than one half.`],
+      solution: ['Compare the top number with half of the bottom number. A bigger top means more than one half.', `Half of ${big} is ${big / 2}. ${top} is more than that.`, `So ${F(top, big)} is greater than one half.`],
       rule: 2,
       skill: 'comparing fractions',
       key: `half:${top}/${big}:${lows.map((f) => f.join('/')).sort().join(',')}`,
@@ -394,7 +396,7 @@ function challengeTwoStepEquivalent(rng) {
       prompt: R`What number goes in the box? \(\;${fracTex(a, b)} = \frac{\square}{${e}}\)`,
       correct: answer,
       wrong: [
-        { value: a + e - b, why: 'Adding or subtracting the same number changes the fraction. Simplify first, then multiply.' },
+        a + e - b > 0 ? { value: a + e - b, why: 'Adding or subtracting the same number changes the fraction. Simplify first, then multiply.' } : null,
         { value: a, why: 'The bottom number changed, so the top number must change too.' },
         answer + 1,
         answer - 1 || answer + 2,

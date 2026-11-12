@@ -529,6 +529,8 @@ function challengeExpressionInput(rng) {
         { value: form(linear(a, a * h)), why: R`After distributing, the \(${signed(b)}\) from the rule is still there.` },
         form(linear(a + h, b)),
         form(linear(a * h, b)),
+        form(linear(a, a * h - b)),
+        form(linear(a, a * h + b + 1)),
       ],
       solution: [
         R`Replace \(x\) with the whole expression \(${inp}\): \(f(${inp}) = ${a}(${inp}) ${signed(b)}\).`,

@@ -5,5 +5,8 @@ import percent from './percent.js';
 import integersRationals from './integers-rationals.js';
 import expressions from './expressions.js';
 import equationsInequalities from './equations-inequalities.js';
+import proportional from './proportional.js';
+import areaVolume from './area-volume.js';
+import statisticsProbability from './statistics-probability.js';
 
-export default [ratiosRates, fractionDivisionFactors, percent, integersRationals, expressions, equationsInequalities];
+export default [ratiosRates, fractionDivisionFactors, percent, integersRationals, expressions, equationsInequalities, proportional, areaVolume, statisticsProbability];

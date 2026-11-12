@@ -131,6 +131,8 @@ function mediumBinomials(rng) {
       P([a * c, a * d + b * c, -b * d]),
       P([a * c, b + d, b * d]),
       P([a * c, a * d + b * c, b + d]),
+      P([a * c, 2 * (a * d + b * c), b * d]),
+      P([a * c, a * d + b * c, b * d + 1]),
     ],
     solution: [
       R`Multiply each term by each term (one product for each box of the area model): \(${term(a * c, 'x^{2}')}\), \(${term(a * d, 'x')}\), \(${term(b * c, 'x')}\) and \(${b * d}\).`,

@@ -87,13 +87,20 @@ export function checkIntegral(f, a, b, value, tol = 1e-5) {
  * side: 0 both sides (default), +1 from the right, −1 from the left.
  */
 export function checkLimit(f, a, L, { side = 0, tol = 1e-3 } = {}) {
-  const probe = [];
-  if (a === Infinity) probe.push(1e6, 1e7);
-  else if (a === -Infinity) probe.push(-1e6, -1e7);
-  else {
-    if (side >= 0) probe.push(a + 1e-5, a + 1e-6);
-    if (side <= 0) probe.push(a - 1e-5, a - 1e-6);
+  if (a === Infinity || a === -Infinity) {
+    // Convergence at infinity can be slow (2 + 2400/x) and very large inputs can lose precision,
+    // so look further and further out and accept the limit as soon as the values settle on it.
+    const sign = a === Infinity ? 1 : -1;
+    let last = NaN;
+    for (const x of [1e6, 1e8, 1e10]) {
+      last = f(sign * x);
+      if (close(last, L, tol)) return true;
+    }
+    return `limit mismatch as x → ${sign > 0 ? '' : '-'}∞: f=${last}, expected ${L}`;
   }
+  const probe = [];
+  if (side >= 0) probe.push(a + 1e-5, a + 1e-6);
+  if (side <= 0) probe.push(a - 1e-5, a - 1e-6);
   for (const x of probe) {
     const got = f(x);
     if (!close(got, L, tol)) return `limit mismatch near x=${x}: f=${got}, expected ${L}`;

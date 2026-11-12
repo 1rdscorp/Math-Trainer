@@ -232,6 +232,39 @@ function mediumPathLimit(rng) {
   });
 }
 
+const STALLS = [['bracelets', 'necklaces'], ['mugs', 'bowls'], ['cakes', 'pies'], ['scarves', 'hats'], ['candles', 'soaps']];
+
+function mediumMarginal(rng) {
+  const [a, b, c] = [rng.int(1, 4), rng.int(1, 3), rng.int(1, 3)];
+  const [d, e] = [10 * rng.int(3, 9), 10 * rng.int(3, 9)];
+  const p = [[a, 1, 1], [-b, 2, 0], [-c, 0, 2], [d, 1, 0], [e, 0, 1]];
+  const pt = [rng.int(2, 9), rng.int(2, 9)];
+  const v = rng.int(0, 1);
+  const goods = rng.pick(STALLS);
+  const ans = mpEval(mpD(p, v), ...pt);
+  const noCross = ans - a * pt[1 - v];
+  return q({
+    prompt: R`A market stall makes a weekly profit of \(P(x, y) = ${mpTex(p)}\) dollars from selling \(x\) ${goods[0]} and \(y\) ${goods[1]}. Find the marginal profit with respect to ${goods[v]}, \(\dfrac{\partial P}{\partial ${'xy'[v]}}\), when \(x = ${pt[0]}\) and \(y = ${pt[1]}\).`,
+    correct: ans,
+    unit: 'dollars per item',
+    wrong: [
+      { value: mpEval(mpD(p, 1 - v), ...pt), why: `That is the marginal profit with respect to ${goods[1 - v]}.` },
+      { value: noCross, why: R`The term \(${mpTex([p[0]])}\) contains \(${'xy'[v]}\) too: its derivative is \(${mpTex(mpD([p[0]], v))}\).` },
+      { value: mpEval(p, ...pt), why: 'That is the profit itself. The marginal profit is its rate of change.' },
+      -ans,
+      ans + 10,
+    ],
+    solution: [
+      R`Hold \(${'xy'[1 - v]}\) constant: \(\dfrac{\partial P}{\partial ${'xy'[v]}} = ${mpTex(mpD(p, v))}\).`,
+      R`At \(x = ${pt[0]}\), \(y = ${pt[1]}\) this is \(${ans}\).`,
+      `Selling one more of the ${goods[v]} would change the weekly profit by about ${ans} dollars, with the number of ${goods[1 - v]} unchanged.`,
+    ],
+    rule: 5,
+    skill: 'partials as rates of change',
+    check: () => checkEqual(ans, numPartial(fn(p), pt, v), 1e-5, 'marginal profit'),
+  });
+}
+
 // ───────────── Hard ─────────────
 
 const DNE = 'The limit does not exist.';
@@ -335,7 +368,7 @@ function hardApplication(rng) {
     return q({
       prompt: R`The volume of a cylindrical can is \(V = \pi r^{2}h\). For a can with radius ${r} cm and height ${h} cm, at what rate does the volume change as the ${wrtR ? 'radius' : 'height'} increases, if the ${wrtR ? 'height' : 'radius'} stays fixed?`,
       correct: show(ans),
-      wrong: [{ value: show(wrtR ? r * r : 2 * r * h), why: `That is the rate of change with respect to the ${wrtR ? 'height' : 'radius'}.` }, { value: show(r * r * h), why: 'That is the volume itself, not a rate of change.' }, show(wrtR ? r * h : 2 * r), show(2 * ans), show(ans + r)],
+      wrong: [{ value: show(wrtR ? r * r : 2 * r * h), why: `That is the rate of change with respect to the ${wrtR ? 'height' : 'radius'}.` }, { value: show(r * r * h), why: 'That is the volume itself, not a rate of change.' }, show(wrtR ? r * h : 2 * r), show(2 * ans), show(ans + r), show(3 * ans), show(ans + 1)],
       solution: [wrtR ? R`Hold \(h\) constant: \(\dfrac{\partial V}{\partial r} = 2\pi rh\).` : R`Hold \(r\) constant: \(\dfrac{\partial V}{\partial h} = \pi r^{2}\).`, R`At \(r = ${r}\), \(h = ${h}\): \(${wrtR ? `2\\pi(${r})(${h})` : `\\pi(${r})^{2}`} = ${piTex(ans)}\) cm³ per cm.`],
       rule: 5,
       skill: 'partials as rates of change',
@@ -606,7 +639,7 @@ export default {
 
   quiz: {
     easy: [easyPartialPoly, easyLevelCurve, easyDomain],
-    medium: [mediumPartialChain, mediumSecondPartial, mediumPathLimit],
+    medium: [mediumPartialChain, mediumSecondPartial, mediumPathLimit, mediumMarginal],
     hard: [hardLimitExists, hardTableEstimate, hardApplication],
     challenge: [challengeLaplace, challengeClairaut, challengePde],
   },

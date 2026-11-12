@@ -1,5 +1,5 @@
 // Helpers shared by the Algebra 1 topics. Pure functions: no DOM, no randomness of their own.
-import { R, num, txt, terms, Frac, frac, checkRoots } from '../../lib/index.js';
+import { R, num, txt, terms, poly, power, polyMul, Frac, frac, gcd, isSquare, simplifySqrt, rootsTex, checkRoots } from '../../lib/index.js';
 
 /** The numeric value of a number or a Frac. */
 export const val = (v) => (v instanceof Frac ? v.value : v);
@@ -90,12 +90,9 @@ export function outside(opLo, lo, opHi, hi, x = 'x') {
     edges: [lo, hi],
     visual() {
       const w = lineWindow([lo, hi]);
-      // numberLine draws one ray and one segment. The left-hand ray is a segment that starts
-      // off the picture, so its far end is clipped and only the shading up to `lo` shows.
       return {
         type: 'numberLine', ...w,
-        segment: { from: w.min - (w.max - w.min), to: val(lo), openTo: STRICT[opLo] },
-        ray: { from: val(hi), dir: 'right', open: STRICT[opHi] },
+        ray: [{ from: val(lo), dir: 'left', open: STRICT[opLo] }, { from: val(hi), dir: 'right', open: STRICT[opHi] }],
         points: edgeLabels([lo, hi], [STRICT[opLo], STRICT[opHi]], w),
         alt: `Number line shaded to the left of ${show(lo)} (${circle(STRICT[opLo])}) and to the right of ${show(hi)} (${circle(STRICT[opHi])}).`,
       };
@@ -163,4 +160,76 @@ export function lineText(m, b) {
   if (!mx) return show(b);
   if (bv === 0) return mx;
   return `${mx} ${bv < 0 ? '−' : '+'} ${show(b instanceof Frac ? b.abs() : Math.abs(b))}`;
+}
+
+// ───────────── Factored forms ─────────────
+
+/**
+ * A product of polynomial factors as LaTeX, together with its expanded coefficients.
+ *   factored([2, 0], [[1, 3], [1, -2]]) → { tex: "2x(x + 3)(x - 2)", coefs: [2, 2, -12, 0] }
+ * `lead` is a monomial given by its coefficients ([3] is 3, [2, 0] is 2x, [1] is no leading factor).
+ * Each factor is a coefficient list, highest power first. Equal factors are written as a power.
+ */
+export function factored(lead, factors, x = 'x') {
+  const coefs = factors.reduce((p, f) => polyMul(p, f), lead);
+  const counts = new Map();
+  for (const f of factors) counts.set(poly(f, x), (counts.get(poly(f, x)) ?? 0) + 1);
+  const body = [...counts].map(([key, n]) => `(${key})${n > 1 ? `^{${n}}` : ''}`).join('');
+  const k = lead[0];
+  const deg = lead.length - 1;
+  const mono = (Math.abs(k) === 1 && (deg > 0 || body) ? (k < 0 ? '-' : '') : num(k)) + power(x, deg);
+  return { tex: mono + body, coefs };
+}
+
+/**
+ * Wrong factorisations for a multiple-choice question. Each candidate is a factored() result or
+ * { f: factored(...), why, keep }. A candidate that expands to the same polynomial as `correct` is an
+ * equivalent form, so it is dropped, unless `keep` marks it as deliberately incomplete (for "factor
+ * completely" questions). Kept candidates need a `why`; they are passed to q() with form: true.
+ */
+export function otherForms(correct, cands) {
+  const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+  return cands
+    .filter(Boolean)
+    .map((c) => (c.tex ? { f: c } : c))
+    .filter((c) => (same(c.f.coefs, correct.coefs) ? c.keep && c.why : true))
+    .map((c) => {
+      const value = `\\(${c.f.tex}\\)`;
+      if (same(c.f.coefs, correct.coefs)) return { value, why: c.why, form: true };
+      return c.why ? { value, why: c.why } : value;
+    });
+}
+
+// ───────────── Quadratic equations ─────────────
+
+/**
+ * The pair of numbers (p ± √D) / q in simplest radical form, as LaTeX (D positive and not a perfect square):
+ *   surd(-4, 24, 2) → "-2 \pm \sqrt{6}",  surd(3, 41, 4) → "\frac{3 \pm \sqrt{41}}{4}".
+ */
+export function surd(p, D, q) {
+  const { coef, rad } = simplifySqrt(D);
+  const sign = q < 0 ? -1 : 1;
+  const g = gcd(gcd(p, coef), q);
+  const [top, k, den] = [(p * sign) / g, coef / g, (q * sign) / g];
+  const radical = `${k === 1 ? '' : k}\\sqrt{${rad}}`;
+  if (top === 0) return den === 1 ? `\\pm ${radical}` : `\\pm \\frac{${radical}}{${den}}`;
+  return den === 1 ? `${top} \\pm ${radical}` : `\\frac{${top} \\pm ${radical}}{${den}}`;
+}
+
+/**
+ * Exact real solutions of ax² + bx + c = 0 (integer coefficients, a ≠ 0).
+ * Returns { D, count, values, tex }: D is the discriminant, `values` are the solutions as numbers in
+ * ascending order, and `tex` is LaTeX such as "x = -2 \text{ or } x = 5" or "x = \frac{3 \pm \sqrt{41}}{4}"
+ * (empty when there is no real solution).
+ */
+export function quadSolve(a, b, c) {
+  const D = b * b - 4 * a * c;
+  if (D < 0) return { D, count: 0, values: [], tex: '' };
+  if (isSquare(D)) {
+    const s = Math.sqrt(D);
+    const roots = D === 0 ? [frac(-b, 2 * a)] : [frac(-b - s, 2 * a), frac(-b + s, 2 * a)];
+    return { D, count: roots.length, values: roots.map((r) => r.value).sort((u, v) => u - v), tex: rootsTex(roots) };
+  }
+  const values = [(-b - Math.sqrt(D)) / (2 * a), (-b + Math.sqrt(D)) / (2 * a)].sort((u, v) => u - v);
+  return { D, count: 2, values, tex: `x = ${surd(-b, D, 2 * a)}` };
 }

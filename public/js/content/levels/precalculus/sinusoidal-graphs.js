@@ -160,7 +160,7 @@ function easyPeriod(rng) {
     correct: M(String(P)),
     wrong: [
       { value: M(String(half ? 2 * n : n)), why: R`Divide \(2\pi\) by \(b\), and keep track of the factor 2.` },
-      { value: M(piTex(2, half ? 2 : 1)), why: R`\(2\pi\) is the period only when \(b = 1\). Here \(b = ${half ? piTex(2, n) : piTex(1, n)}\).` },
+      { value: M(piTex(2)), why: R`\(2\pi\) is the period only when \(b = 1\). Here \(b = ${half ? piTex(2, n) : piTex(1, n)}\).` },
       { value: M(half ? piTex(2, n) : piTex(1, n)), why: R`That is \(b\) itself. The period is \(\frac{2\pi}{b}\).` },
       M(String(4 * n)),
       M(piTex(P)),
@@ -361,7 +361,7 @@ function mediumModelEvaluate(rng) {
   const dt = (sc.P / 12) * j * rng.sign();
   const t = p + dt;
   if (t < 0 || t > sc.P) return mediumModelEvaluate(rng);
-  const model = R`${A}\cos\left(${piTex(2, sc.P)}(t - ${p})\right) + ${k}`;
+  const model = R`${lead(A)}\cos\left(${piTex(2, sc.P)}(t - ${p})\right) + ${k}`;
   const ans = frac(A).mul(c).add(k);
   const angle = piTex(2 * Math.abs(dt), sc.P);
   return q({
@@ -399,7 +399,7 @@ function hardEquationMaxMin(rng) {
   const [hi, lo] = [k + A, k - A];
   const v = tide ? 'd' : 'T';
   const build = (amp, bn, bd, fn, sign, kk) => ({
-    text: M(`${v}(t) = ${amp}\\${fn}\\left(${piTex(bn, bd)}(t ${sign > 0 ? '-' : '+'} ${t1})\\right) + ${kk}`),
+    text: M(`${v}(t) = ${lead(amp)}\\${fn}\\left(${piTex(bn, bd)}(t ${sign > 0 ? '-' : '+'} ${t1})\\right) + ${kk}`),
     f: (t) => amp * TRIGF[fn](((bn * Math.PI) / bd) * (t - sign * t1)) + kk,
   });
   const right = build(A, 1, half, 'cos', 1, k);
@@ -792,14 +792,14 @@ export default {
         const A = (high - low) / 2;
         const k = (high + low) / 2;
         const f = (x) => A * Math.cos((Math.PI / gap) * (x - tHigh)) + k;
-        const model = R`${num(A)}\cos\left(${piTex(1, gap)}(t - ${tHigh})\right) + ${num(k)}`;
+        const model = R`${lead(A)}\cos\left(${piTex(1, gap)}(t - ${tHigh})\right) + ${num(k)}`;
         return {
           problem: `High tide is ${num(high)} m at ${tHigh} hours after midnight, and the next low tide is ${num(low)} m, ${gap} hours later. How deep is the water ${num(t)} hours after midnight?`,
           steps: [
             R`Amplitude: \(\dfrac{${num(high)} - ${num(low)}}{2} = ${num(A)}\). Midline: \(\dfrac{${num(high)} + ${num(low)}}{2} = ${num(k)}\).`,
             R`High to low is half a period, so the period is \(2 \cdot ${gap} = ${2 * gap}\) hours and \(b = \dfrac{2\pi}{${2 * gap}} = ${piTex(1, gap)}\).`,
             R`A cosine starts at its maximum, so shift it to \(t = ${tHigh}\): \(d(t) = ${model}\).`,
-            R`\(d(${num(t)}) = ${num(A)}\cos\left(${piTex(1, gap)} \cdot ${t - tHigh < 0 ? `(${num(t - tHigh)})` : num(t - tHigh)}\right) + ${num(k)} \approx ${num(f(t), { places: 2 })}\).`,
+            R`\(d(${num(t)}) = ${lead(A)}\cos\left(${piTex(1, gap)} \cdot ${t - tHigh < 0 ? `(${num(t - tHigh)})` : num(t - tHigh)}\right) + ${num(k)} \approx ${num(f(t), { places: 2 })}\).`,
           ],
           answer: R`\(d(t) = ${model}\); at \(t = ${num(t)}\) the depth is about ${num(f(t), { places: 2 })} m.`,
           visual: {

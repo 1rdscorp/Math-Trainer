@@ -25,7 +25,8 @@ export function terms(list) {
     const v = valueOf(c);
     if (v === 0) continue;
     const mag = Math.abs(v) === 1 && sym ? '' : absTex(c);
-    const body = mag + sym;
+    // 3 times 2^{x} must not print as 32^{x}: put a dot between a coefficient and a symbol that starts with a digit.
+    const body = mag && /^[\d.]/.test(sym) ? `${mag} \\cdot ${sym}` : mag + sym;
     if (!out) out = (v < 0 ? '-' : '') + body;
     else out += (v < 0 ? ' - ' : ' + ') + body;
   }
