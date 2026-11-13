@@ -44,6 +44,13 @@ The app is the `public/` folder: static HTML, CSS and JavaScript with no build s
 folder to any static host (GitHub Pages, Netlify, an S3 bucket, a school web server). Everything
 works; "Save my progress" then keeps accounts on the student's own device instead of on a server.
 
+### Publishing with GitHub Pages
+
+This repository can publish itself for free. In the repository on GitHub, open **Settings → Pages**
+and, under "Build and deployment", set **Source** to **GitHub Actions**. From then on, every change
+merged into `main` is tested and published by `.github/workflows/pages.yml`, and the site's address
+(`https://<owner>.github.io/<repository>/`) is shown on that settings page. The site is public.
+
 ## Accounts are optional
 
 | | Where progress lives | Kept after closing the app? |
