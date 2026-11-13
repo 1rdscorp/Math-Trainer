@@ -5,8 +5,9 @@ modern browser on a phone or a computer, needs no account, and has no adverts or
 
 ## What is in it
 
-- **Nine levels**: Grades 1–5, Grades 6–8, Algebra 1, Geometry, Algebra 2, Precalculus, Calculus 1,
-  Calculus 2 and Calculus 3. Each has a list of topics aligned to common curriculum standards.
+- **Nine levels, 100 topics**: Grades 1–5 (12 topics), Grades 6–8 (12), Algebra 1 (11), Geometry (10),
+  Algebra 2 (10), Precalculus (11), Calculus 1 (12), Calculus 2 (11) and Calculus 3 (11). Each topic
+  lists the curriculum standards it is aligned to.
 - **Every topic has four steps**
   1. **Learn**: the rules in plain language, with vocabulary and common mistakes.
   2. **Examples**: worked problems, including word problems, opened one step at a time.
@@ -94,7 +95,7 @@ public/                 the app (static files)
 server/server.js        static file server and account API (no dependencies)
 scripts/                content validator, sample printer, catalogue builder
 test/                   unit tests
-e2e/                    browser tests, including an accessibility audit
+e2e/                    browser tests: user journeys with an accessibility audit, and a sweep of every topic
 docs/                   authoring guide; research and standards
 ```
 
@@ -103,15 +104,40 @@ docs/                   authoring guide; research and standards
 ```bash
 npm install            # only needed for the tests and content tools
 npm test               # unit tests, server tests and validation of every topic
-npm run validate       # deeper content check; add a level or level/topic to narrow it
+npm run validate       # content check; add a level or level/topic to narrow it
+npm run validate:deep  # the same with 2,000 random questions per generator (a few minutes)
 npm run sample -- g1-5/fractions-add-sub --models    # print real questions to read
 npm run catalog        # rebuild the menu data after adding or renaming topics
 npm run e2e            # browser tests (needs Playwright: npm i -D playwright)
+npm run e2e:sweep      # open every topic page at phone width; add -- --axe for the accessibility audit
 ```
 
-To add or change a topic, read [docs/authoring-topics.md](docs/authoring-topics.md). The validator
-runs every question generator hundreds of times, renders every formula, checks answers numerically
-where a check is supplied, and fuzzes every interactive model.
+To add or change a topic, read [docs/authoring-topics.md](docs/authoring-topics.md).
+
+## How the content is checked
+
+Every question is generated from random numbers, so the checks are automatic and run over
+thousands of generated questions rather than a fixed list.
+
+- **Answers.** About 95% of the 1,500 question generators carry an independent numeric check
+  (substitute the solution back, differentiate the antiderivative numerically, integrate numerically,
+  rebuild a figure from coordinates and measure it). The validator runs each check on every
+  generated question.
+- **Wrong answers.** The validator evaluates all four choices numerically and rejects a "wrong"
+  choice that is equal in value to the right one (`3 + 2x` against `2x + 3`, `4²` against `2⁴`).
+  A deliberate right-value-wrong-form choice (not fully factored) must be declared and explained.
+- **Text and formulas.** Every formula is typeset with KaTeX; lost backslashes, unfilled
+  placeholders, unrounded decimals and doubled signs are reported. Every picture is drawn and must
+  have a text description.
+- **Interactive models** are run with their defaults, their extremes and random inputs, and must
+  never fail.
+- **In the browser.** `npm run e2e` plays whole quizzes, checks the scoring and tier rules, saving
+  and signing in, keyboard use and accessibility. `npm run e2e:sweep` opens every page of every
+  topic at phone width and reports errors, overflow and accessibility problems.
+
+No automatic check can tell whether an explanation teaches well or whether a story makes sense, and
+a numeric check is only as good as the author who wrote it. If you find a wrong answer, the
+generator that made it is named in the question's `skill` and in `npm run sample` output.
 
 ## Licences
 

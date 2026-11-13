@@ -675,11 +675,15 @@ table.data caption { text-align: left; font-weight: 700; padding-bottom: 0.4rem;
 table.data th, table.data td { border: 1px solid var(--border-strong); padding: 0.4rem 0.7rem; text-align: center; }
 table.data thead th, table.data tbody th { background: var(--surface-2); }
 table.viz-table { width: auto; margin: 0.5rem 0; }
+/* Keeps a header's hidden spoken text inside its cell, so that in a wide, scrolling table it
+   cannot sit beyond the edge of the screen and make the whole page scroll sideways. */
+table.data th { position: relative; }
 table.plain th, table.plain td { text-align: left; }
 
 /* ───────── visuals ───────── */
 .viz-wrap { margin: 0.75rem 0; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-start; }
-svg.viz { display: block; max-width: 100%; height: auto; }
+/* overflow: visible lets a long label at the very edge of a picture show in full instead of being cut. */
+svg.viz { display: block; max-width: 100%; height: auto; overflow: visible; }
 .viz-text { fill: var(--viz-ink); font-size: 15px; font-family: var(--font); }
 .viz-text-sm { font-size: 13.5px; }
 .viz-text-xs { font-size: 12px; }

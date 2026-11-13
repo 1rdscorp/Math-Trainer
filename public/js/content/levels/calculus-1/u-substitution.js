@@ -698,13 +698,13 @@ function challengeBackSub(rng) {
       prompt: R`Evaluate \(\displaystyle${integral(0, hi, R`x\sqrt{x + ${a}}`)}\).`,
       correct: value,
       wrong: [
-        { value: five, why: R`With \(u = x + ${a}\), \(x = u - ${a}\), not \(u\). The term \(-${a}\sqrt{u}\) is missing.` },
+        { value: five, why: R`With \(u = x + ${a}\), \(x = u - ${a}\), not \(u\). The term \(-${a === 1 ? '' : a}\sqrt{u}\) is missing.` },
         { value: five.add(three), why: R`\(u = x + ${a}\) gives \(x = u - ${a}\), so the second term is subtracted.` },
         frac(hi * hi * (s ** 3 - p ** 3), 3), value.neg(), value.mul(2),
       ],
       solution: [
         R`Let \(u = x + ${a}\). Then \(du = dx\) and \(x = u - ${a}\). When \(x = 0\), \(u = ${a}\), and when \(x = ${hi}\), \(u = ${s * s}\).`,
-        R`\(\displaystyle${integral(a, s * s, R`(u - ${a})\sqrt{u}`, 'u')} = ${integral(a, s * s, R`\left(u^{3/2} - ${a}u^{1/2}\right)`, 'u')} = \left[\tfrac{2}{5}u^{5/2} - ${frac(2 * a, 3).tex()}u^{3/2}\right]_{${a}}^{${s * s}}\).`,
+        R`\(\displaystyle${integral(a, s * s, R`(u - ${a})\sqrt{u}`, 'u')} = ${integral(a, s * s, R`\left(u^{3/2} - ${a === 1 ? '' : a}u^{1/2}\right)`, 'u')} = \left[\tfrac{2}{5}u^{5/2} - ${frac(2 * a, 3).tex()}u^{3/2}\right]_{${a}}^{${s * s}}\).`,
         R`\(\tfrac{2}{5}\left(${s ** 5} - ${p ** 5}\right) - ${frac(2 * a, 3).tex()}\left(${s ** 3} - ${p ** 3}\right) = ${value.tex()}\).`,
       ],
       rule: 1, skill: 'substitution',

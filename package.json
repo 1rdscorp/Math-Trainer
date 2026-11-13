@@ -12,10 +12,12 @@
     "start": "node server/server.js",
     "test": "node --test",
     "validate": "node scripts/validate-content.mjs",
+    "validate:deep": "node scripts/validate-content.mjs --seeds 2000 --quiet",
     "sample": "node scripts/sample.mjs",
     "catalog": "node scripts/build-catalog.mjs",
     "vendor": "node scripts/vendor.mjs",
     "e2e": "node e2e/run.mjs",
+    "e2e:sweep": "node e2e/sweep.mjs",
     "lint:content": "node scripts/lint-content.mjs"
   },
   "devDependencies": {
