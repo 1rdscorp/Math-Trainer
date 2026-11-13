@@ -32,12 +32,7 @@ export default function homeView(ctx) {
     { class: 'hero stack' },
     h('h1', null, app.store.isGuest ? 'Learn it. Try it. Master it.' : `Welcome back, ${app.store.user.name}!`),
     h('p', null, 'Math from 1st grade through Calculus 3. Every topic explains the rules in plain words, shows worked examples, lets you try your own numbers, and finishes with a quiz that grows with you.'),
-    h(
-      'div',
-      { class: 'row' },
-      h('a', { class: 'btn btn-primary btn-big', href: '#levels', onclick: (e) => { e.preventDefault(); document.getElementById('levels')?.scrollIntoView({ block: 'start' }); document.getElementById('levels-title')?.focus(); } }, 'Choose my level'),
-      h('a', { class: 'btn btn-big', href: '#/placement' }, 'Find my level (short quiz)'),
-    ),
+    h('div', { class: 'row' }, h('a', { class: 'btn btn-primary btn-big', href: '#/placement' }, 'Find my level (short quiz)')),
   );
 
   const sections = [hero];
@@ -75,7 +70,7 @@ export default function homeView(ctx) {
     h(
       'section',
       { id: 'levels', 'aria-labelledby': 'levels-title', class: 'stack' },
-      h('h2', { id: 'levels-title', tabindex: '-1' }, 'Choose a level'),
+      h('h2', { id: 'levels-title' }, 'Choose a level'),
       doc.placement && LEVELS.some((l) => l.id === doc.placement.level)
         ? h('p', { class: 'notice notice-good' }, 'Your placement quiz suggested ', h('a', { href: `#/level/${doc.placement.level}` }, LEVELS.find((l) => l.id === doc.placement.level).title), '. You can still pick any level you like.')
         : null,
