@@ -1,6 +1,6 @@
 // "Save my progress": the optional account dialog. Nothing in the app requires it.
 
-import { h, announce, fill } from '../ui/dom.js';
+import { h, announce, fill, count } from '../ui/dom.js';
 import { NAME_MIN, NAME_MAX, PASSWORD_MIN } from '../core/store.js';
 import { summarize } from '../core/progress.js';
 
@@ -135,7 +135,7 @@ async function renderGuest(app, body, close, startTab) {
     const s = summarize(app.store.progress);
     fill(body, 
       h('p', null, isNew ? 'Make a free account to keep your points, finished topics and quiz history. ' : 'Welcome back. ', h('strong', null, 'You never need an account to learn or take quizzes.')),
-      s.points > 0 || s.answered > 0 ? h('p', { class: 'notice notice-good' }, `The ${s.points} points and ${s.answered} answers from this visit will be ${isNew ? 'saved to your new account' : 'added to your account'}.`) : null,
+      s.points > 0 || s.answered > 0 ? h('p', { class: 'notice notice-good' }, `The ${count(s.points, 'point')} and ${count(s.answered, 'answer')} from this visit will be ${isNew ? 'saved to your new account' : 'added to your account'}.`) : null,
       tabs,
       h('div', { id: 'acct-panel', role: 'tabpanel', 'aria-labelledby': `acct-tab-${tab}` }, form),
       h(

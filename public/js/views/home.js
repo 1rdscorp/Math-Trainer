@@ -1,6 +1,6 @@
 // Start page: pick a level, or take the placement quiz.
 
-import { h, emoji } from '../ui/dom.js';
+import { h, emoji, count } from '../ui/dom.js';
 import { guestNotice, chip } from '../ui/components.js';
 import { LEVELS, topicList, describeTopic } from '../content/index.js';
 import { summarize, isCompleted, weakAreas } from '../core/progress.js';
@@ -60,7 +60,7 @@ export default function homeView(ctx) {
         h(
           'div',
           { class: 'row' },
-          run ? h('a', { class: 'btn btn-primary', href: `#/topic/${run.key}/quiz` }, `Continue: ${run.meta.title} (${run.run.score} points, ${TIERS[run.run.tier].name})`) : null,
+          run ? h('a', { class: 'btn btn-primary', href: `#/topic/${run.key}/quiz` }, `Continue: ${run.meta.title} (${count(run.run.score, 'point')}, ${TIERS[run.run.tier].name})`) : null,
           weak ? h('a', { class: 'btn', href: `#/topic/${weak.key}/learn` }, `Review: ${weak.info.meta.title}`) : null,
           h('a', { class: 'btn btn-ghost', href: '#/progress' }, 'See all my progress'),
         ),

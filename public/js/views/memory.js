@@ -1,6 +1,6 @@
 // Memory training hub. Each activity lives in ./memory/.
 
-import { h } from '../ui/dom.js';
+import { h, count } from '../ui/dom.js';
 import { guestNotice } from '../ui/components.js';
 import { DECKS } from '../core/decks.js';
 
@@ -43,7 +43,7 @@ export default async function memoryView(ctx) {
       { class: 'grid' },
       GAMES.map((g) => {
         const saved = doc.memory[g.id];
-        const status = g.id === 'flashcards' ? (started ? `${started} cards started in ${DECKS.length} decks` : `${DECKS.length} decks`) : saved ? `Level ${saved.level + 1} · best ${saved.best}` : 'Not played yet';
+        const status = g.id === 'flashcards' ? (started ? `${count(started, 'card')} started in ${DECKS.length} decks` : `${DECKS.length} decks`) : saved ? `Level ${saved.level + 1} · best ${saved.best}` : 'Not played yet';
         return h('a', { class: 'card card-link stack', href: `#/memory/${g.id}` }, h('div', { class: 'card-icon', 'aria-hidden': 'true' }, g.icon), h('h2', { style: 'font-size:1.12rem' }, g.title), h('p', null, g.text), h('p', { class: 'small muted' }, status));
       }),
     ),
