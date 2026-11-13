@@ -749,7 +749,9 @@ function polygon(s) {
   // spot is taken (the two short sides of an L-shaped notch want the same corner), it slides along
   // its side, and only then moves further out.
   for (const { mid, d, nrm, label, half } of sideLabels.sort((u, v) => v.half - u.half)) {
-    const off = 13 + Math.abs(nrm[0]) * Math.min(22, String(label).length * 3.4);
+    // Far enough from the side that the label's box clears it, however long the label is and
+    // whichever way the side slopes.
+    const off = ((String(label).length * 7.2 + 4) / 2) * Math.abs(nrm[0]) + 7.5 * Math.abs(nrm[1]) + 5;
     let spot = null;
     for (const [slide, extra] of [[0, 0], [0.35, 0], [-0.35, 0], [0.65, 0], [-0.65, 0], [0, 11], [0.35, 11], [-0.35, 11], [0, 22]]) {
       const x = mid[0] + d[0] * slide * half + nrm[0] * (off + extra);
