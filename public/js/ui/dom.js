@@ -115,3 +115,8 @@ export function shortDate(ts) {
   const sameYear = d.getFullYear() === new Date().getFullYear();
   return d.toLocaleDateString(undefined, sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
 }
+
+/** A number with its noun in the right form: count(1, 'point') → "1 point", count(3, 'point') → "3 points". */
+export function count(n, one, many = `${one}s`) {
+  return `${n} ${n === 1 ? one : many}`;
+}

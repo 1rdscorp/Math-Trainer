@@ -1,7 +1,7 @@
 // The adaptive topic quiz: one question at a time, immediate explanatory feedback,
 // a visible tier ladder and a points bar that fills to 100.
 
-import { h, announce, focusOn, confetti, duration, fill } from '../ui/dom.js';
+import { h, announce, focusOn, confetti, duration, fill, count } from '../ui/dom.js';
 import { rich, richEl, visual, stepsList, fitChoices } from '../ui/math.js';
 import { ruleCard, guestNotice } from '../ui/components.js';
 import { speakButton, toSpeech } from '../ui/speech.js';
@@ -35,7 +35,7 @@ export function quizSection(ctx, { topic, level }) {
   const root = h('section', { class: 'stack', 'aria-labelledby': 'quiz-title' }, h('h2', { id: 'quiz-title' }, 'Quiz'));
 
   if (resumed) {
-    root.append(h('p', { class: 'notice notice-info' }, `Welcome back. You are picking up where you left off: ${state.score} points, ${TIERS[state.tier].name} level.`));
+    root.append(h('p', { class: 'notice notice-info' }, `Welcome back. You are picking up where you left off: ${count(state.score, 'point')}, ${TIERS[state.tier].name} level.`));
   } else {
     root.append(
       h('p', { class: 'muted' }, 'Reach 100 points to finish. Harder questions are worth more. Three right in a row moves you up a level; two wrong in a row moves you down one. A wrong answer costs a few points and shows you how to solve it.'),

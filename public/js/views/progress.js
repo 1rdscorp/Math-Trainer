@@ -1,6 +1,6 @@
 // My progress: points, completed topics, current tiers, weak areas and quiz history.
 
-import { h, shortDate, duration, announce, fill } from '../ui/dom.js';
+import { h, shortDate, duration, announce, fill, count } from '../ui/dom.js';
 import { guestNotice, tierBadge, chip } from '../ui/components.js';
 import { LEVELS, topicList, describeTopic } from '../content/index.js';
 import { summarize, weakAreas, weakFacts, isCompleted } from '../core/progress.js';
@@ -185,7 +185,7 @@ export default function progressView(ctx) {
             null,
             h('td', null, shortDate(e.t)),
             h('th', { scope: 'row' }, info ? h('a', { href: `#/topic/${e.k}/learn` }, info.meta.title) : e.k, info ? h('span', { class: 'muted small' }, h('br'), info.level.title) : null),
-            h('td', null, e.d ? chip('✓ Completed', 'good') : `Stopped at ${e.s} points`),
+            h('td', null, e.d ? chip('✓ Completed', 'good') : `Stopped at ${count(e.s, 'point')}`),
             h('td', null, `${e.c} of ${e.a}`),
             h('td', null, TIERS[e.m].name),
             h('td', null, duration(e.secs)),
@@ -218,14 +218,14 @@ export default function progressView(ctx) {
   const extras = [];
   if (doc.times.rounds > 0 || Object.keys(doc.times.facts).length) {
     const known = Object.values(doc.times.facts).filter(([a, c]) => a >= 2 && c / a >= 0.75).length;
-    extras.push(h('li', null, h('strong', null, 'Multiplication table: '), `level ${doc.times.level + 1}, ${known} facts answered reliably, ${doc.times.rounds} practice rounds. `, h('a', { href: '#/times-table' }, 'Open')));
+    extras.push(h('li', null, h('strong', null, 'Multiplication table: '), `level ${doc.times.level + 1}, ${count(known, 'fact')} answered reliably, ${count(doc.times.rounds, 'practice round')}. `, h('a', { href: '#/times-table' }, 'Open')));
   }
   const names = { sequence: 'Number recall', pattern: 'Pattern memory', pairs: 'Matching pairs', speed: 'Mental math' };
   for (const [game, g] of Object.entries(doc.memory)) {
     if (names[game]) extras.push(h('li', null, h('strong', null, `${names[game]}: `), `level ${g.level + 1}, best ${g.best}. `, h('a', { href: `#/memory/${game}` }, 'Play')));
   }
   const cards = Object.values(doc.srs).reduce((a, deck) => a + Object.keys(deck).length, 0);
-  if (cards) extras.push(h('li', null, h('strong', null, 'Flashcards: '), `${cards} cards started. `, h('a', { href: '#/memory/flashcards' }, 'Review')));
+  if (cards) extras.push(h('li', null, h('strong', null, 'Flashcards: '), `${count(cards, 'card')} started. `, h('a', { href: '#/memory/flashcards' }, 'Review')));
   if (extras.length) parts.push(h('section', { class: 'card', 'aria-labelledby': 'extras' }, h('h2', { id: 'extras' }, 'Extra practice'), h('ul', null, extras)));
 
   // Clear progress.
