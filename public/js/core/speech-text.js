@@ -2,6 +2,8 @@
 // (an accessible name is a flat string, so math needs a spoken form), and for live announcements.
 // Pure string work; no DOM.
 
+import { tidy } from './tidy.js';
+
 const PIECES = { 2: ['half', 'halves'], 3: ['third', 'thirds'], 4: ['fourth', 'fourths'], 5: ['fifth', 'fifths'], 6: ['sixth', 'sixths'], 7: ['seventh', 'sevenths'], 8: ['eighth', 'eighths'], 9: ['ninth', 'ninths'], 10: ['tenth', 'tenths'], 12: ['twelfth', 'twelfths'], 100: ['hundredth', 'hundredths'] };
 
 const WORDS = {
@@ -65,6 +67,8 @@ export function mathToWords(tex) {
     t = t.replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g, (_, n, a) => ` the ${n === '3' ? 'cube' : `${n}th`} root of ${a} ${simple(a) ? '' : ', end root '}`);
     t = t.replace(/\\sqrt\{([^{}]*)\}/g, (_, a) => ` the square root of ${a} ${simple(a) ? '' : ', end root '}`);
     t = t.replace(/\^\{?\\circ\}?/g, ' degrees ');
+    // f^{-1} and \sin^{-1} are inverse functions, not powers.
+    t = t.replace(/\\(sin|cos|tan|sec|csc|cot)\s*\^\{-1\}/g, ' inverse \\$1 ').replace(/\b([fghFGH])\s*\^\{-1\}/g, ' $1 inverse ');
     t = t.replace(/\^\{2\}|\^2(?!\d)/g, ' squared ').replace(/\^\{3\}|\^3(?!\d)/g, ' cubed ');
     t = t.replace(/\^\{([^{}]*)\}/g, (_, a) => ` to the power ${a} ${simple(a) ? '' : ', end power '}`).replace(/\^(-?\w)/g, ' to the power $1 ');
     t = t.replace(/_\{([^{}]*)\}/g, ' sub $1 ').replace(/_(\w)/g, ' sub $1 ');
@@ -85,7 +89,7 @@ export function mathToWords(tex) {
 
 /** Turn a rich-text string (plain text with \( … \) math and **bold**) into plain words. */
 export function toSpeech(rich) {
-  return String(rich ?? '')
+  return tidy(String(rich ?? ''))
     .replace(/\\\((.+?)\\\)|\\\[(.+?)\\\]/gs, (_, a, b) => ` ${mathToWords(a ?? b)} `)
     .replace(/\*\*/g, '')
     .replace(/−(?=\d)/g, 'negative ')

@@ -56,7 +56,7 @@ function easyConvertForm(rng) {
       ]),
       solution: [
         R`\(${x}^{\frac{1}{${n}}} = ${rootTex(n, x)}\): the denominator \(${n}\) becomes the index of the root.`,
-        R`The numerator \(${m}\) is a power: \(${power} = ${radical}\).`,
+        m === 1 ? R`The numerator is 1, so nothing else changes: \(${power} = ${radical}\).` : R`The numerator \(${m}\) is a power: \(${power} = ${radical}\).`,
       ],
       rule: 1,
       skill: 'rational exponents',
@@ -265,7 +265,9 @@ function hardRationalize(rng) {
       R`Multiply the top and bottom by the conjugate of the denominator, \(${conj}\).`,
       R`Bottom: \((${den})(${conj}) = ${b * b} - ${c} = ${D}\).`,
       R`Top: \(${a}(${conj}) = ${terms([[a * b, ''], [-s * a, root]])}\).`,
-      R`\(\dfrac{${terms([[a * b, ''], [-s * a, root]])}}{${D}}\) simplifies to \(${right.tex}\).`,
+      D > 1 && gcd(a, D) === 1
+        ? R`The result is \(${right.tex}\). The numerator and the denominator share no common factor, so this is in simplest form.`
+        : R`\(\dfrac{${terms([[a * b, ''], [-s * a, root]])}}{${D}}\) simplifies to \(${right.tex}\).`,
     ],
     rule: 5,
     skill: 'rationalizing denominators',
@@ -338,7 +340,7 @@ function hardWordFormula(rng) {
       wrong: [
         { value: 4 * t, why: R`\(${num(4 * t)}\) is \(\sqrt{h}\). Square it to get \(h\).` },
         { value: 4 * t * t, why: R`Multiply by 4 before squaring: \(\sqrt{h} = ${num(4 * t)}\), so \(h = ${num(4 * t)}^{2}\).` },
-        (t * t) / 16,
+        round((t * t) / 16, 2),
         h + 16,
       ],
       solution: [R`Substitute \(t = ${t}\): \(${t} = \dfrac{\sqrt{h}}{4}\).`, R`Multiply both sides by 4: \(\sqrt{h} = ${num(4 * t)}\).`, R`Square both sides: \(h = ${num(h)}\) ft.`],
@@ -417,7 +419,7 @@ function challengeRationalPower(rng) {
     wrong: [
       two
         ? { value: X([h + u]), why: R`The numerator \(${m}\) is even, so \(${rootTex(n, inside)}\) can be \(${r}\) or \(-${r}\). That gives a second solution.` }
-        : { value: X([h - u, h + u]), why: n % 2 === 0 ? R`\((${inside})^{\frac{${m}}{${n}}}\) needs \(${inside} \ge 0\), so only the positive value works.` : R`The numerator \(${m}\) is odd, so \(${rootTex(n, inside)}\) must be \(${r}\), not \(-${r}\).` },
+        : { value: X([h - u, h + u]), why: n % 2 === 0 ? R`\(${lhs}\) needs \(${inside} \ge 0\), so only the positive value works.` : R`The numerator \(${m}\) is odd, so \(${rootTex(n, inside)}\) must be \(${r}\), not \(-${r}\).` },
       { value: X(two ? [h - r, h + r] : [h + r]), why: R`\(${r}\) is the value of \(${rootTex(n, inside)}\). Raise it to the power \(${n}\) to undo the root.` },
       X(two ? [h - c, h + c] : [h + c]),
       h === 0 ? null : X(two ? [-h - u, -h + u] : [-h + u]),
@@ -427,7 +429,7 @@ function challengeRationalPower(rng) {
       R`\(${lhs}\) means \(\left(${rootTex(n, inside)}\right)^{${m}}\). So \(\left(${rootTex(n, inside)}\right)^{${m}} = ${c} = ${r}^{${m}}\).`,
       two ? R`The power \(${m}\) is even, so \(${rootTex(n, inside)} = ${r}\) or \(${rootTex(n, inside)} = -${r}\).` : R`The power \(${m}\) is odd, so \(${rootTex(n, inside)} = ${r}\).`,
       R`Raise to the power \(${n}\): \(${inside} = ${two ? `\\pm ${u}` : u}\).`,
-      R`So \(${rootsTex(good)}\).`,
+      ...(h === 0 && !two ? [] : [R`So \(${rootsTex(good)}\).`]),
     ],
     rule: 1,
     skill: 'equations with rational exponents',

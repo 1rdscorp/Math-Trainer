@@ -7,6 +7,7 @@ import { makeRng, hashString } from '../../public/js/core/rng.js';
 import { renderVisual, vnodeToString } from '../../public/js/core/visuals.js';
 import { TIERS } from '../../public/js/core/engine.js';
 import { normalizeChoice, choiceValue } from '../../public/js/content/lib/question.js';
+import { compileChoice, equivalent } from './texeval.mjs';
 
 const MATH = /\\\((.+?)\\\)|\\\[(.+?)\\\]/gs;
 const texCache = new Map();
@@ -35,6 +36,12 @@ export function checkRich(text, where, errors, warnings) {
   }
   const bad = text.match(/undefined|NaN|\[object Object\]|Infinity|\bnull\b/);
   if (bad) errors.push(`${where}: contains "${bad[0]}" → ${text.slice(0, 160)}`);
+  // "\t", "\f", "\r", "\b" and "\v" inside an ordinary template literal are control characters:
+  // "\times" becomes a tab followed by "imes". Only String.raw (R`…`) keeps backslashes.
+  // "${name}" that was never filled in: a string in quotes instead of backticks, or "\${name}" inside R`…`
+  // (which KaTeX shows as a dollar sign followed by the name).
+  if (/\$\{|\\\$/.test(text.replace(/\\\$(?=\d)/g, ''))) errors.push(`${where}: an unfilled \${…} placeholder (or a stray "\\$") → ${text.slice(0, 160)}`);
+  if (/[\t\f\r\v\x08]/.test(text)) errors.push(`${where}: control character in the text (a LaTeX backslash was lost: build the string with R\`…\`, including nested template literals) → ${JSON.stringify(text.slice(0, 160))}`);
   if (count(text, /\\\(/g) !== count(text, /\\\)/g) || count(text, /\\\[/g) !== count(text, /\\\]/g)) {
     errors.push(`${where}: unbalanced math delimiters → ${text.slice(0, 160)}`);
     return;
@@ -44,16 +51,27 @@ export function checkRich(text, where, errors, warnings) {
     const err = texError(tex, m[2] != null);
     if (err) errors.push(`${where}: math will not render (${err}) → ${tex}`);
     if (/\d\.\d{7,}/.test(tex)) errors.push(`${where}: unrounded decimal → ${tex}`);
+    // A command name with no backslash renders as a run of italic letters and KaTeX does not complain.
+    const lost = tex
+      .replace(/\\(?:text|mathrm|textbf|operatorname|mathit|textit)\s*\{[^{}]*\}/g, ' ')
+      .replace(/\\[a-zA-Z]+/g, ' ')
+      .match(/cdot|d?frac|sqrt|times|theta|infty|quad|approx|circ|overline|[lr]angle|begin|mathbf|displaystyle|alpha|beta|triangle|arcsin|arccos|arctan|sin|cos|tan|sec|csc|cot|log|lim/);
+    if (lost) errors.push(`${where}: "${lost[0]}" appears in math without its backslash (nested template literals need R\`…\` too) → ${tex}`);
     if (/\+\s*-|-\s*-|\+\s*\+|-\s*\+/.test(tex.replace(/\^\{?-/g, '^').replace(/\(\s*-/g, '(').replace(/[=,<>{]\s*-/g, '=').replace(/\\(?:to|rightarrow|le|ge|leq|geq|approx|ne|neq|cdot|times|div|pm)\s*-/g, '=').replace(/\d\s*-\s*-/g, 'X'))) {
       warnings.push(`${where}: doubled sign (use terms()/signed()/paren()) → ${tex}`);
     }
     if (/(^|[^\d.}\w])[01][a-zA-Z]\b(?!\w)/.test(tex.replace(/\\[a-zA-Z]+/g, ' ')) && !/\\text|\\log|\\ln/.test(tex)) {
       warnings.push(`${where}: coefficient 0 or 1 written out (use terms()) → ${tex}`);
     }
+
   }
   const outside = text.replace(MATH, ' M ');
   if (/[^.]\.\.(?!\.)/.test(outside)) warnings.push(`${where}: doubled full stop → ${text.slice(0, 160)}`);
   if (/\s[,.;:!?]/.test(outside.replace(/ M /g, 'M'))) warnings.push(`${where}: space before punctuation → ${text.slice(0, 160)}`);
+  // TeX outside the math delimiters: "^{", "_{" or "frac{" in prose means the delimiters (and
+  // usually the backslashes) were lost, as happens in a plain template literal nested inside R`…`.
+  const stray = outside.match(/\^\{|_\{|\b(?:d?frac|sqrt|overline|text|mathbf)\{/);
+  if (stray) errors.push(`${where}: TeX outside \\( \\) ("${stray[0]}"; were backslashes lost in a nested template literal?) → ${text.slice(0, 160)}`);
   const cmd = outside.match(/\\[a-zA-Z]+/);
   if (cmd) errors.push(`${where}: LaTeX command outside \\( \\) → ${cmd[0]} in: ${text.slice(0, 160)}`);
   if (/\d\.\d{7,}/.test(outside)) errors.push(`${where}: unrounded decimal → ${text.slice(0, 160)}`);
@@ -69,7 +87,9 @@ function checkVisual(spec, where, errors) {
         if (/NaN|undefined|Infinity/.test(s)) errors.push(`${where}: visual "${v.type}" produced a bad value`);
       } else if (r.kind === 'table') {
         const sink = [];
-        for (const cell of [...(r.headers ?? []), ...r.rows.flat()]) checkRich(cell, `${where} table cell`, errors, sink);
+        // A cell may be left empty (a blank place in a column sum); headers may not.
+        for (const cell of r.headers ?? []) checkRich(cell, `${where} table header`, errors, sink);
+        for (const cell of r.rows.flat()) if (cell !== '') checkRich(cell, `${where} table cell`, errors, sink);
       }
       if (typeof r.alt !== 'string' || !r.alt.trim()) errors.push(`${where}: visual "${v.type}" has no alt text`);
       if (v.type === 'plot' && !v.alt) errors.push(`${where}: plot needs an "alt" sentence describing the graph`);
@@ -94,6 +114,9 @@ function checkQuestion(question, ctx, errors, warnings) {
     checkRich(c, `${where} choice ${i + 1}`, errors, warnings);
     if (typeof c !== 'string') return;
     if (/\\d?frac\{-[^{}+-]*\}/.test(c)) warnings.push(`${where} choice: minus sign inside a fraction; write it in front → ${c}`);
+    // An answer is a finished form: 1\pi, 1\sqrt{2} and 1\cos x should read \pi, \sqrt{2}, \cos x.
+    // (Worked steps may show a 1 that was substituted into a formula, so only choices are checked.)
+    if (/(^|[^\d.}\w])1\\(?:pi|sqrt|sin|cos|tan|sec|csc|cot|ln|log|theta|alpha|beta|phi|rho|lambda)(?![a-zA-Z])/.test(c)) warnings.push(`${where} choice: coefficient 1 written out in front of a symbol (use terms()) → ${c}`);
     if (/[a-zA-Z})]\s*[+-]\s*\d+(?:\.\d+)?\s*[+-]\s*\d+(?:\.\d+)?\s*(?:\)|\\\)|$)/.test(c)) warnings.push(`${where} choice: constants not combined → ${c}`);
   });
   const norm = question.choices.map((c) => normalizeChoice(String(c)));
@@ -103,10 +126,40 @@ function checkQuestion(question, ctx, errors, warnings) {
     for (let j = i + 1; j < 4; j++) {
       const a = values[i];
       const b = values[j];
-      if (a && b && a.unit === b.unit && Math.abs(a.v - b.v) < 1e-9) errors.push(`${where}: two choices have the same value → ${question.choices[i]} and ${question.choices[j]}`);
+      // The one allowed case: a wrong choice declared as "right value, wrong form" ({ value, why, form: true }).
+      const declared = (i === question.answer && question.forms?.[j] && question.notes?.[j]) || (j === question.answer && question.forms?.[i] && question.notes?.[i]);
+      if (a && b && a.unit === b.unit && Math.abs(a.v - b.v) < 1e-9 && !declared) errors.push(`${where}: two choices have the same value → ${question.choices[i]} and ${question.choices[j]}`);
     }
   }
   if (!Number.isInteger(question.answer) || question.answer < 0 || question.answer > 3) errors.push(`${where}: bad answer index`);
+  else {
+    // A wrong choice that is equal in value to the right one (3 + 2x offered against 2x + 3) is the
+    // classic silent defect of generated questions, and it may appear for only a few number choices.
+    // It is allowed only when the author declares it: { value, why, form: true } means "equal on
+    // purpose, wrong because of its form", and the `why` tells the student what is wrong with it.
+    const compiled = question.choices.map((c) => {
+      try {
+        return typeof c === 'string' ? compileChoice(c) : null;
+      } catch {
+        return null;
+      }
+    });
+    const right = compiled[question.answer];
+    question.choices.forEach((c, i) => {
+      if (!right || i === question.answer || !compiled[i] || (question.forms?.[i] && question.notes?.[i])) return;
+      let same = false;
+      try {
+        same = equivalent(right, compiled[i]);
+      } catch {
+        same = false;
+      }
+      if (same) {
+        errors.push(
+          `${where}: a wrong choice is equal in value to the right answer → ${c} and ${question.choices[question.answer]}. If a slip's formula can land on the right answer for some numbers, test for that and use null instead. If the choice is meant to be equal but wrong in form (not fully factored, not simplest form), write it as { value, why, form: true }. | ${question.prompt}`,
+        );
+      }
+    });
+  }
   if (!Array.isArray(question.solution) || question.solution.length < 1) errors.push(`${where}: needs a worked solution`);
   else question.solution.forEach((s, i) => checkRich(s, `${where} solution step ${i + 1}`, errors, warnings));
   if (question.rule != null && (!Number.isInteger(question.rule) || question.rule < 0 || question.rule >= ruleCount)) {

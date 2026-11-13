@@ -214,8 +214,8 @@ const SERVINGS = [
   { text: (W, p, u) => `A pitcher holds ${W} cups of juice. Each glass holds ${p} ${u}. How many glasses can be filled?`, one: 'glass', many: 'glasses', unit: 'cup' },
   { text: (W, p, u) => `A ribbon is ${W} meters long. It is cut into pieces that are each ${p} ${u} long. How many pieces are there?`, one: 'piece', many: 'pieces', unit: 'meter' },
   { text: (W, p, u) => `A baker has ${W} pounds of dough. Each loaf uses ${p} ${u}. How many loaves can the baker make?`, one: 'loaf', many: 'loaves', unit: 'pound' },
-  { text: (W, p, u) => `A club meeting lasts ${W} hours. Each talk takes ${p} ${u}. How many talks fit in the meeting?`, one: 'talk', many: 'talks', unit: 'hour' },
-  { text: (W, p, u) => `A trail is ${W} miles long. There is a bench every ${p} ${u} along it, and the last bench is at the very end. How many benches are there?`, one: 'bench', many: 'benches', unit: 'mile' },
+  { text: (W, p, u) => `A conference lasts ${W} hours. Each talk takes ${p} ${u}. How many talks fit in the conference?`, one: 'talk', many: 'talks', unit: 'hour' },
+  { text: (W, p, u) => `A trail is ${W} miles long. It is split into sections that are each ${p} ${u} long. How many sections are there?`, one: 'section', many: 'sections', unit: 'mile' },
 ];
 
 // "Write the mixed number(s) as improper fraction(s): …", or null when nothing needs rewriting.
@@ -318,7 +318,7 @@ function mediumFactorSum(rng) {
     prompt: R`Use the greatest common factor to rewrite \(${a} + ${b}\) as a product: the GCF times a sum of two numbers with no common factor.`,
     correct: R`\(${g}(${m} + ${n})\)`,
     wrong: [
-      p ? { value: R`\(${p}(${a / p} + ${b / p})\)`, why: R`This equals \(${a} + ${b}\), but \(${a / p}\) and \(${b / p}\) still share the factor \(${g / p}\), so \(${p}\) is not the greatest common factor.` } : null,
+      p ? { value: R`\(${p}(${a / p} + ${b / p})\)`, why: R`This equals \(${a} + ${b}\), but \(${a / p}\) and \(${b / p}\) still share the factor \(${g / p}\), so \(${p}\) is not the greatest common factor.`, form: true } : null,
       { value: R`\(${g}(${m} + ${b})\)`, why: R`Both numbers must be divided by \(${g}\), not just the first.` },
       R`\(${g}(${a} + ${n})\)`,
       g !== m ? R`\(${m}(${g} + ${n})\)` : null,
@@ -492,7 +492,7 @@ function challengeMissing(rng) {
     const box = rng.bool(0.6) ? proper(rng, 2, 8) : mixedNumber(rng);
     const quo = proper(rng, 2, 6);
     const total = box.mul(quo);
-    if (total.d > 40 || box.eq(quo)) continue;
+    if (total.d > 40 || box.eq(quo) || total.isInt()) continue;
     return q({
       prompt: R`What number goes in the box? \(\;${total.mixedTex()} \div \square = ${quo.tex()}\)`,
       correct: box,
@@ -504,8 +504,9 @@ function challengeMissing(rng) {
       ],
       solution: [
         R`If \(${total.mixedTex()} \div \square = ${quo.tex()}\), then \(\square \times ${quo.tex()} = ${total.mixedTex()}\). So \(\square = ${total.mixedTex()} \div ${quo.tex()}\).`,
+        improperStep(total),
         ...divideSteps(total.n, total.d, quo.n, quo.d),
-      ],
+      ].filter(Boolean),
       rule: 1,
       skill: 'missing divisor',
       check: () => (total.div(box).eq(quo) ? true : 'the box does not give the stated quotient'),
@@ -523,7 +524,7 @@ function challengeAreaWidth(rng) {
     const len = small();
     const wid = small();
     const area = len.mul(wid);
-    if (area.isInt() || area.d > 25 || len.eq(wid) || len.value < 1) continue;
+    if (area.isInt() || area.d > 25 || len.value <= wid.value || len.value < 1) continue; // the length is the longer side
     const thing = rng.pick(['garden bed', 'poster', 'tabletop', 'rug', 'window']);
     const [one, many] = rng.pick([['meter', 'meters'], ['foot', 'feet'], ['yard', 'yards']]);
     const u = (f) => (f.value > 1 ? many : one);
@@ -607,7 +608,7 @@ function challengeError(rng) {
 function challengeTiles(rng) {
   const { g, m, n, a, b } = gcfPair(rng, [6, 8, 10, 12, 15, 20, 25, 30], 2, 7, 210);
   const unit = rng.pick(['centimeters', 'inches']);
-  const place = rng.pick(['A kitchen wall', 'A patio', 'A tabletop', 'A hallway floor', 'A shower wall']);
+  const place = rng.pick(['A kitchen backsplash', 'A countertop', 'A tabletop', 'A mosaic panel', 'A shower wall']);
   return q({
     prompt: `${place} is a rectangle ${a} ${unit} by ${b} ${unit}. It will be covered exactly with square tiles, all the same size, with no cutting. If the largest possible tiles are used, how many tiles are needed?`,
     correct: m * n,

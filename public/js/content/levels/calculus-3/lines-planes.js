@@ -169,7 +169,7 @@ function easyQuadricName(rng) {
     prompt: R`What kind of surface is \(${quadricTex(type, names, dens)}\)?`,
     correct: SURFACES[type],
     wrong: surfaceChoices(type),
-    solution: [REASON[type], `The surface is ${type === 'ell' || type === 'ep' ? 'an' : 'a'} ${SURFACES[type]}.`],
+    solution: [REASON[type], `The surface is ${/^[aeiou]/.test(SURFACES[type]) ? 'an' : 'a'} ${SURFACES[type]}.`],
     rule: 5,
     skill: 'quadric surfaces',
   });
@@ -289,12 +289,15 @@ function mediumLinePlane(rng) {
     n = rvec(rng, -4, 4);
   } while (vdot(n, v) === 0 || zeros(v) > 1);
   const X = rvec(rng, -4, 4);
-  const t0 = rng.pick([-3, -2, -1, 1, 2, 3]);
+  const word = rng.bool(0.4); // a laser beam travels forward from its source, so t > 0
+  const t0 = word ? rng.int(1, 3) : rng.pick([-3, -2, -1, 1, 2, 3]);
   const p = vsub(X, vscale(v, t0));
   const d = vdot(n, X);
   const at = (t) => vadd(p, vscale(v, t));
   return q({
-    prompt: R`At which point does the line \(${lineTex(p, v)}\) meet the plane \(${planeTex(n, d)}\)?`,
+    prompt: word
+      ? R`A laser beam leaves the point \(${Pt(p)}\) and travels in the direction \(\mathbf{v} = ${V(v)}\). At which point does it strike a flat screen that lies in the plane \(${planeTex(n, d)}\)?`
+      : R`At which point does the line \(${lineTex(p, v)}\) meet the plane \(${planeTex(n, d)}\)?`,
     correct: M(Pt(X)),
     wrong: [
       { value: M(Pt(at(-t0))), why: R`Check the sign when solving for \(t\).` },
@@ -304,6 +307,7 @@ function mediumLinePlane(rng) {
       M(Pt(at(t0 - 1))),
     ],
     solution: [
+      ...(word ? [R`The beam follows the line \(${lineTex(p, v)}\), with \(t \ge 0\).`] : []),
       R`Substitute the line into the plane: \(${terms(n.map((c, i) => [c, `(${terms([[p[i], ''], [v[i], 't']])})`]))} = ${d}\).`,
       R`Simplify: \(${terms([[vdot(n, p), ''], [vdot(n, v), 't']])} = ${d}\), so \(t = ${t0}\).`,
       R`Put \(t = ${t0}\) into the line: the point is \(${Pt(X)}\).`,
@@ -479,9 +483,13 @@ function hardDistanceParallel(rng) {
   const e = rng.intExcept(-9, 9, [d1]);
   const k = rng.pick([1, 2, 3, -1, -2]);
   const ans = frac(Math.abs(d1 - e), len);
+  const word = rng.bool(0.4);
   return q({
-    prompt: R`Find the distance between the parallel planes \(${planeTex(n, d1)}\) and \(${planeTex(vscale(n, k), k * e)}\).`,
+    prompt: word
+      ? R`The two flat faces of a glass block lie in the parallel planes \(${planeTex(n, d1)}\) and \(${planeTex(vscale(n, k), k * e)}\), with distances in centimeters. How thick is the block?`
+      : R`Find the distance between the parallel planes \(${planeTex(n, d1)}\) and \(${planeTex(vscale(n, k), k * e)}\).`,
     correct: ans,
+    unit: word ? 'cm' : undefined,
     wrong: [
       k !== 1 ? { value: frac(Math.abs(d1 - k * e), len), why: R`First write both planes with the same normal vector: divide the second equation by \(${k}\).` } : null,
       { value: Math.abs(d1 - e), why: R`Divide by \(|\mathbf{n}| = ${len}\).` },
@@ -492,7 +500,7 @@ function hardDistanceParallel(rng) {
     solution: [
       k === 1 ? R`Both planes already have the normal \(\mathbf{n} = ${V(n)}\).` : R`Divide the second equation by \(${k}\) so that both planes have the normal \(\mathbf{n} = ${V(n)}\): \(${planeTex(n, e)}\).`,
       R`For parallel planes \(\mathbf{n} \cdot \mathbf{r} = d_{1}\) and \(\mathbf{n} \cdot \mathbf{r} = d_{2}\), the distance is \(\dfrac{|d_{1} - d_{2}|}{|\mathbf{n}|}\).`,
-      R`\(\dfrac{|${d1} - ${paren(e)}|}{${len}} = ${ans.tex()}\).`,
+      R`\(\dfrac{|${d1} - ${paren(e)}|}{${len}} = ${ans.tex()}\)${word ? ' cm, the thickness of the block' : ''}.`,
     ],
     rule: 3,
     skill: 'distance between planes',
@@ -886,7 +894,7 @@ export default {
       },
       {
         title: 'Quadric surfaces',
-        text: R`Write the equation in standard form and look at which variables are squared and at the signs. All three squared with 1 on the right: no minus signs is an **ellipsoid**, one is a **hyperboloid of one sheet**, two is a **hyperboloid of two sheets**. All three squared with 0 on the right is a **cone**. One variable to the first power only is a **paraboloid**: elliptic if the squared terms have the same sign, hyperbolic (a saddle) if they have opposite signs.`,
+        text: R`Write the equation in standard form and look at which variables are squared and at the signs. All three squared with 1 on the right: no minus signs is an **ellipsoid**, one is a **hyperboloid of one sheet**, two is a **hyperboloid of two sheets**. All three squared with 0 on the right, and one sign different from the other two, is a **cone**. One variable to the first power only is a **paraboloid**: elliptic if the squared terms have the same sign, hyperbolic (a saddle) if they have opposite signs.`,
         example: R`\(4x^{2} - y^{2} + 2z^{2} + 4 = 0\) becomes \(\dfrac{y^{2}}{4} - x^{2} - \dfrac{z^{2}}{2} = 1\): two minus signs, so a hyperboloid of two sheets.`,
       },
       {

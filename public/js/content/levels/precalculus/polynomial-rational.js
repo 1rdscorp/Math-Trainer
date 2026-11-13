@@ -157,8 +157,10 @@ function easyAsymptotes(rng) {
       wrong: [
         { value: R`\(x = ${-v}\)`, why: R`Solve \(${linear(c, d)} = 0\) for \(x\).` },
         { value: R`\(y = ${v}\)`, why: R`A vertical asymptote is a vertical line, so its equation has the form \(x = \text{constant}\).` },
+        { value: R`\(y = ${h}\)`, why: 'That is the horizontal asymptote, the ratio of the leading coefficients.' },
         R`\(x = ${h}\)`,
         R`\(x = ${frac(-b, a).tex()}\)`,
+        R`\(x = ${v + 1}\)`,
       ],
       solution: [R`A vertical asymptote occurs where the denominator is 0 and the numerator is not.`, R`\(${linear(c, d)} = 0\) gives \(x = ${v}\). The numerator there is \(${a * v + b}\), not 0.`, R`The vertical asymptote is \(x = ${v}\).`],
       rule: 4,
@@ -518,7 +520,7 @@ function hardAverageCost(rng) {
       solution: [R`Split the fraction: \(A(x) = \dfrac{${F}}{x} + ${v}\).`, R`As \(x \to \infty\), \(\dfrac{${F}}{x} \to 0\), so \(A(x) \to ${v}\).`, `The graph has the horizontal asymptote y = ${v}: the average cost approaches ${money(v)} per item but never reaches it.`],
       rule: 5,
       skill: 'rational models',
-      check: () => checkLimit((x) => (F + v * x) / x, Infinity, v),
+      check: () => checkEqual((F + v * 1e10) / 1e10, v, 1e-6),
     });
   }
   return q({

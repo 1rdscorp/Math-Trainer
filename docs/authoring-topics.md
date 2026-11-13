@@ -146,8 +146,17 @@ distinct choices, and the validator reports that.
   distribute, dropping a sign, stopping a step early, using the wrong formula. Put those first.
 - Give the one or two most telling ones a note: `{ value, why: 'one kind sentence about the slip' }`.
   The note is shown only to a student who picks that answer.
-- No wrong answer may equal the right one in another form (`2x + 4` vs `2(x + 2)`, `0.5` vs `1/2`).
-  The validator catches numeric duplicates; you must catch symbolic ones.
+- No wrong answer may equal the right one in another form (`2x + 4` vs `2(x + 2)`, `0.5` vs `1/2`,
+  `x = 3 or x = 2` vs `x = 2 or x = 3`). A formula for a slip often lands on the right answer for
+  a few number choices (swapping base and exponent in `2^4` gives `4^2`, which is also 16), so
+  test for it in the generator and return `null` for that wrong answer when it happens. The
+  validator evaluates the choices numerically at random points and reports any wrong choice that
+  equals the right one.
+- The one exception is a "right value, wrong form" answer to a question about form (not factored
+  completely, not in simplest form, not the *greatest* common factor). Declare it:
+  `{ value, why, form: true }`. The `why` is required and says what is wrong with the form, because
+  the student who picks an answer of the right value deserves to know why it was not accepted.
+  Without `form: true`, an equal-valued wrong answer is dropped (numbers) or reported (expressions).
 - Do not use "all of the above", "none of the above" or joke answers. Keep all four choices in the
   same form and of similar length.
 
@@ -209,10 +218,10 @@ users; `plot` requires it. Colours are `'a'` blue, `'b'` orange, `'c'` green, `'
 
 | type | fields |
 | --- | --- |
-| `numberLine` | `min`, `max`, `step?`, `labels?: [{ value, text }]`, `points?: [{ value, label?, open?, color? }]`, `jumps?: [{ from, to, label? }]`, `ray?: { from, dir: 'left'/'right', open? }`, `segment?: { from, to, openFrom?, openTo? }` |
-| `counters` | `groups: [n or { count, color? }]`, `crossed?` (how many of the last ones are crossed out), `frame?: true` for ten-frames. At most 120. |
+| `numberLine` | `min`, `max`, `step?`, `labels?: [{ value, text }]`, `points?: [{ value, label?, open?, color? }]`, `jumps?: [{ from, to, label? }]`, `ray?: { from, dir: 'left'/'right', open? }` (or a list of rays, for "x < a or x > b"), `segment?: { from, to, openFrom?, openTo? }` |
+| `counters` | `groups: [n or { count, color? }]`, `crossed?` (how many of the last ones are crossed out), `frame?: true` for ten-frames, `perRow?` (counters per row, 10 by default; use it to show equal groups one row each). At most 120. |
 | `baseTen` | `value` (0–9999): thousands, hundreds, tens and ones blocks |
-| `array` | `rows`, `cols` (1–12), `style?: 'squares'`, `split?: { cols: k }` or `{ rows: k }`, `labels?: false` |
+| `array` | `rows`, `cols` (1–12), `style?: 'squares'`, `split?: { cols: k }`, `{ rows: k }` or both at once (the area picture for a fraction times a fraction), `labels?: false` |
 | `fractionBars` | `bars: [{ n, d, label?, color? }]` (up to 6 wholes) |
 | `barModel` | tape diagram: `rows: [{ label?, parts: [{ value, label?, shade? }], total? }]` (`shade: 'none'` for an empty part) |
 | `areaModel` | `rows: ['20', '3']`, `cols: ['10', '4']`, `cells?: [['200', '80'], ['30', '12']]` |
@@ -225,7 +234,7 @@ users; `plot` requires it. Colours are `'a'` blue, `'b'` orange, `'c'` green, `'
 | `clock` | `hour`, `minute` |
 | `barChart` | `bars: [{ label, value }]`, `yLabel?`, `xLabel?`, `step?` |
 | `dotPlot` | `values: [whole numbers]`, `label?` |
-| `table` | `headers?`, `rows: [[…]]`, `caption?`, `rowHeaders?`. Cells are rich text, so LaTeX is allowed here. |
+| `table` | `headers?`, `rows: [[…]]`, `caption?`, `rowHeaders?`. Cells are rich text, so LaTeX is allowed here. A cell may be `''` for a blank place. |
 
 A visual may also be an array of visuals. Use pictures where they carry the idea (ten-frames for
 making ten, number lines for negatives, tape diagrams for ratios, graphs for functions); skip them

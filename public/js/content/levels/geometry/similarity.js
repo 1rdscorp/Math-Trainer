@@ -195,7 +195,7 @@ function mediumCriterion(rng) {
 function mediumShadow(rng) {
   const h = rng.pick([1.5, 1.6, 1.8, 2]);
   const k = rng.int(3, 6); // the object is k times as tall as the person
-  const s = rng.pick([0.5, 1, 1.5, 2, 2.5, 3]);
+  const s = rng.pick([0.5, 1, 1.5, 2, 2.5, 3].filter((v) => Math.abs(v - h) >= 0.4)); // keeps the "add the difference" slip away from the answer
   const H = r3(h * k);
   const S = r3(s * k);
   const name = person(rng);
@@ -331,7 +331,7 @@ function hardAreaVolume(rng) {
 
 function hardMirror(rng) {
   const h = rng.pick([1.5, 1.6, 1.8]);
-  const d1 = rng.pick([1, 1.5, 2, 2.5]);
+  const d1 = rng.pick([1, 1.5, 2, 2.5].filter((v) => Math.abs(v - h) >= 0.4)); // keeps the "add the difference" slip away from the answer
   const k = rng.int(3, 6);
   const d2 = d1 * k;
   const H = r3(h * k);

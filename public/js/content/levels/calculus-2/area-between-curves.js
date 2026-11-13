@@ -14,6 +14,13 @@ function regionPlot(top, bottom, a, b, { pad = 0.6, alt }) {
   return { type: 'plot', x: [a - pad, b + pad], y: [lo - m, hi + m], fns: [{ f: top }, { f: bottom, color: 'b' }], shade: [{ f: top, g: bottom, from: a, to: b }], alt };
 }
 
+// Plain-text "mx + c" for alt text, with a real minus sign.
+function plainLinear(m, c, x = 'x') {
+  const lead = m === 0 ? '' : `${m < 0 ? '−' : ''}${Math.abs(m) === 1 ? '' : Math.abs(m)}${x}`;
+  if (!lead) return `${c < 0 ? '−' : ''}${Math.abs(c)}`;
+  return c === 0 ? lead : `${lead} ${c < 0 ? '−' : '+'} ${Math.abs(c)}`;
+}
+
 // ───────────── Easy ─────────────
 
 function easyAverageValue(rng) {
@@ -71,8 +78,8 @@ function easySetUpArea(rng) {
   const k = rng.int(2, 6);
   const fam = rng.pick([
     () => {
-      const a = rng.pick([-1, 0]);
-      const b = rng.pick([1, 2]);
+      // Not a symmetric interval: there the integral of x is 0, so "top + bottom" would have the same value as the area.
+      const [a, b] = rng.pick([[-1, 2], [0, 1], [0, 2], [-2, 1], [1, 2], [0, 3]]);
       return { top: `x^{2} + ${k}`, bottom: 'x', a, b, tJs: (x) => x * x + k, bJs: (x) => x, names: [`y = x² + ${k}`, 'y = x'] };
     },
     () => {
@@ -103,7 +110,13 @@ function easySetUpArea(rng) {
     ],
     rule: 3,
     skill: 'setting up an area integral',
-    check: () => (integrate((x) => fam.tJs(x) - fam.bJs(x), a, b) > 0 && [0, 0.25, 0.5, 0.75, 1].every((t) => fam.tJs(a + t * (b - a)) > fam.bJs(a + t * (b - a))) ? true : 'top curve is not above bottom curve'),
+    check: () => {
+      const area = integrate((x) => fam.tJs(x) - fam.bJs(x), a, b);
+      if (!(area > 0 && [0, 0.25, 0.5, 0.75, 1].every((t) => fam.tJs(a + t * (b - a)) > fam.bJs(a + t * (b - a))))) return 'top curve is not above bottom curve';
+      // No wrong integral may have the same value as the area (or as another wrong integral).
+      const values = [area, -area, integrate((x) => fam.tJs(x) + fam.bJs(x), a, b), integrate(fam.tJs, a, b)];
+      return values.every((v, i) => values.every((w, j) => i === j || Math.abs(v - w) > 1e-6)) ? true : 'two of the integrals have the same value';
+    },
   });
 }
 
@@ -138,34 +151,37 @@ function easyWordAccumulation(rng) {
 // ───────────── Medium ─────────────
 
 function mediumAreaLineParabola(rng) {
+  const a = rng.int(1, 3);
   const r1 = rng.int(-3, 1);
   const r2 = r1 + rng.int(1, 4);
   const m = r1 + r2;
   const c = -r1 * r2;
   const w = r2 - r1;
-  const area = frac(w ** 3, 6);
-  const line = linear(m, c);
-  const diff = terms([[m, 'x'], [c, ''], [-1, 'x^{2}']]);
-  const F = (x) => (m * x * x) / 2 + c * x - x ** 3 / 3;
+  // Parabola y = a·x² and line y = a(mx + c): they meet at x = r1 and x = r2.
+  const area = frac(a * w ** 3, 6);
+  const par = terms([[a, 'x^{2}']]);
+  const line = linear(a * m, a * c);
+  const diff = terms([[a * m, 'x'], [a * c, ''], [-a, 'x^{2}']]);
+  const F = (x) => a * ((m * x * x) / 2 + c * x - x ** 3 / 3);
   return q({
-    prompt: R`Find the area of the region enclosed by \(y = x^{2}\) and \(y = ${line}\).`,
-    visual: regionPlot((x) => m * x + c, (x) => x * x, r1, r2, { alt: `The parabola y = x² and the line y = ${m}x + ${c}. They cross at x = ${r1} and x = ${r2}, and the region between them is shaded. The line is on top.` }),
+    prompt: R`Find the area of the region enclosed by \(y = ${par}\) and \(y = ${line}\).`,
+    visual: regionPlot((x) => a * (m * x + c), (x) => a * x * x, r1, r2, { alt: `The parabola y = ${a === 1 ? '' : a}x² and the line y = ${plainLinear(a * m, a * c)}. They cross at x = ${r1 < 0 ? '−' : ''}${Math.abs(r1)} and x = ${r2 < 0 ? '−' : ''}${Math.abs(r2)}, and the region between them is shaded. The line is on top.` }),
     correct: area,
     wrong: [
       { value: area.neg(), why: 'Subtract the lower curve (the parabola) from the upper curve (the line). An area is never negative.' },
-      { value: frac(3 * m * (r2 * r2 - r1 * r1) + 6 * c * w, 6), why: 'That is the area under the line only. Subtract the area under the parabola.' },
-      frac(w ** 3, 3),
-      frac(w ** 2, 6),
-      frac(w ** 3, 2),
+      { value: frac(a * (3 * m * (r2 * r2 - r1 * r1) + 6 * c * w), 6), why: 'That is the area under the line only. Subtract the area under the parabola.' },
+      frac(a * w ** 3, 3),
+      frac(a * w ** 2, 6),
+      frac(a * w ** 3, 2),
     ],
     solution: [
-      R`Find where the curves meet: \(x^{2} = ${line}\) gives \(${poly([1, -m, -c])} = 0\), so \(x = ${r1}\) or \(x = ${r2}\).`,
+      R`Find where the curves meet: \(${par} = ${line}\) gives \(${poly([1, -m, -c])} = 0\)${a === 1 ? '' : R` after dividing by \(${a}\)`}, so \(x = ${r1}\) or \(x = ${r2}\).`,
       R`Between them the line is on top, so area \(= \displaystyle\int_{${r1}}^{${r2}} \left(${diff}\right)dx\).`,
-      R`An antiderivative is \(${terms([[frac(m, 2), 'x^{2}'], [c, 'x'], [frac(-1, 3), 'x^{3}']])}\). Evaluating from \(${r1}\) to \(${r2}\) gives \(${area.tex()}\).`,
+      R`An antiderivative is \(${terms([[frac(a * m, 2), 'x^{2}'], [a * c, 'x'], [frac(-a, 3), 'x^{3}']])}\). Evaluating from \(${r1}\) to \(${r2}\) gives \(${area.tex()}\).`,
     ],
     rule: 3,
     skill: 'area between two curves',
-    check: () => checkEqual(F(r2) - F(r1), area.value, 1e-9, 'area') === true && checkIntegral((x) => m * x + c - x * x, r1, r2, area.value),
+    check: () => checkEqual(F(r2) - F(r1), area.value, 1e-9, 'area') === true && checkIntegral((x) => a * (m * x + c - x * x), r1, r2, area.value),
   });
 }
 
@@ -242,46 +258,48 @@ function mediumWordAverage(rng) {
 
 function hardAreaInY(rng) {
   const k = rng.int(1, 3);
-  const a = rng.int(0, k * (k + 1));
-  const b = k * (k + 1) - a;
-  // left curve x = y² − a, right curve x = y + b; they meet at y = −k and y = k + 1
+  const c = rng.int(1, 2);
+  const total = c * k * (k + 1);
+  const a = rng.int(0, total);
+  const b = total - a;
+  // left curve x = c·y² − a, right curve x = c·y + b; they meet at y = −k and y = k + 1
   const y1 = -k;
   const y2 = k + 1;
   const w = y2 - y1;
-  const area = frac(w ** 3, 6);
-  const left = terms([[1, 'y^{2}'], [-a, '']]);
-  const right = terms([[1, 'y'], [b, '']]);
+  const area = frac(c * w ** 3, 6);
+  const left = terms([[c, 'y^{2}'], [-a, '']]);
+  const right = terms([[c, 'y'], [b, '']]);
   const pts = [];
   for (let i = 0; i <= 24; i++) {
     const y = y1 + (w * i) / 24;
-    pts.push([y * y - a, y]);
+    pts.push([c * y * y - a, y]);
   }
   return q({
     prompt: R`Find the area of the region enclosed by \(x = ${left}\) and \(x = ${right}\).`,
     visual: {
       type: 'plot',
-      x: [-a - 1.5, y2 + b + 1.5],
+      x: [-a - 1.5, c * y2 + b + 1.5],
       y: [y1 - 1, y2 + 1],
-      param: [{ x: (t) => t * t - a, y: (t) => t, t: [y1 - 1, y2 + 1] }, { x: (t) => t + b, y: (t) => t, t: [y1 - 1, y2 + 1], color: 'b' }],
+      param: [{ x: (t) => c * t * t - a, y: (t) => t, t: [y1 - 1, y2 + 1] }, { x: (t) => c * t + b, y: (t) => t, t: [y1 - 1, y2 + 1], color: 'b' }],
       polygons: [{ points: pts }],
-      alt: `A parabola opening to the right, x = y² − ${a}, and the line x = y + ${b}. They meet at y = ${y1} and y = ${y2}. The region between them is shaded: the line is on the right, the parabola on the left.`,
+      alt: `A parabola opening to the right, x = ${c === 1 ? '' : c}y²${a ? ` − ${a}` : ''}, and the line x = ${plainLinear(c, b, 'y')}. They meet at y = −${k} and y = ${y2}. The region between them is shaded: the line is on the right, the parabola on the left.`,
     },
     correct: area,
     wrong: [
       { value: area.neg(), why: 'Integrate (right curve) − (left curve). The line is to the right of the parabola here.' },
-      { value: frac(w ** 3, 3), why: R`\(\displaystyle\int (y - y_1)(y_2 - y)\,dy\) over \([y_1, y_2]\) equals \(\frac{(y_2 - y_1)^{3}}{6}\). Check the arithmetic when you evaluate the antiderivative.` },
-      frac(w ** 2, 2),
-      frac(w ** 3, 2),
-      frac(w ** 3 + 6, 6),
+      { value: frac(c * w ** 3, 3), why: R`That is double the area. Check the arithmetic when you evaluate the antiderivative at \(y = ${y1}\) and \(y = ${y2}\).` },
+      frac(c * w ** 2, 2),
+      frac(c * w ** 3, 2),
+      frac(c * w ** 3 + 6, 6),
     ],
     solution: [
       R`Both curves give \(x\) in terms of \(y\), so slice horizontally and integrate in \(y\).`,
-      R`Intersections: \(${left} = ${right}\) gives \(${poly([1, -1, -(a + b)], 'y')} = 0\), so \(y = ${y1}\) or \(y = ${y2}\).`,
-      R`Area \(= \displaystyle\int_{${y1}}^{${y2}} \left[(${right}) - (${left})\right]dy = \int_{${y1}}^{${y2}} \left(${terms([[-1, 'y^{2}'], [1, 'y'], [a + b, '']])}\right)dy = ${area.tex()}\).`,
+      R`Intersections: \(${left} = ${right}\) gives \(${poly([c, -c, -(a + b)], 'y')} = 0\), so \(y = ${y1}\) or \(y = ${y2}\).`,
+      R`Area \(= \displaystyle\int_{${y1}}^{${y2}} \left[(${right}) - (${left})\right]dy = \int_{${y1}}^{${y2}} \left(${terms([[-c, 'y^{2}'], [c, 'y'], [a + b, '']])}\right)dy = ${area.tex()}\).`,
     ],
     rule: 4,
     skill: 'integrating with respect to y',
-    check: () => checkIntegral((y) => y + b - (y * y - a), y1, y2, area.value),
+    check: () => checkIntegral((y) => c * y + b - (c * y * y - a), y1, y2, area.value),
   });
 }
 
@@ -357,26 +375,57 @@ function hardWordDistance(rng) {
 // ───────────── Challenge ─────────────
 
 function challengeFindSlope(rng) {
+  if (rng.bool(0.3)) {
+    // A horizontal line y = c, with c = n².
+    const n = rng.int(1, 5);
+    const c = n * n;
+    const area = frac(4 * n ** 3, 3);
+    return q({
+      prompt: R`The region enclosed by \(y = x^{2}\) and the horizontal line \(y = c\) (with \(c > 0\)) has area \(${area.tex()}\). Find \(c\).`,
+      correct: c,
+      fmt: (v) => R`\(c = ${num(v)}\)`,
+      wrong: [
+        { value: n, why: R`\(${n}\) is \(\sqrt{c}\), the \(x\)-value where the curves cross on the right. The line itself is \(y = ${n}^{2}\).` },
+        { value: 2 * n, why: R`\(${2 * n}\) is the width of the region, from \(x = ${-n}\) to \(x = ${n}\). The question asks for the height \(c\) of the line.` },
+        c + 1,
+        c + 2,
+        n ** 3,
+        c + 3,
+      ],
+      solution: [
+        R`The curves meet where \(x^{2} = c\): at \(x = -\sqrt{c}\) and \(x = \sqrt{c}\). The line is on top between them.`,
+        R`Area \(= \displaystyle\int_{-\sqrt{c}}^{\sqrt{c}} (c - x^{2})\,dx = 2\left(c\sqrt{c} - \frac{c\sqrt{c}}{3}\right) = \frac{4}{3}c^{3/2}\).`,
+        R`Set \(\dfrac{4}{3}c^{3/2} = ${area.tex()}\): \(c^{3/2} = ${n ** 3}\), so \(\sqrt{c} = ${n}\) and \(c = ${c}\).`,
+      ],
+      rule: 3,
+      skill: 'working backwards',
+      check: () => checkIntegral((x) => c - x * x, -n, n, area.value),
+    });
+  }
+  const a = rng.int(1, 3);
   const k = rng.int(2, 9);
-  const area = frac(k ** 3, 6);
+  const area = frac(k ** 3, 6 * a * a);
+  const par = terms([[a, 'x^{2}']]);
+  const end = a === 1 ? 'k' : `k/${a}`;
+  const formula = R`\frac{k^{3}}{${6 * a * a}}`;
   return q({
-    prompt: R`The region enclosed by \(y = x^{2}\) and the line \(y = kx\) (with \(k > 0\)) has area \(${area.tex()}\). Find \(k\).`,
+    prompt: R`The region enclosed by \(y = ${par}\) and the line \(y = kx\) (with \(k > 0\)) has area \(${area.tex()}\). Find \(k\).`,
     correct: k,
     fmt: (v) => R`\(k = ${num(v)}\)`,
     wrong: [
-      { value: k + 1, why: R`The enclosed area is \(\frac{k^{3}}{6}\). Check: \(\frac{${(k + 1) ** 3}}{6}\) is too large.` },
-      { value: k - 1, why: R`The enclosed area is \(\frac{k^{3}}{6}\). Check: \(\frac{${(k - 1) ** 3}}{6}\) is too small.` },
+      { value: k + 1, why: R`The enclosed area is \(${formula}\). With \(k = ${k + 1}\) it would be \(${frac((k + 1) ** 3, 6 * a * a).tex()}\), which is too large.` },
+      { value: k - 1, why: R`The enclosed area is \(${formula}\). With \(k = ${k - 1}\) it would be \(${frac((k - 1) ** 3, 6 * a * a).tex()}\), which is too small.` },
       2 * k,
       k + 2,
     ],
     solution: [
-      R`The curves meet where \(x^{2} = kx\): at \(x = 0\) and \(x = k\). The line is on top between them.`,
-      R`Area \(= \displaystyle\int_{0}^{k} (kx - x^{2})\,dx = \frac{k^{3}}{2} - \frac{k^{3}}{3} = \frac{k^{3}}{6}\).`,
-      R`Set \(\dfrac{k^{3}}{6} = ${area.tex()}\): \(k^{3} = ${k ** 3}\), so \(k = ${k}\).`,
+      R`The curves meet where \(${par} = kx\): at \(x = 0\) and \(x = ${a === 1 ? 'k' : R`\frac{k}{${a}}`}\). The line is on top between them.`,
+      R`Area \(= \displaystyle\int_{0}^{${end}} (kx - ${par})\,dx = \frac{k^{3}}{${2 * a * a}} - \frac{k^{3}}{${3 * a * a}} = ${formula}\).`,
+      R`Set \(\dfrac{k^{3}}{${6 * a * a}} = ${area.tex()}\): \(k^{3} = ${k ** 3}\), so \(k = ${k}\).`,
     ],
     rule: 3,
     skill: 'working backwards',
-    check: () => checkIntegral((x) => k * x - x * x, 0, k, area.value),
+    check: () => checkIntegral((x) => k * x - a * x * x, 0, k / a, area.value),
   });
 }
 
@@ -607,7 +656,7 @@ export default {
           problem: R`Find the area enclosed by \(y = x^{2}\) and \(y = ${line}\).`,
           steps: [
             R`Intersections: \(x^{2} = ${line}\), so \(${poly([1, -m, -c])} = 0\). The quadratic formula gives \(x = \dfrac{${m} \pm \sqrt{${disc}}}{2}\): \(x_{1} ${exact ? '=' : '\\approx'} ${num(x1, p2)}\) and \(x_{2} ${exact ? '=' : '\\approx'} ${num(x2, p2)}\).`,
-            R`Between the intersections the line is above the parabola, so the height of a thin strip is \((${line}) - x^{2}\).`,
+            R`Between the intersections the line is above the parabola, so the height of a thin strip is \(${line.includes(' ') ? `(${line})` : line} - x^{2}\).`,
             R`Area \(= \displaystyle\int_{${num(x1, p2)}}^{${num(x2, p2)}} \left(${terms([[m, 'x'], [c, ''], [-1, 'x^{2}']])}\right)dx = \Big[${terms([[frac(m, 2), 'x^{2}'], [c, 'x'], [frac(-1, 3), 'x^{3}']])}\Big]_{${num(x1, p2)}}^{${num(x2, p2)}}\).`,
             R`Evaluating gives \(${exact ? frac(root ** 3, 6).tex() : num(area, p2)}\). (For any line and \(y = x^{2}\), the area is \(\frac{(x_{2} - x_{1})^{3}}{6}\).)`,
           ],

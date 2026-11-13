@@ -80,7 +80,7 @@ function easyOpposite(rng) {
         -x + 1,
         -x - 1,
       ],
-      solution: [R`\(${x}\) is \(${Math.abs(x)}\) units to the ${x < 0 ? 'left' : 'right'} of 0.`, R`Its opposite is \(${Math.abs(x)}\) units to the ${x < 0 ? 'right' : 'left'} of 0: \(${-x}\).`],
+      solution: [R`\(${x}\) is \(${Math.abs(x)}\) ${Math.abs(x) === 1 ? 'unit' : 'units'} to the ${x < 0 ? 'left' : 'right'} of 0.`, R`Its opposite is \(${Math.abs(x)}\) ${Math.abs(x) === 1 ? 'unit' : 'units'} to the ${x < 0 ? 'right' : 'left'} of 0: \(${-x}\).`],
       rule: 0,
       skill: 'opposites',
       check: () => (x + -x === 0 ? true : 'a number and its opposite must add to 0'),
@@ -96,9 +96,10 @@ function easyOpposite(rng) {
       -2 * n,
       n + 1,
     ],
-    solution: [R`Read \(-(-${n})\) as "the opposite of \(-${n}\)".`, R`\(-${n}\) is \(${n}\) units left of 0, so its opposite is \(${n}\) units right of 0.`, R`\(-(-${n}) = ${n}\).`],
+    solution: [R`Read \(-(-${n})\) as "the opposite of \(-${n}\)".`, R`\(-${n}\) is \(${n}\) ${n === 1 ? 'unit' : 'units'} left of 0, so its opposite is \(${n}\) ${n === 1 ? 'unit' : 'units'} right of 0.`, R`\(-(-${n}) = ${n}\).`],
     rule: 0,
     skill: 'opposites',
+    check: () => (-n + n === 0 ? true : 'a number and its opposite must add to 0'),
   });
 }
 
@@ -113,13 +114,15 @@ function easyAbsolute(rng) {
     fmt: asDistance ? unitFmt('unit') : undefined,
     wrong: [
       { value: -a, why: 'Absolute value is a distance from 0, and a distance is never negative.' },
-      { value: 0, why: R`Only 0 is at distance 0 from 0. \(${x}\) is \(${a}\) units away.` },
+      { value: 0, why: R`Only 0 is at distance 0 from 0. \(${x}\) is \(${a}\) ${a === 1 ? 'unit' : 'units'} away.` },
       a + 1,
       a - 1,
     ],
-    solution: [R`The absolute value of a number is its distance from 0.`, R`\(${x}\) is \(${a}\) units from 0, so \(|${x}| = ${a}\).`],
+    solution: [R`The absolute value of a number is its distance from 0.`, R`\(${x}\) is \(${a}\) ${a === 1 ? 'unit' : 'units'} from 0, so \(|${x}| = ${a}\).`],
     rule: 1,
     skill: 'absolute value',
+    // The distance from 0, measured as the right-hand end minus the left-hand end.
+    check: () => (Math.max(x, 0) - Math.min(x, 0) === a ? true : 'distance from 0 is wrong'),
   });
 }
 
@@ -294,6 +297,8 @@ function mediumOrder(rng) {
     const asc = [...picks].sort((a, b) => a[1] - b[1]);
     const byAbs = [...picks].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
     const negsFlipped = [...asc.filter((p) => p[1] < 0).reverse(), ...asc.filter((p) => p[1] >= 0)];
+    // The fractions, each with its decimal value ("≈" when the decimal is rounded).
+    const asDecimals = picks.filter((p) => p[0] !== num(p[1])).map((p) => R`\(${p[0]} ${clean(p[1], 2) == null ? R`\approx` : '='} ${num(p[1], { places: 2 })}\)`);
     return q({
       prompt: `Which list shows these numbers in order from least to greatest? ${list(picks)}`,
       correct: list(asc),
@@ -305,10 +310,10 @@ function mediumOrder(rng) {
         list([asc[0], asc[1], asc[3], asc[2]]),
       ],
       solution: [
-        R`Write each number as a decimal to compare: \(${asc.map((p) => (p[0] === num(p[1]) ? p[0] : `${p[0]} = ${num(p[1], { places: 2 })}`)).join(R`,\;\; `)}\).`,
+        asDecimals.length ? `Write ${asDecimals.length > 1 ? 'the fractions as decimals' : 'the fraction as a decimal'} to compare: ${asDecimals.length > 2 ? `${asDecimals.slice(0, -1).join(', ')} and ${asDecimals.at(-1)}` : asDecimals.join(' and ')}.` : null,
         'Negative numbers are to the left of 0, and the farther left a number is, the smaller it is.',
         `From left to right on the number line: ${list(asc)}.`,
-      ],
+      ].filter(Boolean),
       rule: 1,
       skill: 'ordering',
       check: () => (asc.every((p, i) => i === 0 || asc[i - 1][1] < p[1]) ? true : 'list is not increasing'),
@@ -342,6 +347,8 @@ function mediumReflect(rng) {
       ],
       rule: 2,
       skill: 'reflections',
+      // The mirror line passes through the midpoint of a point and its image.
+      check: () => ((axis === 'x' ? ans[0] === x && (ans[1] + y) / 2 === 0 : ans[1] === y && (ans[0] + x) / 2 === 0) ? true : 'the image is not the mirror point'),
     });
   }
 }
@@ -542,7 +549,7 @@ function hardExpression(rng) {
   if (kind === 'paren') {
     const a = rng.intExcept(-6, 6, [-1, 0, 1]);
     const b = rng.int(-9, 9);
-    const c = rng.intExcept(-9, 9, [b]);
+    const c = rng.intExcept(-9, 9, [b - 1, b, b + 1]);
     const e = rng.intExcept(-6, 6, [-1, 0, 1]);
     const k = rng.nonzero(-6, 6);
     const d = e * k;
@@ -635,7 +642,7 @@ function hardStory(rng) {
         b - lo + 2,
         a,
       ],
-      solution: [R`"How many degrees warmer" asks for a difference: \(${b} - (${lo})\).`, ...subtractSteps(b, lo), `The afternoon was ${b - lo} degrees warmer.`],
+      solution: [R`"How many degrees warmer" asks for a difference: \(${b} - (${lo})\).`, ...subtractSteps(b, lo), `The afternoon was ${b - lo} ${b - lo === 1 ? 'degree' : 'degrees'} warmer.`],
       rule: 4,
       skill: 'word problems',
       check: () => (lo + (b - lo) === b ? true : 'difference is wrong'),
@@ -695,8 +702,9 @@ function hardStory(rng) {
 
 function challengeMissing(rng) {
   const kind = rng.pick(['+', '-', 'times', 'div']);
-  const x = rng.nonzero(-12, 12);
+  const x = rng.intExcept(-12, 12, kind === '+' || kind === '-' ? [0] : [-1, 0, 1]);
   const b = rng.intExcept(-12, 12, [-1, 0, 1]);
+  if (x > 0 && b > 0) return challengeMissing(rng); // at least one negative number, or it is a Grade 3 question
   const box = R`\square`;
   if (kind === '+') {
     const c = x + b;
@@ -781,13 +789,23 @@ function challengeAverage(rng) {
 }
 
 const SIGN_BANK = [
-  { given: (a, b) => R`\(${a}\) is negative and \(${b}\) is positive`, ask: 'always positive', right: (a, b) => R`\(${b} - ${a}\)`, wrong: (a, b) => [R`\(${a} - ${b}\)`, R`\(${a} \times ${b}\)`, R`\(${a} + ${b}\)`], why: (a, b) => [R`\(${b} - ${a}\) is a positive number minus a negative number, which is the same as adding two positive numbers.`, R`For example, with \(${a} = -3\) and \(${b} = 2\): \(2 - (-3) = 5\).`, R`\(${a} - ${b}\) and \(${a} \times ${b}\) are always negative, and \(${a} + ${b}\) can go either way.`] },
-  { given: (a, b) => R`\(${a}\) is negative and \(${b}\) is positive`, ask: 'always negative', right: (a, b) => R`\(${a} - ${b}\)`, wrong: (a, b) => [R`\(${b} - ${a}\)`, R`\(${a} \times ${a}\)`, R`\(${a} + ${b}\)`], why: (a, b) => [R`\(${a} - ${b}\) starts at a negative number and moves farther left, so it is always negative.`, R`For example, with \(${a} = -3\) and \(${b} = 2\): \(-3 - 2 = -5\).`, R`\(${b} - ${a}\) and \(${a} \times ${a}\) are always positive, and \(${a} + ${b}\) can go either way.`] },
-  { given: (a, b) => R`\(${a}\) is negative and \(${b}\) is positive`, ask: 'sometimes positive and sometimes negative', right: (a, b) => R`\(${a} + ${b}\)`, wrong: (a, b) => [R`\(${a} \times ${b}\)`, R`\(${a} - ${b}\)`, R`\(${b} - ${a}\)`], why: (a, b) => [R`The sign of \(${a} + ${b}\) depends on which number has the larger absolute value.`, R`For example, \(-3 + 2 = -1\) but \(-3 + 5 = 2\).`, R`\(${a} \times ${b}\) and \(${a} - ${b}\) are always negative, and \(${b} - ${a}\) is always positive.`] },
-  { given: (a, b) => R`\(${a}\) and \(${b}\) are both negative`, ask: 'always positive', right: (a, b) => R`\(${a} \times ${b}\)`, wrong: (a, b) => [R`\(${a} + ${b}\)`, R`\(${a} - ${b}\)`, R`\(${b} - ${a}\)`], why: (a, b) => [R`A negative times a negative is positive, so \(${a} \times ${b}\) is always positive.`, R`For example, with \(${a} = -3\) and \(${b} = -2\): \((-3)(-2) = 6\).`, R`\(${a} + ${b}\) is always negative, and \(${a} - ${b}\) and \(${b} - ${a}\) can go either way.`] },
-  { given: (a, b) => R`\(${a}\) and \(${b}\) are both negative`, ask: 'always negative', right: (a, b) => R`\(${a} + ${b}\)`, wrong: (a, b) => [R`\(${a} \times ${b}\)`, R`\(${a} \div ${b}\)`, R`\(${a} - ${b}\)`], why: (a, b) => [R`Two negative numbers add to a negative number, so \(${a} + ${b}\) is always negative.`, R`For example, with \(${a} = -3\) and \(${b} = -2\): \(-3 + (-2) = -5\).`, R`\(${a} \times ${b}\) and \(${a} \div ${b}\) are always positive, and \(${a} - ${b}\) can go either way.`] },
-  { given: (a, b) => R`\(${a}\) and \(${b}\) are both negative`, ask: 'sometimes positive and sometimes negative', right: (a, b) => R`\(${a} - ${b}\)`, wrong: (a, b) => [R`\(${a} + ${b}\)`, R`\(${a} \times ${b}\)`, R`\(${a} \div ${b}\)`], why: (a, b) => [R`\(${a} - ${b}\) is the same as \(${a}\) plus a positive number, so its sign depends on the sizes.`, R`For example, \(-3 - (-5) = 2\) but \(-5 - (-3) = -2\).`, R`\(${a} + ${b}\) is always negative, and \(${a} \times ${b}\) and \(${a} \div ${b}\) are always positive.`] },
+  { given: (a, b) => R`\(${a}\) is negative and \(${b}\) is positive`, ask: 'always positive', signs: [-1, 1], f: (a, b) => b - a, g: [(a, b) => a - b, (a, b) => a * b, (a, b) => a + b], right: (a, b) => R`\(${b} - ${a}\)`, wrong: (a, b) => [R`\(${a} - ${b}\)`, R`\(${a} \times ${b}\)`, R`\(${a} + ${b}\)`], why: (a, b) => [R`\(${b} - ${a}\) is a positive number minus a negative number, which is the same as adding two positive numbers.`, R`For example, with \(${a} = -3\) and \(${b} = 2\): \(2 - (-3) = 5\).`, R`\(${a} - ${b}\) and \(${a} \times ${b}\) are always negative, and \(${a} + ${b}\) can go either way.`] },
+  { given: (a, b) => R`\(${a}\) is negative and \(${b}\) is positive`, ask: 'always negative', signs: [-1, 1], f: (a, b) => a - b, g: [(a, b) => b - a, (a) => a * a, (a, b) => a + b], right: (a, b) => R`\(${a} - ${b}\)`, wrong: (a, b) => [R`\(${b} - ${a}\)`, R`\(${a} \times ${a}\)`, R`\(${a} + ${b}\)`], why: (a, b) => [R`\(${a} - ${b}\) starts at a negative number and moves farther left, so it is always negative.`, R`For example, with \(${a} = -3\) and \(${b} = 2\): \(-3 - 2 = -5\).`, R`\(${b} - ${a}\) and \(${a} \times ${a}\) are always positive, and \(${a} + ${b}\) can go either way.`] },
+  { given: (a, b) => R`\(${a}\) is negative and \(${b}\) is positive`, ask: 'sometimes positive and sometimes negative', signs: [-1, 1], f: (a, b) => a + b, g: [(a, b) => a * b, (a, b) => a - b, (a, b) => b - a], right: (a, b) => R`\(${a} + ${b}\)`, wrong: (a, b) => [R`\(${a} \times ${b}\)`, R`\(${a} - ${b}\)`, R`\(${b} - ${a}\)`], why: (a, b) => [R`The sign of \(${a} + ${b}\) depends on which number has the larger absolute value.`, R`For example, \(-3 + 2 = -1\) but \(-3 + 5 = 2\).`, R`\(${a} \times ${b}\) and \(${a} - ${b}\) are always negative, and \(${b} - ${a}\) is always positive.`] },
+  { given: (a, b) => R`\(${a}\) and \(${b}\) are both negative`, ask: 'always positive', signs: [-1, -1], f: (a, b) => a * b, g: [(a, b) => a + b, (a, b) => a - b, (a, b) => b - a], right: (a, b) => R`\(${a} \times ${b}\)`, wrong: (a, b) => [R`\(${a} + ${b}\)`, R`\(${a} - ${b}\)`, R`\(${b} - ${a}\)`], why: (a, b) => [R`A negative times a negative is positive, so \(${a} \times ${b}\) is always positive.`, R`For example, with \(${a} = -3\) and \(${b} = -2\): \((-3)(-2) = 6\).`, R`\(${a} + ${b}\) is always negative, and \(${a} - ${b}\) and \(${b} - ${a}\) can go either way.`] },
+  { given: (a, b) => R`\(${a}\) and \(${b}\) are both negative`, ask: 'always negative', signs: [-1, -1], f: (a, b) => a + b, g: [(a, b) => a * b, (a, b) => a / b, (a, b) => a - b], right: (a, b) => R`\(${a} + ${b}\)`, wrong: (a, b) => [R`\(${a} \times ${b}\)`, R`\(${a} \div ${b}\)`, R`\(${a} - ${b}\)`], why: (a, b) => [R`Two negative numbers add to a negative number, so \(${a} + ${b}\) is always negative.`, R`For example, with \(${a} = -3\) and \(${b} = -2\): \(-3 + (-2) = -5\).`, R`\(${a} \times ${b}\) and \(${a} \div ${b}\) are always positive, and \(${a} - ${b}\) can go either way.`] },
+  { given: (a, b) => R`\(${a}\) and \(${b}\) are both negative`, ask: 'sometimes positive and sometimes negative', signs: [-1, -1], f: (a, b) => a - b, g: [(a, b) => a + b, (a, b) => a * b, (a, b) => a / b], right: (a, b) => R`\(${a} - ${b}\)`, wrong: (a, b) => [R`\(${a} + ${b}\)`, R`\(${a} \times ${b}\)`, R`\(${a} \div ${b}\)`], why: (a, b) => [R`\(${a} - ${b}\) is the same as \(${a}\) plus a positive number, so its sign depends on the sizes.`, R`For example, \(-3 - (-5) = 2\) but \(-5 - (-3) = -2\).`, R`\(${a} + ${b}\) is always negative, and \(${a} \times ${b}\) and \(${a} \div ${b}\) are always positive.`] },
 ];
+
+// How an expression behaves over a spread of values with the given signs. Each bank entry carries its
+// expressions as functions too (f for the right answer, g for the wrong ones), so the wording can be tested.
+function signBehaviour(fn, signs) {
+  const sizes = [0.5, 1, 2, 3, 7];
+  const vals = sizes.flatMap((u) => sizes.map((v) => fn(signs[0] * u, signs[1] * v)));
+  if (vals.every((v) => v > 0)) return 'always positive';
+  if (vals.every((v) => v < 0)) return 'always negative';
+  return vals.some((v) => v > 0) && vals.some((v) => v < 0) ? 'sometimes positive and sometimes negative' : 'other';
+}
 
 function challengeSignReasoning(rng) {
   const item = rng.pick(SIGN_BANK);
@@ -799,6 +817,7 @@ function challengeSignReasoning(rng) {
     solution: item.why(a, b),
     rule: 5,
     skill: 'reasoning about signs',
+    check: () => (signBehaviour(item.f, item.signs) === item.ask && item.g.every((fn) => signBehaviour(fn, item.signs) !== item.ask) ? true : 'an expression does not behave as the answer key says'),
   });
 }
 
@@ -830,7 +849,7 @@ function challengeDistance(rng) {
       solution: [
         `Both points have the same ${horizontal ? 'y' : 'x'}-coordinate, so they are on one ${horizontal ? 'horizontal' : 'vertical'} line. The distance is the difference of the ${coord}-coordinates.`,
         R`\(|${r} - ${paren(p)}| = |${dist}| = ${dist}\).`,
-        opposite ? R`Check: one point is \(${Math.abs(p)}\) from the axis and the other is \(${r}\) on the other side: \(${Math.abs(p)} + ${r} = ${dist}\). ✓` : R`Check: both points are on the same side of the axis, \(${Math.abs(p)}\) and \(${Math.abs(r)}\) units away: \(${Math.abs(p)} - ${Math.abs(r)} = ${dist}\). ✓`,
+        r === 0 ? R`Check: one point is on the ${horizontal ? 'y' : 'x'}-axis and the other is \(${Math.abs(p)}\) units from it. ✓` : opposite ? R`Check: one point is \(${Math.abs(p)}\) from the axis and the other is \(${r}\) on the other side: \(${Math.abs(p)} + ${r} = ${dist}\). ✓` : R`Check: both points are on the same side of the axis, at distances \(${Math.abs(p)}\) and \(${Math.abs(r)}\) from it: \(${Math.abs(p)} - ${Math.abs(r)} = ${dist}\). ✓`,
       ],
       rule: 4,
       skill: 'distance on the plane',

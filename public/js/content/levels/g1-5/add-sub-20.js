@@ -126,7 +126,7 @@ function easyCountOn(rng) {
     prompt: flip ? R`What is \(${b} + ${a}\)? Start at the bigger number and count on.` : R`What is \(${a} + ${b}\)? Count on from ${a}.`,
     visual: hops(a, Array(b).fill(1), lo, lo + 10),
     correct: sum,
-    wrong: [noted(sum - 1, `Do not count ${a} again. The first number you say is ${a + 1}.`), in20(sum + 1), in20(sum + 2), sum - 2],
+    wrong: [noted(sum - 1, `Do not count ${a} again. The first number you say is ${a + 1}.`), in20(sum + 1), in20(sum + 2), sum - 2, sum - 3],
     solution: [`Start at the bigger number, ${a}.`, `Count on ${b} more: ${countList(a, b)}.`, flip ? R`So \(${b} + ${a} = ${sum}\).` : R`So \(${a} + ${b} = ${sum}\).`],
     rule: 0,
     skill: 'counting on',
@@ -154,7 +154,7 @@ function easyDoubles(rng) {
   const n = rng.int(1, 10);
   return q({
     prompt: R`What is the double \(${n} + ${n}\)?`,
-    visual: { type: 'counters', groups: [n, n], perRow: n, alt: `Two equal rows of ${n} counters.` },
+    visual: { type: 'counters', groups: [n, n], perRow: n, alt: `Two equal rows, each with ${plural(n, 'counter')}.` },
     correct: 2 * n,
     wrong: [in20(2 * n + 1), 2 * n - 1, in20(2 * n + 2), 2 * n - 2, noted(n, 'A double has two equal groups. Count both rows.')],
     solution: [`A double is two equal groups of ${n}.`, R`\(${n} + ${n} = ${2 * n}\).`],
@@ -483,7 +483,7 @@ function challengeBalance(rng) {
         x - 1,
         x + 2,
       ],
-      solution: [R`Find the left side: \(${a} + ${b} = ${s}\).`, `Both sides must be the same amount, so the right side is ${s} too.`, R`\(${s} - ${c} = ${x}\), so the box is ${x}.`, R`Check: \(${x} + ${c} = ${s}\).`],
+      solution: [R`Find the left side: \(${a} + ${b} = ${s}\).`, `Both sides must be the same amount. So the right side is ${s} too.`, R`\(${s} - ${c} = ${x}\), so the box is ${x}.`, R`Check: \(${x} + ${c} = ${s}\).`],
       rule: 4,
       skill: 'equal sign',
       check: () => (a + b === x + c ? true : 'sides do not balance'),

@@ -10,7 +10,8 @@ const POWERS = [[2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [3, 2], [3, 3], [3, 4], 
 function easyExponent(rng) {
   const [a, n] = rng.pick(POWERS);
   const long = Array(n).fill(a).join(R` \times `);
-  if (rng.bool()) {
+  // With base 1 every power equals 1, so "which expression is equal" would have several right answers.
+  if (rng.bool() || a === 1) {
     return q({
       prompt: R`What is the value of \(${a}^{${n}}\)?`,
       correct: a ** n,
@@ -31,12 +32,16 @@ function easyExponent(rng) {
     prompt: R`Which expression is equal to \(${long}\)?`,
     correct: m(`${a}^{${n}}`),
     wrong: [
-      a !== n ? { value: m(`${n}^{${a}}`), why: R`The repeated factor, \(${a}\), is the base. The number of factors, \(${n}\), is the exponent.` } : null,
-      { value: m(R`${a} \times ${n}`), why: R`\(${a} \times ${n}\) means ${n} copies of \(${a}\) **added**. Here ${n} copies of \(${a}\) are **multiplied**.` },
+      // 2^4 and 4^2 are both 16, so swapping base and exponent is only offered when it changes the value.
+      n ** a !== a ** n ? { value: m(`${n}^{${a}}`), why: R`The repeated factor, \(${a}\), is the base. The number of factors, \(${n}\), is the exponent.` } : null,
+      // 2 × 2 is the same as 2², so this slip is only offered when it changes the value.
+      a * n !== a ** n ? { value: m(R`${a} \times ${n}`), why: R`\(${a} \times ${n}\) means ${n} copies of \(${a}\) **added**. Here ${n} copies of \(${a}\) are **multiplied**.` } : null,
       m(`${a}^{${n + 1}}`),
       m(`${a}^{${n - 1}}`),
+      m(`${a + 1}^{${n}}`),
     ],
     solution: [R`Count the factors: \(${a}\) is used ${n} times.`, R`Write the repeated factor as the base and the count as the exponent: \(${a}^{${n}}\).`],
+    check: () => (Array(n).fill(a).reduce((p, f) => p * f, 1) === a ** n ? true : 'power does not match the product'),
     rule: 0,
     skill: 'exponents',
   });
@@ -356,7 +361,7 @@ function hardFactor(rng) {
       prompt: R`Factor \(${linear(g * b, g * c)}\) completely by taking out the greatest common factor.`,
       correct: m(`${g}(${linear(b, c)})`),
       wrong: [
-        p ? { value: m(`${p}(${linear((g * b) / p, (g * c) / p)})`), why: R`This is equal to the original expression, but the terms inside still share the factor \(${g / p}\). It is not factored completely.` } : null,
+        p ? { value: m(`${p}(${linear((g * b) / p, (g * c) / p)})`), why: R`This is equal to the original expression, but the terms inside still share the factor \(${g / p}\). It is not factored completely.`, form: true } : null,
         { value: m(`${g}(${linear(b, g * c)})`), why: R`Divide **both** terms by \(${g}\). The second term was left as it was.` },
         m(`${g}(${linear(g * b, c)})`),
         m(`${g}(${linear(b, -c)})`),
@@ -418,7 +423,7 @@ function hardPerimeter(rng) {
   const d = rng.nonzero(-4, 9);
   const [len, wid] = [linear(a, b), linear(c, d)];
   const plain = (s) => s.replace(/-/g, '−');
-  const thing = rng.pick(['garden', 'picture frame', 'playing field', 'tabletop', 'patio']);
+  const thing = rng.pick(['garden', 'swimming pool', 'playing field', 'parking lot', 'patio']);
   return q({
     prompt: R`A rectangular ${thing} has length \(${len}\) and width \(${wid}\), both in meters. Which expression gives its perimeter?`,
     visual: { type: 'polygon', points: [[0, 0], [5, 0], [5, 3], [0, 3]], sides: [plain(len), plain(wid), '', ''], right: [0, 1, 2, 3], alt: `A rectangle with length ${plain(len)} and width ${plain(wid)}.` },

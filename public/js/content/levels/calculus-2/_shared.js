@@ -26,7 +26,9 @@ export function fterms(list) {
     let body;
     if (d !== 1 || bottom) {
       const up = n === 1 && top ? top : `${num(n)}${top}`;
-      const down = d === 1 ? bottom : `${d}${bottom}`;
+      // 2 over "x + 1" must not print as "2x + 1", and 2 over "3^{x}" must not print as "23^{x}".
+      const isSum = /[+-]/.test(bottom.replace(/\^\{[^{}]*\}/g, '').replace(/\([^()]*\)/g, ''));
+      const down = d === 1 ? bottom : isSum ? `${d}(${bottom})` : /^[\d.]/.test(bottom) ? `${d} \\cdot ${bottom}` : `${d}${bottom}`;
       body = `\\frac{${up}}{${down}}`;
     } else {
       body = n === 1 && top ? top : `${num(n)}${top}`;
@@ -207,6 +209,27 @@ export function antiChoices(correct, wrongs, xs = ANTI_POINTS) {
     out.push(w.why ? { value: C(w.tex), why: w.why } : C(w.tex));
   }
   return { correct: C(correct.tex), wrong: out };
+}
+
+/**
+ * Choices that are functions of one variable (for example solutions of a differential equation).
+ * `correct` and each wrong answer are { tex, f, why? }. A wrong answer that takes the same values as the
+ * correct function at the sample points (or as an earlier wrong answer) is dropped, so two forms of one
+ * function can never appear together. `wrap` turns the LaTeX into the choice text.
+ */
+export function funcChoices(correct, wrongs, xs = [0.3, 0.8, 1.4], wrap = M) {
+  const sig = (f) => xs.map((x) => f(x));
+  const same = (a, b) => a.every((v, i) => (Number.isFinite(v) && Number.isFinite(b[i]) ? close(v, b[i], 1e-7) : !Number.isFinite(v) && !Number.isFinite(b[i])));
+  const seen = [sig(correct.f)];
+  const out = [];
+  for (const w of wrongs) {
+    if (!w) continue;
+    const s = sig(w.f);
+    if (seen.some((t) => same(s, t))) continue;
+    seen.push(s);
+    out.push(w.why ? { value: wrap(w.tex), why: w.why } : wrap(w.tex));
+  }
+  return { correct: wrap(correct.tex), wrong: out };
 }
 
 // ───────────── plots ─────────────

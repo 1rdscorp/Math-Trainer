@@ -1,4 +1,4 @@
-import { R, q, frac, fracTex, mixedTex, lcm, person, people, fractionWord } from '../../lib/index.js';
+import { R, q, frac, fracTex, mixedTex, lcm, person, people, fractionWord, checkEqual } from '../../lib/index.js';
 
 // A fraction exactly as written (not reduced), wrapped as inline math.
 const F = (n, d) => R`\(${fracTex(n, d)}\)`;
@@ -35,6 +35,7 @@ function easyAdd(rng) {
   return q({
     prompt: R`What is \(\frac{${a}}{${d}} + \frac{${b}}{${d}}\)?`,
     correct: frac(top, d),
+    check: () => checkEqual(top / d, a / d + b / d),
     wrong: [
       { value: F(top, 2 * d), why: 'This adds the bottom numbers too. The bottom number only tells the size of the pieces, so it stays the same.' },
       frac(top + 1, d),
@@ -56,6 +57,7 @@ function easySubtract(rng) {
   return q({
     prompt: R`What is \(\frac{${a}}{${d}} - \frac{${b}}{${d}}\)?`,
     correct: frac(top, d),
+    check: () => checkEqual(top / d, a / d - b / d),
     wrong: [
       { value: frac(a + b, d), why: 'This adds the top numbers. The sign is a minus, so take away.' },
       frac(top + 1, d),
@@ -78,6 +80,7 @@ function easyPicture(rng) {
     prompt: R`Each bar is one whole cut into ${d} equal pieces. The first bar shows \(\frac{${a}}{${d}}\) and the second shows \(\frac{${b}}{${d}}\). How much is shaded in all?`,
     visual: barsFor([[a, d], [b, d]]),
     correct: frac(top, d),
+    check: () => checkEqual(top / d, a / d + b / d),
     wrong: [
       { value: F(top, 2 * d), why: `There are two bars, but each piece is still one of ${d} equal pieces of a whole.` },
       frac(top + 1, d),
@@ -100,6 +103,7 @@ function easyStory(rng) {
   return q({
     prompt: R`${p1} ate \(\frac{${a}}{${d}}\) of a ${food}. ${p2} ate \(\frac{${b}}{${d}}\) of the same ${food}. What fraction of the ${food} did they eat in all?`,
     correct: frac(top, d),
+    check: () => checkEqual(top / d, a / d + b / d),
     wrong: [
       { value: F(top, 2 * d), why: `This adds the bottom numbers too. The pieces are still ${fractionWord(d)}.` },
       frac(Math.abs(a - b) || 1, d),
@@ -139,6 +143,7 @@ function mediumAdd(rng) {
   return q({
     prompt: R`What is \(\frac{${a}}{${d1}} + \frac{${b}}{${d2}}\)? Give the answer in simplest form.`,
     correct: ans,
+    check: () => checkEqual(ans.value, a / d1 + b / d2),
     wrong: [
       { value: F(a + b, d1 + d2), why: 'This adds tops and bottoms. First make the bottom numbers the same, then add only the tops.' },
       { value: frac(a + b, d2), why: R`\(\frac{${a}}{${d1}}\) was not changed into ${fractionWord(d2)}. Multiply its top by ${k} as well.` },
@@ -163,6 +168,7 @@ function mediumSubtract(rng) {
   return q({
     prompt: R`What is \(\frac{${a}}{${d1}} - \frac{${b}}{${d2}}\)? Give the answer in simplest form.`,
     correct: ans,
+    check: () => checkEqual(ans.value, a / d1 - b / d2),
     wrong: [
       { value: F(Math.abs(a - b) || 1, d2 - d1), why: 'This subtracts tops and bottoms. First make the bottom numbers the same, then subtract only the tops.' },
       { value: frac(a * k + b, d2), why: 'This adds. The sign is a minus.' },
@@ -188,6 +194,7 @@ function mediumStory(rng) {
   return q({
     prompt: R`${name} mixes \(\frac{${a}}{${d1}}\) cup of ${x} with \(\frac{${b}}{${d2}}\) cup of ${y}. How many cups is the mix? Give the answer in simplest form.`,
     correct: R`\(${ans.tex()}\) cup`,
+    check: () => checkEqual(ans.value, a / d1 + b / d2),
     wrong: [
       { value: R`\(${fracTex(a + b, d1 + d2)}\) cup`, why: 'This adds tops and bottoms. Make the bottom numbers the same first.' },
       R`\(${frac(a + b, d2).tex()}\) cup`,
@@ -239,6 +246,7 @@ function hardAdd(rng) {
   return q({
     prompt: R`What is \(\frac{${p.a}}{${p.d1}} + \frac{${p.b}}{${p.d2}}\)? Give the answer in simplest form.`,
     correct: mixed(ans),
+    check: () => checkEqual(ans.value, p.a / p.d1 + p.b / p.d2),
     wrong: [
       { value: F(p.a + p.b, p.d1 + p.d2), why: 'This adds tops and bottoms. Rename both fractions with a common denominator first.' },
       { value: mixed(frac(p.a + p.b, p.L)), why: R`The bottoms were changed to \(${p.L}\) but the tops were not. Multiply each top by the same number as its bottom.` },
@@ -258,6 +266,7 @@ function hardSubtract(rng) {
   return q({
     prompt: R`What is \(\frac{${p.a}}{${p.d1}} - \frac{${p.b}}{${p.d2}}\)? Give the answer in simplest form.`,
     correct: mixed(ans),
+    check: () => checkEqual(ans.value, p.a / p.d1 - p.b / p.d2),
     wrong: [
       { value: mixed(frac(Math.abs(p.a - p.b) || 1, p.L)), why: R`The bottoms were changed to \(${p.L}\) but the tops were not.` },
       { value: mixed(frac(p.a * p.m1 + p.b * p.m2, p.L)), why: 'This adds. The sign is a minus.' },
@@ -276,6 +285,10 @@ function hardLcd(rng) {
   return q({
     prompt: R`You want to add \(\frac{${a}}{${d1}} + \frac{${b}}{${d2}}\). What is the least common denominator?`,
     correct: L,
+    check: () => {
+      for (let n = 1; n < L; n++) if (n % d1 === 0 && n % d2 === 0) return `a smaller common multiple exists: ${n}`;
+      return L % d1 === 0 && L % d2 === 0 ? true : `${L} is not a common multiple`;
+    },
     wrong: [
       { value: d1 + d2, why: 'Adding the bottom numbers does not give a number both can be renamed to.' },
       L === d1 * d2 ? L * 2 : { value: d1 * d2, why: R`\(${d1 * d2}\) is a common denominator, but it is not the smallest one.` },
@@ -303,6 +316,7 @@ function hardMixedLike(rng) {
     return q({
       prompt: R`What is \(${mixedTex(w1, a, d)} + ${mixedTex(w2, b, d)}\)?`,
       correct: R`\(${mixedTex(w1 + w2, a + b, d)}\)`,
+      check: () => checkEqual(w1 + w2 + (a + b) / d, w1 + a / d + (w2 + b / d)),
       wrong: [
         { value: R`\(${mixedTex(w1 + w2, a + b, 2 * d)}\)`, why: 'The bottom number stays the same when the pieces are the same size.' },
         R`\(${mixedTex(w1 + w2 + 1, a + b, d)}\)`,
@@ -327,6 +341,7 @@ function hardStory(rng) {
   return q({
     prompt: R`${p1} walked \(\frac{${p.a}}{${p.d1}}\) mile. ${p2} walked \(\frac{${p.b}}{${p.d2}}\) mile. How much farther did ${p1} walk than ${p2}? Give the answer in simplest form.`,
     correct: withUnit(ans, 'mile', 'miles'),
+    check: () => checkEqual(ans.value, p.a / p.d1 - p.b / p.d2),
     wrong: [
       { value: withUnit(frac(p.a * p.m1 + p.b * p.m2, p.L), 'mile', 'miles'), why: '"How much farther" compares the two distances, so subtract.' },
       withUnit(frac(Math.abs(p.a - p.b) || 1, p.L), 'mile', 'miles'),
@@ -358,6 +373,7 @@ function challengeRegroup(rng) {
     return q({
       prompt: R`What is \(${mixedTex(w1, a, d1)} - ${mixedTex(w2, b, d2)}\)? Give the answer in simplest form.`,
       correct: mixed(ans),
+      check: () => checkEqual(ans.value, w1 + a / d1 - (w2 + b / d2)),
       wrong: [
         { value: mixed(frac((w1 - w2) * L + (n2 - n1), L)), why: 'This takes the smaller fraction from the bigger one in the wrong order. Trade 1 whole for more pieces instead.' },
         { value: mixed(ans.add(1)), why: 'A whole was traded for pieces, so the whole number should go down by 1.' },
@@ -384,6 +400,7 @@ function challengeMissing(rng) {
   return q({
     prompt: R`What fraction goes in the box? \(\;\square + ${known.tex()} = ${total.mixedTex()}\)`,
     correct: ans,
+    check: () => checkEqual(ans.value + known.value, total.value),
     wrong: [
       { value: mixed(total.add(known)), why: 'To find a missing part, subtract the part you know from the total.' },
       frac(p.a + 1, p.d1),
@@ -414,6 +431,7 @@ function challengeThree(rng) {
     return q({
       prompt: R`What is \(\frac{${a}}{${d1}} + \frac{${b}}{${d2}} + \frac{${c}}{${d3}}\)? Give the answer in simplest form.`,
       correct: mixed(ans),
+      check: () => checkEqual(ans.value, a / d1 + b / d2 + c / d3),
       wrong: [
         { value: F(a + b + c, d1 + d2 + d3), why: 'This adds tops and bottoms. Rename all three fractions with a common denominator first.' },
         mixed(frac(a + b + c, L)),
@@ -477,6 +495,7 @@ function challengeStory(rng) {
     return q({
       prompt: R`${name} has \(${have.mixedTex()}\) feet (ft) of ${item}. ${name} uses \(${use1.mixedTex()}\) ft for one project and \(${use2.tex()}\) ft for another. How much ${item} is left? Give the answer in simplest form.`,
       correct: R`\(${left.mixedTex()}\) ft`,
+      check: () => checkEqual(left.value, start + s / d1 - (w1 + a / d2) - b / d3),
       wrong: [
         { value: R`\(${have.sub(use1).mixedTex()}\) ft`, why: 'This takes away only the first project. There were two.' },
         { value: R`\(${have.add(use1).add(use2).mixedTex()}\) ft`, why: `Using ${item} makes the amount smaller, so subtract.` },

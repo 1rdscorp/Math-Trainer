@@ -74,7 +74,7 @@ function easyAreaModel(rng) {
     correct: a * b,
     fmt: M,
     wrong: [
-      { value: tens * b + ones, why: `Multiply both parts by ${b}. The ${ones} ones are multiplied too.` },
+      { value: tens * b + ones, why: `Multiply both parts by ${b}. Do not leave out the ${ones === 1 ? '1 one' : `${ones} ones`}.` },
       { value: (tens / 10 + ones) * b, why: `The ${tens / 10} in ${a} means ${tens}, not ${tens / 10}.` },
       a * b + 10,
       a * b - b,
@@ -210,7 +210,7 @@ function divideQuestion(n, d, rule = 2) {
       prompt: R`What is \(${N(n)} \div ${d}\)?`,
       correct: k,
       fmt: M,
-      wrong: [noZero ? { value: noZero, why: 'When the divisor does not fit, write a 0 in the quotient to hold the place.' } : null, k + 1, k - 1, k + 10, k > 10 ? k - 10 : k + 2],
+      wrong: [noZero ? { value: noZero, why: 'If the divisor does not fit, write 0 in the quotient. The 0 holds the place.' } : null, k + 1, k - 1, k + 10, k > 10 ? k - 10 : k + 2],
       solution,
       rule,
       skill: 'long division',
@@ -221,7 +221,7 @@ function divideQuestion(n, d, rule = 2) {
     prompt: R`What is \(${N(n)} \div ${d}\)?`,
     correct: withRemainder(k, r),
     wrong: [
-      noZero ? { value: withRemainder(noZero, r), why: 'When the divisor does not fit, write a 0 in the quotient to hold the place.' } : null,
+      noZero ? { value: withRemainder(noZero, r), why: 'If the divisor does not fit, write 0 in the quotient. The 0 holds the place.' } : null,
       { value: withRemainder(k - 1, r + d), why: `A remainder of ${r + d} is too big. ${d} fits one more time.` },
       d - r !== r ? withRemainder(k, d - r) : null,
       withRemainder(k + 1, r),

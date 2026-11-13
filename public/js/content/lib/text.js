@@ -128,5 +128,17 @@ const FRACTION_WORDS = {
 export function fractionWord(d, count = 2) {
   const w = FRACTION_WORDS[d];
   if (w) return count === 1 ? w[0] : w[1];
-  return count === 1 ? ordinal(d) : `${ordinal(d)}s`;
+  const word = ordinalWord(d) ?? ordinal(d);
+  return count === 1 ? word : `${word}s`;
+}
+
+const ORDINAL_ONES = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+/** An ordinal in words for 1–99: ordinalWord(24) → "twenty-fourth", ordinalWord(30) → "thirtieth". Otherwise null. */
+export function ordinalWord(n) {
+  if (!Number.isInteger(n) || n < 1 || n > 99) return null;
+  if (n < 20) return ORDINAL_ONES[n];
+  const t = TENS[Math.floor(n / 10)];
+  return n % 10 === 0 ? `${t.slice(0, -1)}ieth` : `${t}-${ORDINAL_ONES[n % 10]}`;
 }

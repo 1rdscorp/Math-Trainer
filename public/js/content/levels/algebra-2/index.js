@@ -4,5 +4,10 @@ import polynomialFunctions from './polynomial-functions.js';
 import rationalExpressions from './rational-expressions.js';
 import radicalsRationalExponents from './radicals-rational-exponents.js';
 import functionsInverses from './functions-inverses.js';
+import exponentialFunctions from './exponential-functions.js';
+import logarithms from './logarithms.js';
+import sequencesSeries from './sequences-series.js';
+import trigFunctions from './trig-functions.js';
+import probabilityStatistics from './probability-statistics.js';
 
-export default [complexNumbers, polynomialFunctions, rationalExpressions, radicalsRationalExponents, functionsInverses];
+export default [complexNumbers, polynomialFunctions, rationalExpressions, radicalsRationalExponents, functionsInverses, exponentialFunctions, logarithms, sequencesSeries, trigFunctions, probabilityStatistics];

@@ -2,7 +2,7 @@
 // Coming back to older material, mixed together, is how practice turns into lasting memory.
 
 import { h, announce, focusOn, fill } from '../ui/dom.js';
-import { rich, visual, stepsList } from '../ui/math.js';
+import { rich, visual, stepsList, fitChoices } from '../ui/math.js';
 import { toSpeech } from '../ui/speech.js';
 import { loading, guestNotice } from '../ui/components.js';
 import { describeTopic, loadTopic } from '../content/index.js';
@@ -68,6 +68,7 @@ export default function reviewView(ctx) {
       { class: 'choices', role: 'radiogroup', 'aria-labelledby': 'review-prompt' },
       question.choices.map((choice, i) => h('div', { class: 'choice' }, h('input', { type: 'radio', name: 'answer', id: `choice-${i}`, value: String(i), 'aria-label': `${LETTERS[i]}: ${toSpeech(choice)}` }), h('label', { for: `choice-${i}` }, h('span', { class: 'letter', 'aria-hidden': 'true' }, LETTERS[i]), h('span', null, rich(choice)), h('span', { class: 'mark' })))),
     );
+    fitChoices(group);
     const check = h('button', { type: 'submit', class: 'btn btn-primary btn-big' }, 'Check my answer');
     const heading = h('h2', { tabindex: '-1' }, `Question ${index + 1} of ${plan.length}`);
     const form = h(

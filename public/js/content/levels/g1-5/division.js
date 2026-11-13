@@ -161,7 +161,7 @@ function mediumMissing(rng) {
     return q({
       prompt: R`What number goes in the box? \(\;\square \div ${d} = ${k}\)`,
       correct: n,
-      wrong: [{ value: d + k, why: 'The box is the total. Multiply the two numbers to get it.' }, { value: Math.abs(k - d), why: `The box is split into ${d} groups of ${k}, so it is bigger than both.` }, n + d, n - d, n + 1],
+      wrong: [{ value: d + k, why: 'The box is the total. Multiply the two numbers to get it.' }, { value: Math.abs(k - d), why: `The box is split into ${d} groups of ${k}. It is bigger than both numbers.` }, n + d, n - d, n + 1],
       solution: [`The box is shared into ${d} groups with ${k} in each.`, R`Multiply to find the total: \(${d} \times ${k} = ${n}\).`, R`Check: \(${n} \div ${d} = ${k}\).`],
       rule: 2,
       skill: 'missing number',

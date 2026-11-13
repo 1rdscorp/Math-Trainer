@@ -2,7 +2,6 @@ import { R, q, frac, terms, power, num } from '../../lib/index.js';
 import { M, K, N, exactChoices, fterms, quad, checkQuad } from './_shared.js';
 
 const DIV = 'Diverges';
-const INF = R`\infty`;
 // x^p for a Frac exponent: x, \sqrt{x}, x^{3}, x^{3/2}.
 const xPow = (p, x = 'x') => (p.eq(1) ? x : p.eq(frac(1, 2)) ? `\\sqrt{${x}}` : p.isInt() ? `${x}^{${p.n}}` : `${x}^{${p.n}/${p.d}}`);
 // A divergent integral keeps growing: the truncated integrals over [a1, b1] and [a2, b2] differ by more than 1.
@@ -50,7 +49,7 @@ function easyWriteAsLimit(rng) {
       prompt: R`Which limit defines \(\displaystyle\int_{${a}}^{\infty} ${f}\,dx\)?`,
       correct: L(R`b\to\infty`, a, 'b', f),
       wrong: [
-        { value: L(`c\\to ${a}^{+}`, 'c', INF, f), why: R`The trouble is the infinite upper limit. Replace \(\infty\) by \(b\) and let \(b\) grow.` },
+        { value: L(`b\\to ${a}^{+}`, a, 'b', f), why: R`As \(b \to ${a}\) the integral shrinks to 0. The trouble is the infinite upper limit, so \(b\) must grow without bound.` },
         { value: M(R`\displaystyle\int_{${a}}^{b} ${f}\,dx`), why: R`The limit as \(b \to \infty\) is part of the definition.` },
         L(R`b\to 0`, a, 'b', f),
       ],
@@ -67,7 +66,7 @@ function easyWriteAsLimit(rng) {
       correct: L(R`c\to 0^{+}`, 'c', b, f),
       wrong: [
         { value: L(R`c\to 0^{-}`, 'c', b, f), why: R`\(c\) must stay inside the interval \((0, ${b}]\), so it approaches 0 from the right.` },
-        { value: L(`c\\to ${b}^{-}`, 0, 'c', f), why: R`The integrand is unbounded at \(x = 0\), not at \(x = ${b}\).` },
+        { value: L(`c\\to ${b}^{-}`, 'c', b, f), why: R`The integrand is unbounded at \(x = 0\), not at \(x = ${b}\). As \(c \to ${b}\) this integral shrinks to 0.` },
         L(R`c\to\infty`, 0, 'c', f),
       ],
       solution: [R`The integrand is unbounded at the lower limit \(x = 0\).`, R`Replace 0 by a number \(c\) slightly to the right of it, integrate, and then let \(c \to 0^{+}\).`],
@@ -83,7 +82,7 @@ function easyWriteAsLimit(rng) {
     correct: L(`c\\to ${r}^{-}`, a, 'c', f),
     wrong: [
       { value: L(`c\\to ${r}^{+}`, a, 'c', f), why: R`\(c\) must stay inside the interval \([${a}, ${r})\), so it approaches \(${r}\) from the left.` },
-      { value: L(`c\\to ${a}^{+}`, 'c', r, f), why: R`The integrand is unbounded at \(x = ${r}\), not at \(x = ${a}\).` },
+      { value: L(`c\\to ${a}^{+}`, a, 'c', f), why: R`The integrand is unbounded at \(x = ${r}\), not at \(x = ${a}\). As \(c \to ${a}\) this integral shrinks to 0.` },
       L(R`c\to\infty`, a, 'c', f),
     ],
     solution: [R`The integrand is unbounded at the upper limit \(x = ${r}\).`, R`Replace \(${r}\) by a number \(c\) slightly to the left of it, integrate, and then let \(c \to ${r}^{-}\).`],
@@ -351,7 +350,7 @@ function hardComparison(rng) {
     { f: R`\dfrac{1}{x^{${p}} + ${a}}`, lo: 1, g: xp, conv: true, fJs: (x) => 1 / (x ** p + a), gJs: (x) => x ** -p, because: R`a larger denominator makes a smaller fraction` },
     { f: R`\dfrac{e^{-x}}{x + ${a}}`, lo: 1, g: 'e^{-x}', conv: true, fJs: (x) => Math.exp(-x) / (x + a), gJs: (x) => Math.exp(-x), because: R`\(x + ${a} \ge 1\)` },
     { f: R`\dfrac{1}{\sqrt{x^{4} + ${a}}}`, lo: 1, g: sq, conv: true, fJs: (x) => 1 / Math.sqrt(x ** 4 + a), gJs: (x) => x ** -2, because: R`\(\sqrt{x^{4} + ${a}} \ge x^{2}\)` },
-    { f: R`\dfrac{${a} + \cos x}{x}`, lo: 1, g: one, conv: false, fJs: (x) => (a + Math.cos(x)) / x, gJs: (x) => 1 / x, because: R`\(${a} + \cos x \ge ${a - 1} \ge 1\)` },
+    { f: R`\dfrac{${a} + \cos x}{x}`, lo: 1, g: one, conv: false, fJs: (x) => (a + Math.cos(x)) / x, gJs: (x) => 1 / x, because: a === 2 ? R`\(2 + \cos x \ge 1\)` : R`\(${a} + \cos x \ge ${a - 1} \ge 1\)` },
     { f: R`\dfrac{1}{\sqrt{x} - 1}`, lo: a, g: R`\dfrac{1}{\sqrt{x}}`, conv: false, fJs: (x) => 1 / (Math.sqrt(x) - 1), gJs: (x) => 1 / Math.sqrt(x), because: R`a smaller positive denominator makes a larger fraction` },
     { f: R`\dfrac{x + ${a}}{x^{2}}`, lo: 1, g: one, conv: false, fJs: (x) => (x + a) / (x * x), gJs: (x) => 1 / x, because: R`\(\dfrac{x + ${a}}{x^{2}} = \dfrac{1}{x} + \dfrac{${a}}{x^{2}}\)` },
     { f: R`\dfrac{\ln x}{x}`, lo: a + 1, g: one, conv: false, fJs: (x) => Math.log(x) / x, gJs: (x) => 1 / x, because: R`\(\ln x \ge 1\) for \(x \ge e\)` },
@@ -606,7 +605,7 @@ function challengeNormalize(rng) {
     return q({
       prompt: prompt(R`\dfrac{k}{x^{${p}}}`, R`\(x \ge ${a}\)`),
       ...exactChoices(N(k), [{ k: N(frac(1, k)), why: R`\(\frac{1}{${k}}\) is the area when \(k = 1\). To make the area 1, \(k\) must be its reciprocal.` }, N(p - 1), N(p * a ** p), N(a ** (p - 1)), N(k + 1), N(frac(1, p)), N(k + 2)], wrap),
-      solution: [total1, R`\(\displaystyle\int_{${a}}^{\infty} \frac{k}{x^{${p}}}\,dx = \lim_{b\to\infty}\Big[-\frac{k}{${p - 1 === 1 ? '' : p - 1}${power('x', p - 1)}}\Big]_{${a}}^{b} = \frac{k}{${k}}\).`, R`Set \(\dfrac{k}{${k}} = 1\): \(k = ${k}\).`],
+      solution: [total1, R`\(\displaystyle\int_{${a}}^{\infty} \frac{k}{x^{${p}}}\,dx = \lim_{b\to\infty}\Big[-\frac{k}{${p - 1 === 1 ? '' : p - 1}${power('x', p - 1)}}\Big]_{${a}}^{b} = ${k === 1 ? 'k' : R`\frac{k}{${k}}`}\).`, k === 1 ? R`The area must equal 1, so \(k = 1\).` : R`Set \(\dfrac{k}{${k}} = 1\): \(k = ${k}\).`],
       rule: 4,
       skill: 'finding a constant',
       check: () => checkQuad((x) => k / x ** p, a, Infinity, 1),
@@ -635,7 +634,7 @@ function challengeNormalize(rng) {
   const over = (top, bottom) => ({ tex: R`\dfrac{${top}}{${bottom}}`, value: 0 });
   const opt = (top, bottom, value) => ({ ...over(top, bottom), value });
   return q({
-    prompt: prompt(R`\dfrac{k}{x^{2} + ${a * a}}`, 'all real \\(x\\)'.replace('\\\\', '\\')),
+    prompt: prompt(R`\dfrac{k}{x^{2} + ${a * a}}`, R`all real \(x\)`),
     ...exactChoices(
       opt(a, '\\pi', a / Math.PI),
       [

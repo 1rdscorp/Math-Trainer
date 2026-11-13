@@ -59,8 +59,12 @@ function easySphereRead(rng) {
 }
 
 function easyCombination(rng) {
-  const u = rvec(rng, -5, 5);
-  const v = rvec(rng, -5, 5);
+  let u;
+  let v;
+  do {
+    u = rvec(rng, -5, 5);
+    v = rvec(rng, -5, 5);
+  } while (parallel(u, v));
   const a = rng.int(2, 4);
   const b = rng.pick([-3, -2, -1, 2, 3]);
   const ans = vadd(vscale(u, a), vscale(v, b));
@@ -73,6 +77,8 @@ function easyCombination(rng) {
       M(V(vadd(u, v))),
       M(V(vscale(vadd(u, v), a))),
       M(V(vadd(ans, [0, 1, -1]))),
+      M(V(vscale(u, a))),
+      M(V(vadd(ans, [1, 0, 0]))),
     ],
     solution: [
       R`Multiply each vector by its scalar: \(${a}\mathbf{u} = ${V(vscale(u, a))}\) and \(${b === -1 ? '-' : b}\mathbf{v} = ${V(vscale(v, b))}\).`,
@@ -85,7 +91,9 @@ function easyCombination(rng) {
 }
 
 function easyMagnitude(rng) {
-  const v = rvec(rng, -6, 6);
+  let v;
+  do v = rvec(rng, -6, 6);
+  while (v.filter((x) => x === 0).length > 1);
   const n = vlen2(v);
   const s = v.reduce((t, x) => t + Math.abs(x), 0);
   const { coef, rad: inside } = simplifySqrt(n);
@@ -98,6 +106,7 @@ function easyMagnitude(rng) {
       M(sqrtTex(s)),
       M(sqrtTex(n + 1)),
       M(sqrtTex(n + 3)),
+      M(sqrtTex(n + 2)),
     ],
     solution: [
       R`\(|\mathbf{v}| = \sqrt{${sumSq(v)}}\).`,

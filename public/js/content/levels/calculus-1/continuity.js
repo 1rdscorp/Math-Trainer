@@ -75,8 +75,8 @@ function easyGraphType(rng) {
     why = { none: 'The open circle shows that the point on the line is missing from the graph, so the graph has a gap there.', jump: 'Both sides approach the same height, so there is no jump. Only a single point is missing or out of place.' };
     steps = [R`From both sides the graph approaches the same height, \(${h}\), so \(${lim(a)} f(x) = ${h}\) exists.`, moved ? R`But \(f(${a}) = ${v}\), which is not equal to the limit.` : R`But \(f(${a})\) is not defined (open circle).`, 'A limit that exists but is not matched by the value is a removable discontinuity: filling the hole would repair it.'];
   } else if (type === 'jump') {
-    const d = rng.pick([-3, -2, 2, 3]);
-    const m2 = rng.pick([-1, -0.5, 0.5, 1]);
+    const d = rng.pick([-2, 2, 3]);
+    const m2 = rng.pick([-0.5, 0.5]);
     const leftClosed = rng.bool(0.5);
     visual = {
       ...base,
@@ -279,7 +279,7 @@ function mediumClassify(rng) {
 function mediumRemove(rng) {
   const form = rng.pick(['poly', 'poly', 'recip', 'sine']);
   const a = form === 'sine' ? 0 : rng.nonzero(-5, 5);
-  const b = rng.intExcept(-6, 6, [a]);
+  const b = rng.intExcept(-6, 6, [a, 0]);
   const p = rng.int(2, 9);
   const s = rng.intExcept(2, 9, [p]);
   const top = [1, -(a + b), a * b];
@@ -877,7 +877,7 @@ export default {
       y: [-4, 7],
       step: [1, 1],
       fns: [
-        { f: (x) => 0.5 * x + 3, domain: [-6, 0], color: 'a', label: 'removable', labelAt: -3.6 },
+        { f: (x) => 0.5 * x + 3, domain: [-6, 0], color: 'a', label: 'hole', labelAt: -4.4 },
         { f: (x) => 1 + 1 / (3 - x) - 1 / 3, domain: [0, 2.98], color: 'a', label: 'jump', labelAt: 0.9 },
         { f: (x) => 2 - 1 / (x - 3), domain: [3.02, 6], color: 'a', label: 'infinite', labelAt: 4.6 },
       ],
@@ -934,7 +934,7 @@ export default {
         y: [-2, 2.5],
         step: [0.5, 1],
         fns: [{ f: (x) => x ** 3 + x - 1 }],
-        points: [{ x: 0, y: -1, label: 'f(0) = −1' }, { x: 1, y: 1, label: 'f(1) = 1' }, { x: 0.6823, y: 0, color: 'b', label: 'c' }],
+        points: [{ x: 0, y: -1 }, { x: 1, y: 1 }, { x: 0.6823, y: 0, color: 'b', label: 'c' }],
         alt: 'Graph of f(x) = x³ + x − 1 from x = −0.5 to x = 1.5. The curve rises from the point (0, −1) below the x-axis to the point (1, 1) above it, crossing the axis once in between, near x = 0.68.',
       },
     },
@@ -979,7 +979,7 @@ export default {
             type: 'plot',
             ...fit([(x) => (x <= a ? f1(x) : f2(x))], a - 4, a + 4, { include: [0] }),
             fns: [{ f: f1, domain: [a - 4, a], color: 'a' }, { f: f2, domain: [a, a + 4], color: 'b' }],
-            points: [{ x: a, y: left, label: `(${txt(a)}, ${txt(left)})` }],
+            points: [{ x: a, y: left }],
             alt: `Graph of the piecewise function with k = ${txt(k)}: a line on the left and a parabola on the right that meet at the point (${txt(a)}, ${txt(left)}) with no gap.`,
           },
         };
@@ -1025,7 +1025,7 @@ export default {
             type: 'plot',
             ...fit(f, a - 0.5, b + 0.5, { include: [0] }),
             fns: [{ f }],
-            points: [{ x: a, y: fa, label: `f(${txt(a)}) = ${txt(fa)}` }, { x: b, y: fb, label: `f(${txt(b)}) = ${txt(fb)}` }],
+            points: [{ x: a, y: fa }, { x: b, y: fb }],
             alt: `Graph of f on the interval from ${txt(a)} to ${txt(b)}, with the endpoints marked: f(${txt(a)}) = ${txt(fa)} and f(${txt(b)}) = ${txt(fb)}.`,
           },
         };
@@ -1055,10 +1055,10 @@ export default {
           answer: R`\(k = ${num(k)}\)`,
           visual: {
             type: 'plot',
-            x: [0, 2 * T],
+            x: [-0.34 * T, 2 * T],
             y: [0, Math.max(C(2 * T), C(T)) * 1.15],
             fns: [{ f: C, domain: [0, T], color: 'a' }, { f: C, domain: [T, 2 * T], color: 'b' }],
-            points: [{ x: T, y: r1 * T, label: `(${txt(T)}, ${txt(r1 * T)})` }],
+            points: [{ x: T, y: r1 * T }],
             axisLabels: ['x (units)', 'C ($)'],
             alt: `Graph of the cost: a line with slope ${r1} up to x = ${txt(T)}, joined without a gap at the point (${txt(T)}, ${txt(r1 * T)}) to a line with slope ${r2}.`,
           },

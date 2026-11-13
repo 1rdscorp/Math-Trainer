@@ -266,7 +266,7 @@ function easyOnes(rng) {
     visual: { type: 'numberLine', min: 10 * t, max: 10 * t + 20, step: 1, jumps: [{ from: a, to: a - o, label: `−${o}` }, { from: a - o, to: d, label: `−${rest}` }], alt: `A number line. A jump back of ${o} goes from ${a} to ${a - o}. A jump back of ${rest} goes on to ${d}.` },
     correct: d,
     wrong: [
-      { value: a - o + rest, why: `There are only ${o} ones. Go back through ${a - o} to take away all ${b}.` },
+      { value: a - o + rest, why: `There ${o === 1 ? 'is only 1 one' : `are only ${o} ones`}. Go back through ${a - o} to take away all ${b}.` },
       { value: d + 10, why: 'Going back past a ten makes the tens digit 1 smaller.' },
       d + 1,
       d - 1,

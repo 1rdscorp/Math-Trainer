@@ -7,12 +7,6 @@ const sh = (v, a) => terms([[1, v], [-a, '']]);
 const planeZ = (p, qq, r) => `z = ${terms([[p, 'x'], [qq, 'y'], [r, '']])}`;
 /** A decimal multiple of π: kPi(5.6) → "5.6\pi", kPi(1) → "\pi". */
 const kPi = (c) => terms([[round(c, 4), '\\pi']]);
-/** Solve g(u) = 0 near u0 by Newton's method with a numerical derivative. */
-function newton(g, u0) {
-  let u = u0;
-  for (let i = 0; i < 40; i++) u -= g(u) / numDeriv(g, u);
-  return u;
-}
 
 // ───────────── Easy ─────────────
 
@@ -94,8 +88,17 @@ function mediumTangentPlane(rng) {
   let p;
   do p = mpClean([[rng.int(-3, 3), 2, 0], [rng.int(-3, 3), 1, 1], [rng.int(-3, 3), 0, 2], [rng.int(-4, 4), 1, 0], [rng.int(-4, 4), 0, 1]]);
   while (p.filter((t) => t[1] + t[2] === 2).length < 2);
-  const [a, b] = [rng.nonzero(-3, 3), rng.nonzero(-3, 3)];
-  const [c, fx, fy] = [mpEval(p, a, b), mpEval(mpD(p, 0), a, b), mpEval(mpD(p, 1), a, b)];
+  // Avoid a point where both partial derivatives are 0: the plane is then just z = c and the
+  // slips below all give that same plane.
+  let a;
+  let b;
+  let c;
+  let fx;
+  let fy;
+  do {
+    [a, b] = [rng.nonzero(-3, 3), rng.nonzero(-3, 3)];
+    [c, fx, fy] = [mpEval(p, a, b), mpEval(mpD(p, 0), a, b), mpEval(mpD(p, 1), a, b)];
+  } while (fx === 0 && fy === 0);
   const r = c - fx * a - fy * b;
   return q({
     prompt: R`Find an equation of the tangent plane to \(z = ${mpTex(p)}\) at the point where \((x, y) = (${a}, ${b})\).`,
@@ -214,10 +217,14 @@ function hardImplicit(rng) {
     rule: 5,
     skill: 'implicit differentiation',
     check: () => {
-      // solve F = c for the dependent variable at x ± h and take a difference quotient
-      const h = 1e-4;
-      const solve = (x) => newton((u) => (three ? mpEval(F, x, P[1], u) : mpEval(F, x, u)) - c, P[last]);
-      return checkEqual(ans.value, (solve(P[0] + h) - solve(P[0] - h)) / (2 * h), 1e-4, `d${dep}/dx`);
+      // Moving along the level set keeps F constant, so F_x + F_dep · (d dep/dx) must be 0. The partials
+      // of F are taken numerically here, independently of the symbolic ones used for the answer.
+      // (Solving F = c for the dependent variable at x ± h and differencing is less reliable: where
+      // F_dep is small the implicit function bends so sharply that the difference quotient is off.)
+      const pt = three ? P : P.slice(0, 2);
+      const Fjs = (...u) => mpEval(F, ...u);
+      const scale = Math.max(1, Math.abs(Fx), Math.abs(Fl * ans.value));
+      return checkEqual((numPartial(Fjs, pt, 0) + numPartial(Fjs, pt, last) * ans.value) / scale, 0, 1e-6, `F_x + F_${dep} d${dep}/dx`);
     },
   });
 }
@@ -496,7 +503,7 @@ export default {
     },
     {
       title: 'Implicit differentiation',
-      problem: R`The equation \(x^{2} + y^{2} + z^{2} + xz = 13\) defines \(z\) as a function of \(x\) and \(y\) near \((1, 2, 2)\). Find \(\dfrac{\partial z}{\partial x}\) there.`,
+      problem: R`The equation \(x^{2} + y^{2} + z^{2} + xz = 11\) defines \(z\) as a function of \(x\) and \(y\) near \((1, 2, 2)\). Find \(\dfrac{\partial z}{\partial x}\) there.`,
       steps: [
         R`Let \(F = x^{2} + y^{2} + z^{2} + xz\). Then \(\dfrac{\partial z}{\partial x} = -\dfrac{F_{x}}{F_{z}}\).`,
         R`\(F_{x} = 2x + z = 4\) and \(F_{z} = 2z + x = 5\) at \((1, 2, 2)\).`,

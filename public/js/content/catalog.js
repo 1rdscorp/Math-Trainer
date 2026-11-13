@@ -133,6 +133,19 @@ export const CATALOG = {
         "CCSS 5.NF.B.6",
         "CCSS 5.NF.B.7"
       ]
+    },
+    {
+      "id": "decimals",
+      "title": "Decimals",
+      "summary": "Read, compare and round decimals, and add, subtract, multiply and divide them.",
+      "grade": "Grades 4–5",
+      "standards": [
+        "CCSS 4.NF.C.6",
+        "CCSS 4.NF.C.7",
+        "CCSS 5.NBT.A.3",
+        "CCSS 5.NBT.A.4",
+        "CCSS 5.NBT.B.7"
+      ]
     }
   ],
   "g6-8": [
@@ -204,6 +217,82 @@ export const CATALOG = {
         "CCSS 6.EE.B.7",
         "CCSS 6.EE.B.8",
         "CCSS 7.EE.B.4"
+      ]
+    },
+    {
+      "id": "proportional",
+      "title": "Proportional Relationships",
+      "summary": "Find unit rates with fractions, test whether a relationship is proportional, use y = kx and its graph, and work with scale drawings.",
+      "grade": "Grade 7",
+      "standards": [
+        "CCSS 7.RP.A.1",
+        "CCSS 7.RP.A.2",
+        "CCSS 7.G.A.1"
+      ]
+    },
+    {
+      "id": "area-volume",
+      "title": "Area, Surface Area & Volume",
+      "summary": "Find areas of polygons and circles, surface areas of boxes, and volumes of prisms, cylinders, cones and spheres.",
+      "grade": "Grades 6–8",
+      "standards": [
+        "CCSS 6.G.A.1",
+        "CCSS 6.G.A.2",
+        "CCSS 6.G.A.4",
+        "CCSS 7.G.B.4",
+        "CCSS 7.G.B.6",
+        "CCSS 8.G.C.9"
+      ]
+    },
+    {
+      "id": "statistics-probability",
+      "title": "Statistics & Probability",
+      "summary": "Describe data with center and spread, read dot plots and bar charts, and find probabilities of simple and compound events.",
+      "grade": "Grades 6–7",
+      "standards": [
+        "CCSS 6.SP.A.3",
+        "CCSS 6.SP.B.5",
+        "CCSS 7.SP.C.5",
+        "CCSS 7.SP.C.7",
+        "CCSS 7.SP.C.8"
+      ]
+    },
+    {
+      "id": "exponents-scientific",
+      "title": "Exponents, Roots & Scientific Notation",
+      "summary": "Use the exponent rules, find square and cube roots, estimate roots that are not whole numbers, and work with scientific notation.",
+      "grade": "Grade 8",
+      "standards": [
+        "CCSS 8.EE.A.1",
+        "CCSS 8.EE.A.2",
+        "CCSS 8.EE.A.3",
+        "CCSS 8.EE.A.4",
+        "CCSS 8.NS.A.2"
+      ]
+    },
+    {
+      "id": "linear-relationships",
+      "title": "Slope & Linear Relationships",
+      "summary": "Find slope from graphs, tables and points, write equations of lines, and solve equations with the variable on both sides.",
+      "grade": "Grade 8",
+      "standards": [
+        "CCSS 8.EE.B.5",
+        "CCSS 8.EE.B.6",
+        "CCSS 8.EE.C.7",
+        "CCSS 8.F.A.3",
+        "CCSS 8.F.B.4"
+      ]
+    },
+    {
+      "id": "pythagorean-angles",
+      "title": "Angles, Triangles & the Pythagorean Theorem",
+      "summary": "Find missing angles made by crossing lines, parallel lines and triangles, and use the Pythagorean theorem to find lengths and distances.",
+      "grade": "Grades 7–8",
+      "standards": [
+        "CCSS 7.G.B.5",
+        "CCSS 8.G.A.5",
+        "CCSS 8.G.B.7",
+        "CCSS 8.G.B.8"
       ]
     }
   ],
@@ -290,6 +379,53 @@ export const CATALOG = {
         "CCSS A-APR.A.1",
         "CCSS A-SSE.A.1"
       ]
+    },
+    {
+      "id": "factoring",
+      "title": "Factoring Polynomials",
+      "summary": "Rewrite polynomials as products: common factors, trinomials, differences of squares, perfect squares and grouping.",
+      "grade": null,
+      "standards": [
+        "CCSS A-SSE.A.2",
+        "CCSS A-SSE.B.3"
+      ]
+    },
+    {
+      "id": "quadratic-equations",
+      "title": "Solving Quadratic Equations",
+      "summary": "Solve quadratic equations by factoring, square roots, completing the square and the quadratic formula.",
+      "grade": null,
+      "standards": [
+        "CCSS A-REI.B.4",
+        "CCSS A-SSE.B.3",
+        "CCSS A-CED.A.1"
+      ]
+    },
+    {
+      "id": "quadratic-functions",
+      "title": "Quadratic Functions & Parabolas",
+      "summary": "Read the vertex, axis, intercepts and direction of a parabola from any form, change forms, and find maximum and minimum values.",
+      "grade": null,
+      "standards": [
+        "CCSS F-IF.B.4",
+        "CCSS F-IF.C.7",
+        "CCSS F-IF.C.8",
+        "CCSS F-BF.B.3"
+      ]
+    },
+    {
+      "id": "data-statistics",
+      "title": "Describing Data",
+      "summary": "Describe data with centre and spread, spot outliers, compare data sets, and use scatter plots, lines of fit and residuals.",
+      "grade": null,
+      "standards": [
+        "CCSS S-ID.A.1",
+        "CCSS S-ID.A.2",
+        "CCSS S-ID.A.3",
+        "CCSS S-ID.B.6",
+        "CCSS S-ID.C.7",
+        "CCSS S-ID.C.8"
+      ]
     }
   ],
   "geometry": [
@@ -337,6 +473,74 @@ export const CATALOG = {
         "CCSS G-SRT.A.3",
         "CCSS G-SRT.B.4",
         "CCSS G-SRT.B.5"
+      ]
+    },
+    {
+      "id": "right-triangles",
+      "title": "Right Triangles & the Pythagorean Theorem",
+      "summary": "Find sides of right triangles, test whether a triangle is right, and use the 45-45-90 and 30-60-90 patterns.",
+      "grade": null,
+      "standards": [
+        "CCSS G-SRT.B.4",
+        "CCSS G-SRT.C.8",
+        "CCSS 8.G.B.7"
+      ]
+    },
+    {
+      "id": "trigonometry",
+      "title": "Right-Triangle Trigonometry",
+      "summary": "Use sine, cosine and tangent to find sides and angles of right triangles, including angles of elevation and depression.",
+      "grade": null,
+      "standards": [
+        "CCSS G-SRT.C.6",
+        "CCSS G-SRT.C.7",
+        "CCSS G-SRT.C.8"
+      ]
+    },
+    {
+      "id": "quadrilaterals-polygons",
+      "title": "Quadrilaterals & Polygons",
+      "summary": "Find angles of polygons, use the properties of special quadrilaterals to find unknowns, and classify quadrilaterals.",
+      "grade": null,
+      "standards": [
+        "CCSS G-CO.C.11",
+        "CCSS G-GPE.B.4"
+      ]
+    },
+    {
+      "id": "circles",
+      "title": "Circles",
+      "summary": "Measure arcs, sectors and angles in circles, use tangents and chords, and write the equation of a circle.",
+      "grade": null,
+      "standards": [
+        "CCSS G-C.A.2",
+        "CCSS G-C.B.5",
+        "CCSS G-GPE.A.1",
+        "CCSS G-GMD.A.1"
+      ]
+    },
+    {
+      "id": "area-volume",
+      "title": "Area, Surface Area & Volume",
+      "summary": "Find areas of flat shapes and the surface area and volume of solids, and use them for density, scaling and cross-sections.",
+      "grade": null,
+      "standards": [
+        "CCSS G-GMD.A.3",
+        "CCSS G-GMD.B.4",
+        "CCSS G-MG.A.1",
+        "CCSS G-MG.A.2"
+      ]
+    },
+    {
+      "id": "coordinate-geometry",
+      "title": "Coordinate Geometry",
+      "summary": "Use coordinates to find distances, midpoints and slopes, write equations of lines, and prove what shape a figure is.",
+      "grade": null,
+      "standards": [
+        "CCSS G-GPE.B.4",
+        "CCSS G-GPE.B.5",
+        "CCSS G-GPE.B.6",
+        "CCSS G-GPE.B.7"
       ]
     }
   ],
@@ -396,6 +600,66 @@ export const CATALOG = {
         "CCSS F-BF.A.1",
         "CCSS F-BF.B.3",
         "CCSS F-BF.B.4"
+      ]
+    },
+    {
+      "id": "exponential-functions",
+      "title": "Exponential Functions & Models",
+      "summary": "Model growth and decay with y = a·bˣ, including compound interest and half-life, and solve equations with a common base.",
+      "grade": null,
+      "standards": [
+        "CCSS F-IF.C.7",
+        "CCSS F-IF.C.8",
+        "CCSS F-LE.A.2",
+        "CCSS A-SSE.B.3"
+      ]
+    },
+    {
+      "id": "logarithms",
+      "title": "Logarithms",
+      "summary": "Use logarithms as inverses of exponentials: evaluate them, apply their properties and solve exponential and logarithmic equations.",
+      "grade": null,
+      "standards": [
+        "CCSS F-LE.A.4",
+        "CCSS F-BF.B.5",
+        "CCSS F-IF.C.7"
+      ]
+    },
+    {
+      "id": "sequences-series",
+      "title": "Sequences & Series",
+      "summary": "Write rules for arithmetic and geometric sequences, find terms, and add up finite and infinite series.",
+      "grade": null,
+      "standards": [
+        "CCSS F-BF.A.2",
+        "CCSS F-IF.A.3",
+        "CCSS A-SSE.B.4"
+      ]
+    },
+    {
+      "id": "trig-functions",
+      "title": "Trigonometric Functions & the Unit Circle",
+      "summary": "Convert between degrees and radians, find exact trig values on the unit circle, and read sine and cosine graphs.",
+      "grade": null,
+      "standards": [
+        "CCSS F-TF.A.1",
+        "CCSS F-TF.A.2",
+        "CCSS F-TF.B.5",
+        "CCSS F-TF.C.8"
+      ]
+    },
+    {
+      "id": "probability-statistics",
+      "title": "Probability & the Normal Distribution",
+      "summary": "Find probabilities of combined events, count with permutations and combinations, and use the normal distribution.",
+      "grade": null,
+      "standards": [
+        "CCSS S-CP.A.2",
+        "CCSS S-CP.A.3",
+        "CCSS S-CP.B.6",
+        "CCSS S-CP.B.7",
+        "CCSS S-CP.B.9",
+        "CCSS S-ID.A.4"
       ]
     }
   ],
@@ -492,6 +756,76 @@ export const CATALOG = {
         "CCSS F-TF.B.7",
         "CCSS F-TF.C.9"
       ]
+    },
+    {
+      "id": "triangle-laws",
+      "title": "Law of Sines & Law of Cosines",
+      "summary": "Solve any triangle with the Law of Sines or Cosines, handle the ambiguous case, and find areas and distances.",
+      "grade": null,
+      "standards": [
+        "CCSS G-SRT.D.9",
+        "CCSS G-SRT.D.10",
+        "CCSS G-SRT.D.11"
+      ]
+    },
+    {
+      "id": "polar-complex",
+      "title": "Polar Coordinates & Complex Numbers",
+      "summary": "Convert between polar and rectangular form, recognise polar graphs, and use polar form to multiply, power and root complex numbers.",
+      "grade": null,
+      "standards": [
+        "AP Precalculus 3.13",
+        "AP Precalculus 3.14",
+        "AP Precalculus 3.15",
+        "CCSS N-CN.B.4",
+        "CCSS N-CN.B.5"
+      ]
+    },
+    {
+      "id": "vectors-parametric",
+      "title": "Vectors & Parametric Equations",
+      "summary": "Work with vectors in component form, find resultants and angles, and describe motion with parametric equations.",
+      "grade": null,
+      "standards": [
+        "AP Precalculus 4.1",
+        "AP Precalculus 4.2",
+        "AP Precalculus 4.3",
+        "AP Precalculus 4.8",
+        "AP Precalculus 4.9",
+        "CCSS N-VM.A.1",
+        "CCSS N-VM.A.3",
+        "CCSS N-VM.B.4",
+        "CCSS N-VM.B.5"
+      ]
+    },
+    {
+      "id": "matrices",
+      "title": "Matrices",
+      "summary": "Add and multiply matrices, find determinants and inverses, solve systems, and use matrices for transformations and transitions.",
+      "grade": null,
+      "standards": [
+        "AP Precalculus 4.10",
+        "AP Precalculus 4.11",
+        "AP Precalculus 4.12",
+        "AP Precalculus 4.13",
+        "AP Precalculus 4.14",
+        "CCSS N-VM.C.6",
+        "CCSS N-VM.C.8",
+        "CCSS N-VM.C.10",
+        "CCSS A-REI.C.9"
+      ]
+    },
+    {
+      "id": "conic-sections",
+      "title": "Conic Sections",
+      "summary": "Read the features of circles, parabolas, ellipses and hyperbolas from their equations, and write equations from features.",
+      "grade": null,
+      "standards": [
+        "CCSS G-GPE.A.1",
+        "CCSS G-GPE.A.2",
+        "CCSS G-GPE.A.3",
+        "AP Precalculus 4.6"
+      ]
     }
   ],
   "calculus-1": [
@@ -587,6 +921,67 @@ export const CATALOG = {
         "AP Calculus 4.6",
         "AP Calculus 4.7"
       ]
+    },
+    {
+      "id": "curve-analysis",
+      "title": "Analyzing Functions with Derivatives",
+      "summary": "Use the first and second derivatives to find where a function rises, falls and bends, and where its extreme values are.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 5.1",
+        "AP Calculus 5.2",
+        "AP Calculus 5.3",
+        "AP Calculus 5.4",
+        "AP Calculus 5.5",
+        "AP Calculus 5.6",
+        "AP Calculus 5.7",
+        "AP Calculus 5.8",
+        "AP Calculus 5.9"
+      ]
+    },
+    {
+      "id": "optimization",
+      "title": "Optimization",
+      "summary": "Set up and solve applied maximum and minimum problems, and justify that the answer is the best possible.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 5.10",
+        "AP Calculus 5.11"
+      ]
+    },
+    {
+      "id": "riemann-definite",
+      "title": "Riemann Sums & Definite Integrals",
+      "summary": "Estimate accumulated change with Riemann and trapezoidal sums, and find definite integrals from limits, geometry and properties.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 6.1",
+        "AP Calculus 6.2",
+        "AP Calculus 6.3",
+        "AP Calculus 6.6"
+      ]
+    },
+    {
+      "id": "antiderivatives-ftc",
+      "title": "Antiderivatives & the Fundamental Theorem",
+      "summary": "Find antiderivatives, solve initial-value problems, and use both parts of the Fundamental Theorem of Calculus.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 6.4",
+        "AP Calculus 6.5",
+        "AP Calculus 6.7",
+        "AP Calculus 6.8"
+      ]
+    },
+    {
+      "id": "u-substitution",
+      "title": "Integration by Substitution",
+      "summary": "Reverse the chain rule: choose u, adjust for constants, change the limits, and recognise when substitution is the right tool.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 6.9",
+        "AP Calculus 6.14"
+      ]
     }
   ],
   "calculus-2": [
@@ -640,6 +1035,95 @@ export const CATALOG = {
         "AP Calculus 8.4",
         "AP Calculus 8.5",
         "AP Calculus 8.6"
+      ]
+    },
+    {
+      "id": "volumes",
+      "title": "Volumes & Arc Length",
+      "summary": "Find volumes by slicing, discs, washers and cylindrical shells, and the length of a smooth curve.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 8.7",
+        "AP Calculus 8.8",
+        "AP Calculus 8.9",
+        "AP Calculus 8.10",
+        "AP Calculus 8.11",
+        "AP Calculus 8.12",
+        "AP Calculus 8.13",
+        "OpenStax Calculus Vol. 2 §2.3"
+      ]
+    },
+    {
+      "id": "differential-equations",
+      "title": "Differential Equations",
+      "summary": "Write, check and solve differential equations: slope fields, Euler steps, separation of variables and growth models.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 7.1",
+        "AP Calculus 7.2",
+        "AP Calculus 7.3",
+        "AP Calculus 7.4",
+        "AP Calculus 7.5",
+        "AP Calculus 7.6",
+        "AP Calculus 7.7",
+        "AP Calculus 7.8",
+        "AP Calculus 7.9"
+      ]
+    },
+    {
+      "id": "parametric-polar",
+      "title": "Parametric, Vector & Polar Calculus",
+      "summary": "Find slopes, tangent lines, arc length, speed and area for curves given parametrically or in polar form.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 9.1",
+        "AP Calculus 9.2",
+        "AP Calculus 9.3",
+        "AP Calculus 9.4",
+        "AP Calculus 9.5",
+        "AP Calculus 9.6",
+        "AP Calculus 9.7",
+        "AP Calculus 9.8",
+        "AP Calculus 9.9"
+      ]
+    },
+    {
+      "id": "sequences-series-intro",
+      "title": "Sequences & Infinite Series",
+      "summary": "Find limits of sequences, sum geometric and telescoping series, and decide convergence with partial sums and p-series.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 10.1",
+        "AP Calculus 10.2",
+        "AP Calculus 10.3",
+        "AP Calculus 10.5"
+      ]
+    },
+    {
+      "id": "convergence-tests",
+      "title": "Convergence Tests",
+      "summary": "Decide whether a series converges absolutely, conditionally or not at all by choosing and applying the right test.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 10.4",
+        "AP Calculus 10.6",
+        "AP Calculus 10.7",
+        "AP Calculus 10.8",
+        "AP Calculus 10.9",
+        "AP Calculus 10.10"
+      ]
+    },
+    {
+      "id": "taylor-series",
+      "title": "Power Series & Taylor Series",
+      "summary": "Build Taylor polynomials and series, bound their error, and find where a power series converges.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 10.11",
+        "AP Calculus 10.12",
+        "AP Calculus 10.13",
+        "AP Calculus 10.14",
+        "AP Calculus 10.15"
       ]
     }
   ],
@@ -698,6 +1182,72 @@ export const CATALOG = {
       "standards": [
         "OpenStax Calculus Vol. 3 §4.4",
         "OpenStax Calculus Vol. 3 §4.5"
+      ]
+    },
+    {
+      "id": "gradient-directional",
+      "title": "Gradient & Directional Derivatives",
+      "summary": "Use the gradient to find rates of change in any direction, the direction of steepest ascent, and tangent planes to level surfaces.",
+      "grade": null,
+      "standards": [
+        "OpenStax Calculus Vol. 3 §4.6"
+      ]
+    },
+    {
+      "id": "optimization-lagrange",
+      "title": "Maxima, Minima & Lagrange Multipliers",
+      "summary": "Find and classify critical points, locate absolute extrema on closed regions, and optimize under a constraint with Lagrange multipliers.",
+      "grade": null,
+      "standards": [
+        "OpenStax Calculus Vol. 3 §4.7",
+        "OpenStax Calculus Vol. 3 §4.8"
+      ]
+    },
+    {
+      "id": "double-integrals",
+      "title": "Double Integrals",
+      "summary": "Evaluate double integrals over rectangles and other regions, reverse the order, and use polar coordinates for volumes and averages.",
+      "grade": null,
+      "standards": [
+        "OpenStax Calculus Vol. 3 §5.1",
+        "OpenStax Calculus Vol. 3 §5.2",
+        "OpenStax Calculus Vol. 3 §5.3"
+      ]
+    },
+    {
+      "id": "triple-integrals",
+      "title": "Triple Integrals & Coordinate Changes",
+      "summary": "Set up and evaluate triple integrals in rectangular, cylindrical and spherical coordinates, and change variables with a Jacobian.",
+      "grade": null,
+      "standards": [
+        "OpenStax Calculus Vol. 3 §5.4",
+        "OpenStax Calculus Vol. 3 §5.5",
+        "OpenStax Calculus Vol. 3 §5.6",
+        "OpenStax Calculus Vol. 3 §5.7"
+      ]
+    },
+    {
+      "id": "line-integrals-green",
+      "title": "Vector Fields, Line Integrals & Green's Theorem",
+      "summary": "Integrate functions and vector fields along curves, use potentials and path independence, and apply Green's theorem.",
+      "grade": null,
+      "standards": [
+        "OpenStax Calculus Vol. 3 §6.1",
+        "OpenStax Calculus Vol. 3 §6.2",
+        "OpenStax Calculus Vol. 3 §6.3",
+        "OpenStax Calculus Vol. 3 §6.4"
+      ]
+    },
+    {
+      "id": "surface-integrals-theorems",
+      "title": "Curl, Divergence, Stokes' & the Divergence Theorem",
+      "summary": "Compute divergence, curl, surface area and flux, and use Stokes' theorem and the divergence theorem to simplify integrals.",
+      "grade": null,
+      "standards": [
+        "OpenStax Calculus Vol. 3 §6.5",
+        "OpenStax Calculus Vol. 3 §6.6",
+        "OpenStax Calculus Vol. 3 §6.7",
+        "OpenStax Calculus Vol. 3 §6.8"
       ]
     }
   ]

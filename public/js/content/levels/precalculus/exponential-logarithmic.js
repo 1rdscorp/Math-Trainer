@@ -109,9 +109,7 @@ function easyEvaluateLog(rng) {
       kv !== 0 ? { value: k instanceof Frac ? k.neg() : -k, why: kv < 0 ? 'A number between 0 and 1 is a negative power of the base, so its logarithm is negative.' : 'A number greater than 1 is a positive power of the base, so its logarithm is positive.' } : null,
       k instanceof Frac ? { value: k.inv(), why: R`Check by raising the base to your answer: \(${bTex}^{${k.inv().tex()}}\) is not \(${argTex}\).` } : null,
       kv === 0 ? { value: 1, why: R`\(${bTex}^{0} = 1\), so the logarithm of 1 is 0 in every base.` } : null,
-      kv + 1,
-      kv - 1,
-      kv + 2,
+      ...(k instanceof Frac ? [k.add(1), k.mul(2), frac(1, k.d + 1), 2] : [kv + 1, kv - 1, kv + 2]),
     ],
     solution: [
       R`\(${logTex}\) asks: \(${bTex}\) raised to what power gives \(${argTex}\)?`,

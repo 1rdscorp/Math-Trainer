@@ -43,10 +43,20 @@ function formatValue(v, unit, fmt) {
   throw new TypeError(`q(): a choice must be a number, a Frac or a string, got ${typeof v}`);
 }
 
-function* nearbyNumbers(c) {
+function* nearbyNumbers(c, rounded = false) {
   const places = decimalPlaces(c);
-  const step = 10 ** -places;
-  const offsets = [1, -1, 2, -2, 10, -10, 3, -3, 5, -5, 4, -4, 20, -20, 6, 7, 8, 9, 11, 12, 15, 25, 50, 100];
+  let step = 10 ** -places;
+  // Off-by-one answers are fair for an exact whole-number answer and are common slips. They are not
+  // fair when the answer was rounded (a student who rounds a step early can land one unit away), and
+  // decimal answers usually are rounded. In those cases keep the fill-in answers further off.
+  const near = [1, -1, 2, -2, 10, -10, 3, -3, 5, -5, 4, -4, 20, -20, 6, 7, 8, 9, 11, 12, 15, 25, 50, 100];
+  const far = [10, -10, 5, -5, 3, -3, 20, -20, 4, -4, 6, 7, 8, 9, 11, 12, 15, 25, 50, 100];
+  let offsets = places > 0 || rounded ? far : near;
+  if (rounded && places === 0 && c !== 0 && c % 10 === 0) {
+    // "Round to the nearest hundred": the neighbouring hundreds are the natural wrong answers.
+    while (c % (step * 10) === 0) step *= 10;
+    offsets = near;
+  }
   for (const k of offsets) {
     const v = round(c + k * step, places);
     if (c >= 0 && v < 0) continue;
@@ -78,6 +88,9 @@ function* nearbyFracs(f) {
  *        from each other and from the correct answer are used. Numeric answers are topped up automatically
  *        if fewer than three remain. Write a wrong answer as { value, why } to explain the slip behind it
  *        ("That adds the denominators too."); the note is shown if the student picks that answer.
+ *        A wrong answer with the same value as the right one is dropped, with one exception: a
+ *        "right value, wrong form" answer to a question about form (6/9 when simplest form is asked
+ *        for), written { value, why, form: true }. The `why` is required: it says what is wrong with the form.
  * @param {string[]} spec.solution Worked solution for THIS question, one step per string; the last step states the answer.
  * @param {number} [spec.rule]     Index into the topic's explain.rules to re-show after a wrong answer.
  * @param {string} [spec.skill]    Short tag for the sub-skill ("regrouping"), used to report weak areas.
@@ -98,6 +111,7 @@ export function q(spec) {
   const sameValue = (a) => a && values.some((b) => b && b.unit === a.unit && Math.abs(b.v - a.v) < 1e-9);
   const choices = [correctStr];
   const notes = [null];
+  const forms = [false];
   const add = (item) => {
     if (item == null || choices.length >= 4) return;
     const isNoted = typeof item === 'object' && !(item instanceof Frac) && 'value' in item;
@@ -108,27 +122,45 @@ export function q(spec) {
     const k = normalizeChoice(s);
     if (seen.has(k)) return;
     const val = choiceValue(s);
-    if (sameValue(val)) return; // looks different but is the same number as an earlier choice
+    const why = isNoted && typeof item.why === 'string' && item.why ? item.why : null;
+    // "Right value, wrong form" on purpose: allowed only when declared and explained.
+    const form = isNoted && item.form === true && why != null;
+    if (sameValue(val)) {
+      // Looks different but is the same number as an earlier choice.
+      const onlyEqualsCorrect = values[0] && val.unit === values[0].unit && Math.abs(val.v - values[0].v) < 1e-9 && !values.slice(1).some((b) => b && b.unit === val.unit && Math.abs(b.v - val.v) < 1e-9);
+      if (!(form && onlyEqualsCorrect)) return;
+    }
     seen.add(k);
     values.push(val);
     choices.push(s);
-    notes.push(isNoted && typeof item.why === 'string' && item.why ? item.why : null);
+    notes.push(why);
+    forms.push(form);
   };
 
   for (const w of wrong) add(w);
   if (choices.length < 4) {
-    if (typeof correct === 'number') for (const v of nearbyNumbers(correct)) add(v);
+    if (typeof correct === 'number') for (const v of nearbyNumbers(correct, /\b(?:round|nearest|approximat|estimat)/i.test(prompt))) add(v);
     else if (correct instanceof Frac) for (const v of nearbyFracs(correct)) add(v);
   }
   if (choices.length < 4) {
     throw new Error(`q(): need 3 distinct wrong answers (got ${choices.length - 1}) for: ${prompt}`);
   }
 
-  const visualKey = visual ? JSON.stringify(visual) : '';
+  // Functions are dropped by JSON.stringify, which would make two graph questions with the same
+  // words look like one question. Stand each function in by a few of its values.
+  const fnMark = (f) => {
+    try {
+      return `fn:${[-1.3, 0.4, 2.1].map((x) => { const y = f(x); return Number.isFinite(y) ? Math.round(y * 1e4) / 1e4 : String(y); }).join(',')}`;
+    } catch {
+      return 'fn';
+    }
+  };
+  const visualKey = visual ? JSON.stringify(visual, (k, v) => (typeof v === 'function' ? fnMark(v) : v)) : '';
   return {
     prompt,
     choices,
     notes: notes.some(Boolean) ? notes : undefined,
+    forms: forms.some(Boolean) ? forms : undefined,
     answer: 0,
     solution,
     rule,

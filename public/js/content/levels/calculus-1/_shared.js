@@ -64,6 +64,9 @@ export function fromBank(rng, bank, extra = {}) {
   return q({ ...extra, ...(typeof item === 'function' ? item(rng) : item) });
 }
 
+/** A multiple of π for math mode: piTimes(6) → "6\pi", piTimes(1) → "\pi", piTimes(0.5) → "0.5\pi". */
+export const piTimes = (v) => (v === 1 ? '\\pi' : v === -1 ? '-\\pi' : `${num(v)}\\pi`);
+
 /** Second derivative by central differences. */
 export function numDeriv2(f, x, h = 1e-3) {
   return (f(x + h) - 2 * f(x) + f(x - h)) / (h * h);

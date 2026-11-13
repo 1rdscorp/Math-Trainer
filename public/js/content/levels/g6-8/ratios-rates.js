@@ -1,5 +1,5 @@
 import { R, q, num, frac, gcd, money, txt, person, people, round, approx } from '../../lib/index.js';
-import { M, ratio, tape, unitFmt, clean, fracLabel, usd } from './_shared.js';
+import { M, ratio, tape, unitFmt, clean, fracLabel, usd, an, singular } from './_shared.js';
 
 // Whole numbers with a comma from 1,000 up, for math mode and as a choice formatter.
 const N = (x) => num(x, { commas: true });
@@ -85,7 +85,7 @@ function easySimplify(rng) {
     prompt: `Write the ratio ${ratio(A, B)} in simplest form.`,
     correct: ratio(a, b),
     wrong: [
-      p ? { value: ratio(A / p, B / p), why: R`\(${A / p}\) and \(${B / p}\) still share the factor \(${k / p}\). Keep dividing until the only common factor is 1.` } : null,
+      p ? { value: ratio(A / p, B / p), why: R`\(${A / p}\) and \(${B / p}\) still share the factor \(${k / p}\). Keep dividing until the only common factor is 1.`, form: true } : null,
       { value: ratio(a, B), why: 'Only the first number was divided. Divide both parts by the same number.' },
       { value: ratio(b, a), why: 'These are the right numbers in the wrong order.' },
       ratio(A, b),
@@ -166,7 +166,9 @@ function easyTableMissing(rng) {
     ],
     solution: [
       `The first row gives the ratio ${ratio(a, b)}.`,
-      R`In the row with the missing number, the "${kName}" column shows \(${known[row]}\). Since \(${known[row]} \div ${kPart} = ${k}\), this row is \(${k}\) times the first row.`,
+      kPart === 1
+        ? R`In the row with the missing number, the "${kName}" column shows \(${known[row]}\). The first row shows \(1\) there, so this row is \(${k}\) times the first row.`
+        : R`In the row with the missing number, the "${kName}" column shows \(${known[row]}\). Since \(${known[row]} \div ${kPart} = ${k}\), this row is \(${k}\) times the first row.`,
       R`Multiply the other part by \(${k}\) too: \(${hPart} \times ${k} = ${ans}\).`,
     ],
     rule: 1,
@@ -206,7 +208,7 @@ function easyUnitRate(rng) {
     one = 'hour';
   } else {
     u = rng.int(6, 30);
-    prompt = (T) => `A hose fills a ${T}-liter tank in ${n} minutes at a steady rate. How many liters flow in 1 minute?`;
+    prompt = (T) => `A hose fills ${an(T)} ${T}-liter tank in ${n} minutes at a steady rate. How many liters flow in 1 minute?`;
     fmt = unitFmt('liter');
     one = 'minute';
   }
@@ -217,8 +219,10 @@ function easyUnitRate(rng) {
     fmt,
     wrong: [
       { value: round(T * n, 2), why: 'To find the amount for 1, divide. Multiplying gives the amount for many more.' },
-      { value: round(T - n, 2), why: 'Subtracting does not share the total equally. Divide the total into equal parts.' },
+      T - n > 0 ? { value: round(T - n, 2), why: 'Subtracting does not share the total equally. Divide the total into equal parts.' } : null,
       round(T + n, 2),
+      round(u * 2, 2),
+      round(u + 1, 2),
     ],
     solution: [
       `A unit rate is the amount for 1 ${one}. Split the total into ${n} equal parts.`,
@@ -250,7 +254,8 @@ function mediumTapeTotal(rng) {
       { value: u, why: `That is the value of one box. The ${name} have ${parts} boxes.` },
       T % parts === 0 ? { value: T / parts, why: `The ${T} ${c.all} fill all ${a + b} boxes, not just the ${parts} for the ${name}.` } : null,
       ans + u,
-      ans - u,
+      ans - u > 0 ? ans - u : null,
+      ans + 2 * u,
     ],
     solution: [
       R`The tape diagram has \(${a} + ${b} = ${a + b}\) equal boxes for all ${T} ${c.all}.`,
@@ -284,6 +289,8 @@ function mediumPartOfWhole(rng) {
     ],
     rule: 0,
     skill: 'part to whole',
+    // The two groups together are the whole, so their fractions must add to 1.
+    check: () => (frac(parts, a + b).add(frac(otherParts, a + b)).eq(1) ? true : 'the two fractions do not make the whole'),
   });
 }
 
@@ -324,17 +331,20 @@ function mediumUseUnitRate(rng) {
 
 function mediumBetterBuy(rng) {
   const [item, one] = rng.pick([['granola bars', 'bar'], ['pens', 'pen'], ['juice boxes', 'box'], ['batteries', 'battery'], ['tennis balls', 'ball'], ['muffins', 'muffin']]);
-  const nA = rng.int(2, 6);
-  const nB = rng.int(8, 15);
-  const uA = rng.int(8, 19) * 5;
-  const uB = rng.intExcept(8, 19, [uA / 5]) * 5;
+  let nA, nB, uA, uB;
+  do {
+    nA = rng.int(2, 6);
+    nB = rng.int(8, 15);
+    uA = rng.int(8, 19) * 5;
+    uB = rng.intExcept(8, 19, [uA / 5]) * 5;
+  } while (uB * nB <= uA * nA); // the larger pack must cost more in total, so the unit prices are needed
   const pA = (uA * nA) / 100;
-  const pB = (uB * nB) / 100; // the larger pack always costs more in total, so the unit prices are needed
+  const pB = (uB * nB) / 100;
   const aWins = uA < uB;
   const say = (n, cents) => `The ${n}-pack, at ${money(cents / 100)} per ${one}`;
   const [bn, bu, on, ou] = aWins ? [nA, uA, nB, uB] : [nB, uB, nA, uA];
   return q({
-    prompt: `A store sells ${item} in two sizes: a ${nA}-pack for ${money(pA)} and a ${nB}-pack for ${money(pB)}. Which pack is the better buy, and what is its unit price?`,
+    prompt: `A store sells ${item} in two sizes: ${an(nA)} ${nA}-pack for ${money(pA)} and ${an(nB)} ${nB}-pack for ${money(pB)}. Which pack is the better buy, and what is its unit price?`,
     correct: say(bn, bu),
     wrong: [
       { value: say(on, ou), why: `That unit price is correct, but it is the higher one. The better buy has the lower price per ${one}.` },
@@ -496,6 +506,7 @@ function hardConvertTwoStep(rng) {
   const facts = `1 ${c.from[0]} = ${txt(c.k1)} ${c.mid[1]} and 1 ${c.mid[0]} = ${txt(c.k2)} ${c.to[1]}`;
   const small = round(n * c.k1 * c.k2, 2);
   const mid = round(n * c.k1, 2);
+  if (mid === 1) return hardConvertTwoStep(rng);
   const Cap = (w) => w[0].toUpperCase() + w.slice(1);
   if (down) {
     return q({
@@ -589,7 +600,7 @@ function hardCompareRates(rng) {
   const [fast, slow] = r1 > r2 ? [p1, p2] : [p2, p1];
   const diff = Math.abs(r1 - r2);
   const totalDiff = Math.abs(w1 - w2);
-  const say = (who, d) => `${who}, by ${M(d)} words per minute`;
+  const say = (who, d) => `${who}, by ${M(d)} ${d === 1 ? 'word' : 'words'} per minute`;
   return q({
     prompt: `${p1} types ${w1} words in ${m1} minutes. ${p2} types ${w2} words in ${m2} minutes. Who types faster, and by how many words per minute?`,
     correct: say(fast, diff),
@@ -603,7 +614,7 @@ function hardCompareRates(rng) {
     solution: [
       R`${p1}: \(${w1} \div ${m1} = ${r1}\) words per minute.`,
       R`${p2}: \(${w2} \div ${m2} = ${r2}\) words per minute.`,
-      R`\(${Math.max(r1, r2)} - ${Math.min(r1, r2)} = ${diff}\), so ${fast} types faster by ${diff} words per minute.`,
+      R`\(${Math.max(r1, r2)} - ${Math.min(r1, r2)} = ${diff}\), so ${fast} types faster by ${diff} ${diff === 1 ? 'word' : 'words'} per minute.`,
     ],
     rule: 3,
     skill: 'comparing rates',
@@ -665,7 +676,7 @@ function challengeThreePart(rng) {
   const gap = parts[hi] - parts[lo];
   const ans = gap * u;
   return q({
-    prompt: `${ctx.lead(person(rng))} ${ratio(...parts)}. The mix is ${T} ${ctx.total} in all. How many more ${ctx.unit} of ${ctx.names[hi]} than ${ctx.names[lo]} are in the mix?`,
+    prompt: `${ctx.lead(person(rng))} ${ratio(...parts)}. There are ${T} ${ctx.total} in all. How many more ${ctx.unit} of ${ctx.names[hi]} than ${ctx.names[lo]} are in the mix?`,
     visual: tape(parts.map((n, i) => ({ label: ctx.labels[i], count: n })), `A tape diagram with ${parts.join(', ')} equal boxes for ${ctx.names.join(', ')}.`),
     correct: ans,
     unit: ctx.unit,
@@ -723,10 +734,10 @@ function challengeAverageSpeed(rng) {
 
 const RATE_CHANGES = [
   { from: 'inches per minute', to: 'feet per hour', up: 60, down: 12, values: [2, 3, 4, 5, 6, 8, 10, 12], facts: '1 hour = 60 minutes and 1 foot = 12 inches', mid: 'inches per hour', thing: 'A snail crawls' },
-  { from: 'feet per second', to: 'yards per minute', up: 60, down: 3, values: [2, 3, 4, 5, 6, 7, 8, 9], facts: '1 minute = 60 seconds and 1 yard = 3 feet', mid: 'feet per minute', thing: 'A dog runs' },
+  { from: 'feet per second', to: 'yards per minute', up: 60, down: 3, values: [2, 3, 4, 5, 6, 7, 8, 9], facts: '1 minute = 60 seconds and 1 yard = 3 feet', mid: 'feet per minute', thing: 'A remote-control car travels' },
   { from: 'meters per second', to: 'kilometers per hour', up: 3600, down: 1000, values: [5, 10, 15, 20, 25, 30], facts: '1 hour = 3,600 seconds and 1 kilometer = 1,000 meters', mid: 'meters per hour', thing: 'A train moves' },
-  { from: 'cups per minute', to: 'gallons per hour', up: 60, down: 16, values: [4, 8, 12, 16, 20, 24], facts: '1 hour = 60 minutes and 1 gallon = 16 cups', mid: 'cups per hour', thing: 'A tap drips' },
-  { from: 'ounces per day', to: 'pounds per week', up: 7, down: 16, values: [16, 32, 48, 64, 80], facts: '1 week = 7 days and 1 pound = 16 ounces', mid: 'ounces per week', thing: 'A puppy eats' },
+  { from: 'cups per minute', to: 'gallons per hour', up: 60, down: 16, values: [4, 8, 12, 16, 20, 24], facts: '1 hour = 60 minutes and 1 gallon = 16 cups', mid: 'cups per hour', thing: 'Water flows from a tap at' },
+  { from: 'ounces per day', to: 'pounds per week', up: 7, down: 16, values: [16, 32, 48, 64, 80], facts: '1 week = 7 days and 1 pound = 16 ounces', mid: 'ounces per week', thing: 'A large dog eats' },
   { from: 'centimeters per second', to: 'meters per minute', up: 60, down: 100, values: [5, 10, 15, 20, 25, 35, 40, 45], facts: '1 minute = 60 seconds and 1 meter = 100 centimeters', mid: 'centimeters per minute', thing: 'A toy car rolls' },
 ];
 
@@ -738,7 +749,7 @@ function challengeRateConvert(rng) {
   return q({
     prompt: `${c.thing} ${v} ${c.from}. What is that rate in ${c.to}? (${c.facts})`,
     correct: ans,
-    fmt: (x) => `${M(x, big)} ${c.to}`,
+    fmt: (x) => `${M(x, big)} ${x === 1 ? c.to.replace(/^\w+/, (w) => singular(w)) : c.to}`,
     wrong: [
       { value: mid, why: `That is the rate in ${c.mid}. The other unit still needs converting.` },
       { value: clean(v / c.down), why: `The time unit changed too. Multiply by ${txt(c.up)} first.` },

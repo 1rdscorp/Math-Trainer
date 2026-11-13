@@ -3,6 +3,8 @@ import { deg, degM, degT, rad, angleAt } from './_shared.js';
 
 const asX = (v) => R`\(x = ${num(v)}\)`;
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
+// "a" or "an" before a number read aloud: an 8, an 11, an 18, an 80-something; a 7, a 100.
+const an = (n) => (/^(8|11|18)/.test(String(n)) && !/^(11|18)\d\d/.test(String(n)) && !/^1[18]\d$/.test(String(n)) ? 'an' : 'a');
 const expr = (a, b) => R`(${linear(a, b)})^\circ`; // LaTeX for an angle such as (3x + 5)°
 // n / d when that is a positive whole number, otherwise null (q() skips null choices).
 const posInt = (n, d) => (d !== 0 && n % d === 0 && n / d > 0 ? n / d : null);
@@ -219,7 +221,7 @@ function easyBisect(rng) {
     correct: whole ? 2 * k : k,
     fmt: degM,
     wrong: whole
-      ? [{ value: k, why: 'The bisector cuts the angle into two equal parts, so the whole angle is twice as large.' }, posInt(k, 2), 180 - k, 90 - k > 0 ? 90 - k : 3 * k]
+      ? [{ value: k, why: 'The bisector cuts the angle into two equal parts, so the whole angle is twice as large.' }, posInt(k, 2), 180 - k, 90 - k > 0 ? 90 - k : 3 * k, 2 * k + 20 < 180 ? 2 * k + 20 : 2 * k - 20, 3 * k]
       : [{ value: 2 * k, why: 'That is the whole angle. The bisector cuts it into two equal halves.' }, 4 * k, 180 - 2 * k > 0 ? 180 - 2 * k : k + 10, k + 5],
     solution: [
       R`A bisector divides an angle into two congruent angles: \(m\angle ABD = m\angle DBC\).`,
@@ -283,9 +285,7 @@ function mediumTransversal(rng) {
       rel.same
         ? { value: 180 - given, why: `These are ${type} angles. With parallel lines they are congruent, not supplementary.` }
         : { value: given, why: 'These angles are on the same side of the transversal, between the lines. Same-side interior angles are supplementary, not congruent.' },
-      Math.abs(90 - given),
-      360 - given,
-      180 - Math.abs(90 - given),
+      ...[Math.abs(90 - given), 360 - given, 180 - Math.abs(90 - given), x > 60 ? x - 30 : x + 30, x > 100 ? x - 15 : x + 15].filter((v) => Math.abs(v - x) >= 5),
     ],
     solution: [
       `The two marked angles are ${type} angles: ${rel.where}`,
@@ -420,7 +420,7 @@ function mediumStory(rng) {
     { intro: 'Two rails of a fence are parallel. A straight brace is nailed across both rails.', makes: 'the brace makes', a: 'the top rail', b: 'the bottom rail', inside: 'between the rails', t: 'the brace' },
   ]);
   return q({
-    prompt: R`${ctx.intro} Measured ${ctx.inside}, ${ctx.makes} a \(${deg(given)}\) angle with ${ctx.a}. What angle does it make with ${ctx.b}, also measured ${ctx.inside}, on the **${alt ? 'opposite' : 'same'}** side of ${ctx.t}?`,
+    prompt: R`${ctx.intro} Measured ${ctx.inside}, ${ctx.makes} ${an(given)} \(${deg(given)}\) angle with ${ctx.a}. What angle does it make with ${ctx.b}, also measured ${ctx.inside}, on the **${alt ? 'opposite' : 'same'}** side of ${ctx.t}?`,
     visual: tvFigure(s, { [p1]: degT(given), [p2]: 'x' }),
     correct: x,
     fmt: degM,
@@ -428,9 +428,7 @@ function mediumStory(rng) {
       alt
         ? { value: 180 - given, why: 'The two angles are on opposite sides, so they are alternate interior angles, which are congruent.' }
         : { value: given, why: 'The two angles are on the same side, so they are same-side interior angles, which are supplementary.' },
-      Math.abs(90 - given),
-      180 - Math.abs(90 - given),
-      360 - given,
+      ...[Math.abs(90 - given), 180 - Math.abs(90 - given), 360 - given, x > 60 ? x - 30 : x + 30, x > 100 ? x - 15 : x + 15].filter((v) => Math.abs(v - x) >= 5),
     ],
     solution: [
       `Both angles are between the parallel lines, and they are on ${alt ? 'opposite sides' : 'the same side'} of ${ctx.t}. They are ${alt ? 'alternate interior' : 'same-side interior'} angles.`,
@@ -556,6 +554,8 @@ function hardRatio(rng) {
       posInt(total, n),
       ans + k,
       total - k,
+      total / 2,
+      ans > 2 * k ? ans - 2 * k : ans + 3 * k,
     ],
     solution: [
       R`Write the angles as \(${terms([[m, 'k']])}\) and \(${n}k\).`,
@@ -588,9 +588,10 @@ function hardAngleEquation(rng) {
       wrong: [
         { value: y, why: `That is the ${partner}. The question asks for the angle itself.` },
         otherTotal && otherTotal.isInt() && otherTotal.value > 0 ? { value: otherTotal.value, why: comp ? R`A complement is \(90 - x\). \(180 - x\) is the supplement.` : R`A supplement is \(180 - x\). \(90 - x\) is the complement.` } : null,
-        x + k,
-        Math.abs(x - 2 * k) || 1,
+        x + 5 * k,
+        Math.abs(x - 4 * k) || 1,
         x + 10,
+        x > 20 ? x - 15 : x + 25,
       ],
       solution: [
         R`Let the angle be \(x\). Its ${partner} is \(${total} - x\).`,
@@ -967,7 +968,7 @@ export default {
       visual: { type: 'transversal', slant: 72, labels: NUMBERED, alt: `Two parallel lines ${NUMBERED_ALT}` },
     },
     {
-      title: 'Word problem: is the gate square?',
+      title: 'Word problem: are the rails parallel?',
       word: true,
       problem: R`A gate has a top rail and a bottom rail joined by a diagonal brace. Between the rails, on the same side of the brace, the brace makes a \(57^\circ\) angle with the top rail and a \(121^\circ\) angle with the bottom rail. Are the rails parallel?`,
       steps: [
@@ -1053,7 +1054,7 @@ export default {
         // Put the first angle where the picture can show it at its real size.
         const [p1, p2] = (a < 90 ? { corresponding: [2, 6], 'alternate interior': [3, 6], 'same-side interior': [3, 5] } : { corresponding: [1, 5], 'alternate interior': [4, 5], 'same-side interior': [4, 6] })[kind];
         return {
-          problem: R`A carpenter fixes a straight brace across two shelves. The brace makes a \(${deg(a)}\) angle with the top shelf and a \(${deg(b)}\) angle with the bottom shelf. The two angles are ${kind} angles. Are the shelves parallel?`,
+          problem: R`A carpenter fixes a straight brace across two shelves. The brace makes ${an(a)} \(${deg(a)}\) angle with the top shelf and ${an(b)} \(${deg(b)}\) angle with the bottom shelf. The two angles are ${kind} angles. Are the shelves parallel?`,
           steps: [
             `The brace is a transversal of the two shelves. The measured angles are ${kind} angles: ${PAIR_TYPES[kind].where}`,
             same ? `The shelves are parallel exactly when ${kind} angles are congruent.` : R`The shelves are parallel exactly when same-side interior angles add to \(180^\circ\).`,

@@ -31,13 +31,17 @@ function easyForm(rng) {
       p = rng.int(0, 5);
       c = rng.nonzero(-9, 9);
     } while (p * r + c === 0 || p * s + c === 0);
+    // A tempting wrong form with the signs of the factors flipped. When the factors are x - a and x + a,
+    // flipping the signs gives the same two factors back (a correct form), so shift them instead.
+    const flip = (v) => (v === 0 ? 1 : -v);
+    const off = flip(r) === s && flip(s) === r ? [r + 1, s + 1] : [flip(r), flip(s)];
     return q({
       prompt: R`Which form should you use for the partial fraction decomposition of \(\dfrac{${linear(p, c)}}{${factor(r)}${factor(s)}}\)?`,
       correct: sum(frc('A', fac(r)), frc('B', fac(s))),
       wrong: [
         { value: sum(frc('Ax + B', fac(r)), frc('Dx + E', fac(s))), why: 'A linear factor needs only a constant in its numerator.' },
         { value: M(frc('A', `${factor(r)}${factor(s)}`)), why: 'Each factor of the denominator gets a fraction of its own.' },
-        { value: sum(frc('A', fac(-r === r ? r + 1 : -r)), frc('B', fac(-s === s ? s + 1 : -s))), why: 'The denominators of the pieces are exactly the factors of the original denominator.' },
+        { value: sum(frc('A', fac(off[0])), frc('B', fac(off[1]))), why: 'The denominators of the pieces are exactly the factors of the original denominator.' },
         sum(frc('A', fac(r)), frc('B', pw(s, 2))),
       ],
       solution: [
@@ -332,7 +336,7 @@ function mediumDifferenceOfSquares(rng) {
       right,
       [
         { tex: terms([[m, ratio(fac(-a), fac(a))]]), F: (x) => -m * L(x), why: R`Substituting \(x = ${a}\) gives \(A = ${m}\), the coefficient of \(${lnAbs(a)}\). So \(${fac(a)}\) belongs on top of the combined logarithm.` },
-        { tex: terms([[frac(k, a), `\\arctan\\dfrac{x}{${a}}`]]), F: (x) => (k / a) * Math.atan(x / a), why: R`Arctangent belongs to a sum \(x^{2} + a^{2}\). A difference of squares factors, so use partial fractions.` },
+        { tex: terms([[frac(k, a), a === 1 ? '\\arctan x' : `\\arctan\\dfrac{x}{${a}}`]]), F: (x) => (k / a) * Math.atan(x / a), why: R`Arctangent belongs to a sum \(x^{2} + a^{2}\). A difference of squares factors, so use partial fractions.` },
         { tex: terms([[k, `\\ln|x^{2} - ${A2}|`]]), F: (x) => k * Math.log(Math.abs(x * x - A2)), why: R`\(\ln|u|\) needs \(u' = 2x\) in the numerator. Here the numerator is a constant.` },
         { tex: terms([[k, ratio(fac(a), fac(-a))]]), F: (x) => k * L(x) },
         { tex: terms([[m, `\\ln|x^{2} - ${A2}|`]]), F: (x) => m * Math.log(Math.abs(x * x - A2)) },

@@ -956,17 +956,18 @@ export default {
         const f = (x) => num(x, { places: 3 });
         const P = [a * Math.cos(t), b * Math.sin(t)];
         const v = [-a * Math.sin(t), b * Math.cos(t)];
+        const tm = (c, sym) => terms([[c, sym]]); // hides a coefficient of 1
         const acc = [-P[0], -P[1]];
         const speed = Math.hypot(...v);
         const kappa = (a * b) / speed ** 3;
         const m = Math.max(a, b) + 1.5;
         return {
-          problem: R`For \(\mathbf{r}(t) = \langle ${a}\cos t, ${b}\sin t \rangle\) at \(t = ${deg}^\circ\), find the position, velocity, speed and curvature.`,
+          problem: R`For \(\mathbf{r}(t) = \langle ${tm(a, '\\cos t')}, ${tm(b, '\\sin t')} \rangle\) at \(t = ${deg}^\circ\), find the position, velocity, speed and curvature.`,
           steps: [
-            R`Position: \(\mathbf{r} = \langle ${a}\cos ${deg}^\circ, ${b}\sin ${deg}^\circ \rangle \approx \langle ${f(P[0])}, ${f(P[1])} \rangle\).`,
-            R`Velocity: \(\mathbf{r}'(t) = \langle -${a}\sin t, ${b}\cos t \rangle \approx \langle ${f(v[0])}, ${f(v[1])} \rangle\). It is tangent to the ellipse.`,
+            R`Position: \(\mathbf{r} = \langle ${tm(a, `\\cos ${deg}^\\circ`)}, ${tm(b, `\\sin ${deg}^\\circ`)} \rangle \approx \langle ${f(P[0])}, ${f(P[1])} \rangle\).`,
+            R`Velocity: \(\mathbf{r}'(t) = \langle ${tm(-a, '\\sin t')}, ${tm(b, '\\cos t')} \rangle \approx \langle ${f(v[0])}, ${f(v[1])} \rangle\). It is tangent to the ellipse.`,
             R`Speed: \(|\mathbf{r}'| = \sqrt{${f(v[0] * v[0])} + ${f(v[1] * v[1])}} \approx ${f(speed)}\). Unit tangent: \(\mathbf{T} \approx \langle ${f(v[0] / speed)}, ${f(v[1] / speed)} \rangle\).`,
-            R`Acceleration: \(\mathbf{r}''(t) = \langle -${a}\cos t, -${b}\sin t \rangle \approx \langle ${f(acc[0])}, ${f(acc[1])} \rangle\), pointing back toward the center.`,
+            R`Acceleration: \(\mathbf{r}''(t) = \langle ${tm(-a, '\\cos t')}, ${tm(-b, '\\sin t')} \rangle \approx \langle ${f(acc[0])}, ${f(acc[1])} \rangle\), pointing back toward the center.`,
             R`Curvature: for a plane curve \(|\mathbf{r}' \times \mathbf{r}''| = |x'y'' - y'x''| = ${a * b}\), so \(\kappa = \dfrac{${a * b}}{${f(speed)}^{3}} \approx ${f(kappa)}\). The best-fitting circle there has radius \(\dfrac{1}{\kappa} \approx ${f(1 / kappa)}\).`,
           ],
           answer: R`\(\mathbf{r} \approx \langle ${f(P[0])}, ${f(P[1])} \rangle\), \(\;\mathbf{r}' \approx \langle ${f(v[0])}, ${f(v[1])} \rangle\), speed \(\approx ${f(speed)}\), \(\kappa \approx ${f(kappa)}\)`,
@@ -1038,14 +1039,15 @@ export default {
       ],
       compute({ a, b, turns }) {
         const n = a * a + b * b;
+        const tm = (c, sym) => terms([[c, sym]]); // hides a coefficient of 1
         const exact = rootOver(2 * turns, n).replace(/(\\sqrt|$)/, '\\pi$1');
         return {
-          problem: R`For the helix \(\mathbf{r}(t) = \langle ${a}\cos t, ${a}\sin t, ${terms([[b, 't']])} \rangle\), \(0 \le t \le ${piTex(2 * turns)}\), find the length and the curvature.`,
+          problem: R`For the helix \(\mathbf{r}(t) = \langle ${tm(a, '\\cos t')}, ${tm(a, '\\sin t')}, ${terms([[b, 't']])} \rangle\), \(0 \le t \le ${piTex(2 * turns)}\), find the length and the curvature.`,
           steps: [
-            R`\(\mathbf{r}'(t) = \langle -${a}\sin t, ${a}\cos t, ${b} \rangle\).`,
-            R`Speed: \(|\mathbf{r}'(t)| = \sqrt{${a * a}\sin^{2}t + ${a * a}\cos^{2}t + ${b * b}} = \sqrt{${n}}${sqrtTex(n) === `\\sqrt{${n}}` ? '' : ` = ${sqrtTex(n)}`}\), a constant.`,
+            R`\(\mathbf{r}'(t) = \langle ${tm(-a, '\\sin t')}, ${tm(a, '\\cos t')}, ${b} \rangle\).`,
+            R`Speed: \(|\mathbf{r}'(t)| = \sqrt{${tm(a * a, '\\sin^{2}t')} + ${tm(a * a, '\\cos^{2}t')} + ${b * b}} = \sqrt{${n}}${sqrtTex(n) === `\\sqrt{${n}}` ? '' : ` = ${sqrtTex(n)}`}\), a constant.`,
             R`Length: \(L = \displaystyle\int_{0}^{${piTex(2 * turns)}} ${sqrtTex(n)}\,dt = ${exact} \approx ${num(2 * Math.PI * turns * Math.sqrt(n), { places: 2 })}\).`,
-            R`\(\mathbf{r}''(t) = \langle -${a}\cos t, -${a}\sin t, 0 \rangle\) has length \(${a}\) and is perpendicular to \(\mathbf{r}'\), so \(|\mathbf{r}' \times \mathbf{r}''| = ${a}\,|\mathbf{r}'|\). Then \(\kappa = \dfrac{${a}\,|\mathbf{r}'|}{|\mathbf{r}'|^{3}} = \dfrac{${a}}{|\mathbf{r}'|^{2}} = \dfrac{${a}}{${n}}${frac(a, n).tex() === `\\frac{${a}}{${n}}` ? '' : ` = ${frac(a, n).tex()}`}\).`,
+            R`\(\mathbf{r}''(t) = \langle ${tm(-a, '\\cos t')}, ${tm(-a, '\\sin t')}, 0 \rangle\) has length \(${a}\) and is perpendicular to \(\mathbf{r}'\), so \(|\mathbf{r}' \times \mathbf{r}''| = ${tm(a, "|\\mathbf{r}'|")}\). Then \(\kappa = \dfrac{${tm(a, "|\\mathbf{r}'|")}}{|\mathbf{r}'|^{3}} = \dfrac{${a}}{|\mathbf{r}'|^{2}} = \dfrac{${a}}{${n}}${frac(a, n).tex() === `\\frac{${a}}{${n}}` ? '' : ` = ${frac(a, n).tex()}`}\).`,
             b === 0 ? R`With \(b = 0\) the curve is a circle of radius \(${a}\), and \(\kappa = \dfrac{1}{${a}}\) as expected.` : R`A larger climb rate stretches the helix out and makes it bend less.`,
           ],
           answer: R`\(L = ${exact}\), \(\;\kappa = ${frac(a, n).tex()}\)`,

@@ -58,6 +58,7 @@
   --tier-challenge-bg: #ffecd9;
 
   --viz-ink: #161a2e;
+  --viz-halo: rgba(255, 255, 255, 0.82);
   --viz-grid: #d3d8e6;
   --viz-a: #a9c6fb;
   --viz-b: #fbc98e;
@@ -108,6 +109,7 @@
   --tier-challenge-bg: #40240c;
 
   --viz-ink: #eef0f8;
+  --viz-halo: rgba(16, 20, 36, 0.82);
   --viz-grid: #343a55;
   --viz-a: #2c55ab;
   --viz-b: #8f5310;
@@ -584,9 +586,12 @@ input[aria-invalid='true'] { border-color: var(--bad); }
 
 .question-card { margin-top: 1rem; }
 .question-prompt { font-size: 1.15rem; margin-bottom: 1rem; }
-.choices { display: grid; gap: 0.6rem; border: 0; padding: 0; margin: 0; }
-@media (min-width: 40rem) { .choices { grid-template-columns: 1fr 1fr; } }
-.choice { position: relative; }
+/* minmax(0, 1fr) and min-width: 0 let a choice shrink to the screen, so a long formula scrolls
+   inside its own choice instead of pushing the page wider. (A fieldset and a grid item both
+   refuse to be narrower than their content unless told otherwise.) */
+.choices { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+@media (min-width: 40rem) { .choices { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.choice { position: relative; min-width: 0; }
 .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .choice label {
   display: flex;
@@ -624,7 +629,28 @@ input[aria-invalid='true'] { border-color: var(--bad); }
 /* Bigger answer buttons for the youngest students. */
 .band-elementary .choice label { min-height: 4.4rem; font-size: 1.2rem; }
 .band-elementary .question-prompt { font-size: 1.25rem; }
-.choice .mark { margin-left: auto; font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+/* The "Correct" / "Your answer" mark is a small badge on the top edge of the choice, so it never
+   takes room away from a long answer. */
+.choice .mark {
+  position: absolute;
+  top: -0.6rem;
+  right: 0.7rem;
+  padding: 0 0.5rem;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+.choice .mark:empty { display: none; }
+/* On a phone, give the answer text a little more of the row. */
+@media (max-width: 30rem) {
+  .choice label { gap: 0.55rem; padding: 0.55rem 0.6rem; }
+  .choice .letter { width: 1.8rem; height: 1.8rem; font-size: 0.9rem; flex: none; }
+  .question-card { padding-left: 0.85rem; padding-right: 0.85rem; }
+}
 .choice.is-correct .mark { color: var(--good); }
 .choice.is-wrong .mark { color: var(--bad); }
 
@@ -659,6 +685,8 @@ svg.viz { display: block; max-width: 100%; height: auto; }
 .viz-text-xs { font-size: 12px; }
 .viz-text-b { font-weight: 700; }
 .viz-text-i { font-style: italic; }
+/* A label that has to sit on top of lines gets a soft outline in the page colour so it stays readable. */
+.viz-halo { paint-order: stroke fill; stroke: var(--viz-halo); stroke-width: 4px; stroke-linejoin: round; }
 .viz-stroke { stroke: var(--viz-ink); stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .viz-axis { stroke: var(--viz-ink); stroke-width: 1.5; fill: none; }
 .viz-grid { stroke: var(--viz-grid); stroke-width: 1; fill: none; }

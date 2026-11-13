@@ -144,7 +144,8 @@ function mediumDescribeTransform(rng) {
       { value: describe({ ...base, reflect: base.reflect ? null : 'x' }), why: val(a) < 0 ? 'The negative sign in front of the function flips the graph over the x-axis.' : 'There is no negative sign in front of the function, so the graph is not flipped.' },
       k !== 0 ? describe({ ...base, k: -k }) : null,
       factor !== 1 ? describe({ ...base, factor: factor > 1 ? 0.5 : 2 }) : null,
-      val(a) < 0 ? { value: describe({ ...base, reflect: 'y' }), why: R`A negative sign in front of the whole function changes every output, which is a reflection in the x-axis. A reflection in the y-axis needs \(-x\) inside the function.` } : null,
+      // For the odd function x³, reflecting in the y-axis gives the same graph as reflecting in the x-axis, so that choice is not offered there.
+      val(a) < 0 && p !== 'cube' ? { value: describe({ ...base, reflect: 'y' }), why: R`A negative sign in front of the whole function changes every output, which is a reflection in the x-axis. A reflection in the y-axis needs \(-x\) inside the function.` } : null,
       describe({ ...base, h: -h, reflect: base.reflect ? null : 'x' }),
     ],
     solution: [

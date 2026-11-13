@@ -621,7 +621,8 @@ function challengeAngularSpeed(rng) {
   const [r, rText] = rng.pick([[0.2, '20 cm'], [0.25, '25 cm'], [0.3, '30 cm'], [0.4, '40 cm'], [0.5, '50 cm'], [0.6, '60 cm']]);
   const thing = rng.pick(['A bicycle wheel', 'A grinding wheel', 'A turntable', 'A fan blade', 'A potter\'s wheel']);
   const k = (r * N) / 30;
-  const speed = (c) => R`\(${num(c, { places: 3 })}\pi\) m/s`;
+  const kpi = (c) => `${round(c, 3) === 1 ? '' : num(c, { places: 3 })}\\pi`;
+  const speed = (c) => R`\(${kpi(c)}\) m/s`;
   return q({
     prompt: `${thing} of radius ${rText} turns at ${N} revolutions per minute. How fast is a point on its rim moving, in metres per second?`,
     correct: speed(k),
@@ -633,8 +634,8 @@ function challengeAngularSpeed(rng) {
       speed(2 * k),
     ],
     solution: [
-      R`Angular speed: \(${N}\) revolutions per minute \(= ${N} \cdot 2\pi\) radians per minute \(= \dfrac{${N} \cdot 2\pi}{60} = ${num(N / 30, { places: 3 })}\pi\) radians per second.`,
-      R`Linear speed is radius times angular speed (from \(s = r\theta\)): \(v = r\omega = ${num(r)} \cdot ${num(N / 30, { places: 3 })}\pi = ${num(k, { places: 3 })}\pi\) m/s.`,
+      R`Angular speed: \(${N}\) revolutions per minute \(= ${N} \cdot 2\pi\) radians per minute \(= \dfrac{${N} \cdot 2\pi}{60} = ${kpi(N / 30)}\) radians per second.`,
+      R`Linear speed is radius times angular speed (from \(s = r\theta\)): \(v = r\omega = ${num(r)} \cdot ${kpi(N / 30)} = ${kpi(k)}\) m/s.`,
       R`That is about \(${num(k * Math.PI, { places: 2 })}\) m/s.`,
     ],
     rule: 0,

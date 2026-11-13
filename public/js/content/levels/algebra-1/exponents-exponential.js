@@ -118,7 +118,7 @@ function easyIdentifyParts(rng) {
     return q({
       prompt: R`In the exponential function ${fn}, what is the initial value (the value of \(y\) when \(x = 0\))?`,
       correct: a,
-      wrong: [{ value: b, why: R`\(${num(b)}\) is the growth factor: what \(y\) is multiplied by each time \(x\) goes up by 1.` }, { value: round(a * b, 2), why: R`That is the value when \(x = 1\). When \(x = 0\) the power is \(${num(b)}^{0} = 1\).` }, r, 0],
+      wrong: [{ value: b, why: R`\(${num(b)}\) is the factor \(b\): what \(y\) is multiplied by each time \(x\) goes up by 1.` }, { value: round(a * b, 2), why: R`That is the value when \(x = 1\). When \(x = 0\) the power is \(${num(b)}^{0} = 1\).` }, r, 0],
       solution: [R`Substitute \(x = 0\): \(y = ${a}(${num(b)})^{0} = ${a} \cdot 1\).`, R`The initial value is \(${a}\). In \(y = a \cdot b^{x}\) it is always the number \(a\) in front.`],
       rule: 3,
       skill: 'exponential functions',
@@ -163,6 +163,8 @@ function mediumMonomials(rng) {
         ch(c1 * c2, a + c, b * d),
         ch(-c1 * c2, a + c, b + d),
         ch(c1 * c2, a + c + 1, b + d),
+        ch(2 * c1 * c2, a + c, b + d),
+        ch(c1 * c2, a + c, b + d + 1),
       ],
       solution: [
         R`Multiply the coefficients: \(${c1} \cdot ${c2 < 0 ? `(${c2})` : c2} = ${c1 * c2}\).`,
@@ -185,6 +187,8 @@ function mediumMonomials(rng) {
       ch(k, a * n, b * n),
       ch(-(k ** n), a * n, b * n),
       ch(k ** n, a * n, b + n),
+      ch(2 * k ** n, a * n, b * n),
+      ch(k ** n, a * n + 1, b * n + 1),
     ],
     solution: [
       R`The exponent \(${n}\) applies to every factor inside the parentheses.`,
@@ -368,7 +372,7 @@ function hardNegativeExponents(rng) {
     solution: [
       R`Subtract the exponents of \(x\): \(${a} - ${c < 0 ? `(${c})` : c} = ${a - c}\).`,
       R`Subtract the exponents of \(y\): \(${b} - ${d < 0 ? `(${d})` : d} = ${b - d}\).`,
-      R`So the expression is \(x^{${a - c}}y^{${b - d}}\). Write it with positive exponents: \(${mono(1, [['x', a - c], ['y', b - d]])}\).`,
+      R`So the expression is \(${power('x', a - c)}${power('y', b - d)}\). Write it with positive exponents only: \(${mono(1, [['x', a - c], ['y', b - d]])}\).`,
     ],
     rule: 2,
     skill: 'negative exponents',
@@ -528,7 +532,7 @@ function challengeLinearVsExp(rng) {
   return q({
     prompt: `${name} compares two savings plans. Plan A starts with ${money(a)} and adds ${money(d)} every week. Plan B starts with ${money(b)} and ${f === 2 ? 'doubles' : 'triples'} every week. After how many weeks is Plan B first worth more than Plan A?`,
     correct: n,
-    unit: 'weeks',
+    fmt: (v) => R`\(${num(v)}\) ${v === 1 ? 'week' : 'weeks'}`,
     wrong: [
       { value: n - 1, why: `After ${n - 1} weeks Plan A has ${money(A(n - 1))} and Plan B has only ${money(B(n - 1))}.` },
       { value: n + 1, why: `Plan B is already ahead one week earlier: after ${n} weeks it has ${money(B(n))} and Plan A has ${money(A(n))}.` },

@@ -1,5 +1,5 @@
 import { R, q, frac, terms, poly, polyEval, polyDeriv, num, txt, round, checkEqual, checkAll, numDeriv } from '../../lib/index.js';
-import { M, fit, fromBank, numDeriv2 } from './_shared.js';
+import { M, fit, fromBank, numDeriv2, piTimes } from './_shared.js';
 
 // A fraction of π in the denominator: piUnder(frac(8, 9)) → \dfrac{8}{9\pi}
 const piUnder = (fr) => `${fr.n < 0 ? '-' : ''}\\dfrac{${Math.abs(fr.n)}}{${fr.d === 1 ? '' : fr.d}\\pi}`;
@@ -16,18 +16,20 @@ const ladderPicture = (x, y, L, xLabel, yLabel) => ({
 
 const CONTEXTS = [
   { f: 'W', what: 'the volume of water in a tank', unit: 'liters', per: 'minute', after: (a) => `${a} minutes after the tap is opened`, noun: 'the volume of water' },
-  { f: 'T', what: 'the temperature of a kiln', unit: 'degrees Celsius', per: 'minute', after: (a) => `${a} minutes after it is switched on`, noun: 'the temperature' },
+  { f: 'T', what: 'the temperature of a kiln', unit: 'degrees Celsius', per: 'minute', after: (a) => `${a} minutes after it is switched on`, noun: 'the temperature', only: 'up' },
   { f: 'h', what: 'the altitude of a drone', unit: 'meters', per: 'second', after: (a) => `${a} seconds after take-off`, noun: 'the altitude' },
   { f: 'P', what: 'the population of a town', unit: 'people', per: 'year', after: (a) => `${a} years after the census`, noun: 'the population' },
-  { f: 'M', what: 'the mass of a block of ice', unit: 'grams', per: 'hour', after: (a) => `${a} hours after it is taken out of the freezer`, noun: 'the mass' },
+  { f: 'M', what: 'the mass of a block of ice', unit: 'grams', per: 'hour', after: (a) => `${a} hours after it is taken out of the freezer`, noun: 'the mass', only: 'down' },
 ];
 
 function easyMeaning(rng) {
   const c = rng.pick(CONTEXTS);
   const a = rng.int(2, 12);
   const k = rng.int(2, 40);
-  const up = rng.bool(0.5);
-  const intro = R`Let \(${c.f}(t)\) be ${c.what}, in ${c.unit}, \(t\) ${c.per}s after a starting time.`;
+  // Some stories only make sense one way round: ice out of the freezer loses mass, a kiln heats up.
+  const coin = rng.bool(0.5);
+  const up = c.only ? c.only === 'up' : coin;
+  const intro = R`Let \(${c.f}(t)\) be ${c.what}, in ${c.unit}, ${c.after(R`\(t\)`)}.`;
   if (rng.bool(0.35)) {
     return q({
       prompt: R`${intro} What are the units of \(${c.f}'(t)\)?`,
@@ -101,7 +103,7 @@ function easyShapeRate(rng) {
     { name: 'The radius of a circle', eq: 'C = 2\\pi r', v: 'r', what: 'its circumference', unit: 'cm/s', pi: '\\pi', ans: 2 * k, d: R`\dfrac{dC}{dt} = 2\pi\,\dfrac{dr}{dt} = 2\pi(${k})`, wrong: [2, 2 * r0, 2 * r0 * k, k], f: (x) => 2 * Math.PI * x },
     { name: 'The edge of a cube', eq: 'V = s^{3}', v: 's', what: 'its volume', unit: 'cm³/s', pi: '', ans: 3 * r0 * r0 * k, d: R`\dfrac{dV}{dt} = 3s^{2}\,\dfrac{ds}{dt} = 3(${r0})^{2}(${k})`, wrong: [3 * r0 * r0, r0 ** 3, r0 * r0 * k, 3 * r0 * k], f: (x) => x ** 3 },
   ]);
-  const fmt = (c) => R`\(${num(c)}${s.pi}\) ${s.unit}`;
+  const fmt = (c) => R`\(${s.pi ? piTimes(c) : num(c)}\) ${s.unit}`;
   return q({
     prompt: R`${s.name} is growing at ${k} cm/s. How fast is ${s.what} growing at the instant when \(${s.v} = ${r0}\) cm?`,
     correct: s.ans,
@@ -211,7 +213,7 @@ function mediumLadder(rng) {
     prompt: findTop
       ? `A ladder ${L} feet long leans against a vertical wall. The foot of the ladder slides away from the wall at ${k} ft/s. How fast is the top of the ladder sliding down the wall when the foot is ${x} feet from the wall?`
       : `A ladder ${L} feet long leans against a vertical wall. The top of the ladder slides down the wall at ${k} ft/s. How fast is the foot of the ladder moving away from the wall when the top is ${y} feet above the ground?`,
-    visual: ladderPicture(x, y, L, findTop ? `x = ${x} ft` : 'x', findTop ? 'y' : `y = ${y} ft`),
+    visual: ladderPicture(x, y, L, findTop ? `${x} ft` : 'x', findTop ? 'y' : `${y} ft`),
     correct: ans,
     unit: 'ft/s',
     wrong: [
@@ -240,7 +242,7 @@ function mediumSphere(rng) {
     return q({
       prompt: `A spherical balloon is inflated so that its radius increases at ${k} cm/s. How fast is its volume increasing when the radius is ${r0} cm?`,
       correct: 4 * r0 * r0 * k,
-      fmt: (n) => R`\(${num(n)}\pi\) cm³/s`,
+      fmt: (n) => R`\(${piTimes(n)}\) cm³/s`,
       wrong: [k > 1 ? { value: 4 * r0 * r0, why: R`The chain rule adds the factor \(\frac{dr}{dt} = ${k}\).` } : null, { value: 4 * r0 * k, why: R`The derivative of \(r^{3}\) is \(3r^{2}\), so the radius is squared.` }, 3 * r0 * r0 * k, 2 * r0 * r0 * k, 8 * r0 * k],
       solution: [R`Volume of a sphere: \(V = \frac{4}{3}\pi r^{3}\).`, R`Differentiate with respect to \(t\): \(\dfrac{dV}{dt} = 4\pi r^{2}\,\dfrac{dr}{dt}\).`, R`Substitute \(r = ${r0}\) and \(\dfrac{dr}{dt} = ${k}\): \(\dfrac{dV}{dt} = 4\pi(${r0})^{2}(${k}) = ${num(4 * r0 * r0 * k)}\pi\) cm³/s.`],
       rule: 4,
@@ -507,7 +509,7 @@ export default {
         type: 'plot',
         x: [0, 4.5],
         y: [-5, 10],
-        fns: [{ f: (t) => 3 * (t - 1) * (t - 3), label: 'v(t)', labelAt: 3.9 }, { f: (t) => 6 * t - 12, color: 'b', dashed: true, label: 'a(t)', labelAt: 3.3 }],
+        fns: [{ f: (t) => 3 * (t - 1) * (t - 3), label: 'v', labelAt: 0.35 }, { f: (t) => 6 * t - 12, color: 'b', dashed: true, label: 'a', labelAt: 3.3 }],
         points: [{ x: 1, y: 0 }, { x: 3, y: 0 }],
         axisLabels: ['t (s)', ''],
         alt: 'Graphs of the velocity v(t) = 3(t − 1)(t − 3), a parabola that is negative between t = 1 and t = 3, and the acceleration a(t) = 6t − 12, a rising line that is negative before t = 2 and positive after it.',
@@ -524,7 +526,7 @@ export default {
         R`\(2(6)(2) + 2(8)\,\dfrac{dy}{dt} = 0\), so \(\dfrac{dy}{dt} = -\dfrac{24}{16} = -\dfrac{3}{2}\).`,
       ],
       answer: R`The top slides down at \(\frac{3}{2}\) ft/s. (The negative sign of \(\frac{dy}{dt}\) shows that \(y\) is decreasing.)`,
-      visual: ladderPicture(6, 8, 10, 'x = 6 ft', 'y'),
+      visual: ladderPicture(6, 8, 10, '6 ft', 'y'),
     },
     {
       title: 'Word problem: filling a cone',
@@ -552,7 +554,7 @@ export default {
         { name: 'k', label: 'Speed of the foot (ft/s)', type: 'number', min: 0.5, max: 6, step: 0.5, value: 2 },
       ],
       compute({ L, x, k }) {
-        if (x >= L) return { error: `The foot cannot be ${x} feet from the wall with a ${L}-foot ladder. Choose a distance smaller than the ladder length.` };
+        if (x >= L) return { error: `The foot cannot be ${x} feet from the wall when the ladder is only ${L} feet long. Choose a distance smaller than the ladder length.` };
         const y = Math.sqrt(L * L - x * x);
         const rate = (x * k) / y;
         const yTex = Number.isInteger(y) ? String(y) : num(round(y, 3));
@@ -566,7 +568,7 @@ export default {
           ],
           answer: R`The top slides down at about \(${num(round(rate, 3))}\) ft/s.`,
           note: 'Try moving the foot farther out: the closer the ladder is to lying flat, the faster its top falls.',
-          visual: ladderPicture(x, round(y, 2), L, `x = ${x} ft`, `y ≈ ${txt(round(y, 2))} ft`),
+          visual: ladderPicture(x, round(y, 2), L, `${x} ft`, 'y'),
         };
       },
     },
@@ -598,7 +600,7 @@ export default {
           visual: {
             type: 'plot',
             ...fit([(x) => polyEval(v, x), (x) => polyEval(a, x)], 0, 5, { include: [0], cap: [-40, 60] }),
-            fns: [{ f: (x) => polyEval(v, x), label: 'v(t)' }, { f: (x) => polyEval(a, x), color: 'b', dashed: true, label: 'a(t)', labelAt: 1 }],
+            fns: [{ f: (x) => polyEval(v, x), label: 'v' }, { f: (x) => polyEval(a, x), color: 'b', dashed: true, label: 'a', labelAt: 1 }],
             points: [{ x: t, y: v0 }, { x: t, y: a0, color: 'b' }],
             vlines: [{ x: t }],
             alt: `Graphs of the velocity and the acceleration for t from 0 to 5. At t = ${txt(t)} the velocity is ${txt(v0)} and the acceleration is ${txt(a0)}.`,
