@@ -3,6 +3,7 @@
 
 import { h, svgFromVnode } from './dom.js';
 import { tidy } from '../core/tidy.js';
+import { toSpeech } from '../core/speech-text.js';
 import { renderVisual } from '../core/visuals.js';
 
 const MATH = /\\\((.+?)\\\)|\\\[(.+?)\\\]/gs;
@@ -71,10 +72,16 @@ export function visual(spec) {
       } else if (r.kind === 'table') {
         const table = h('table', { class: 'data viz-table' });
         if (r.caption) table.append(richEl('caption', null, r.caption));
-        if (r.headers) table.append(h('thead', null, h('tr', null, r.headers.map((c) => richEl('th', { scope: 'col' }, c)))));
-        table.append(
-          h('tbody', null, r.rows.map((row) => h('tr', null, row.map((c, i) => (r.rowHeaders && i === 0 ? richEl('th', { scope: 'row' }, c) : richEl('td', null, c)))))),
-        );
+        // A header with a formula in it carries its words as hidden text, and the typeset copy is
+        // hidden from screen readers: it is read once, and is never an "empty" header. An empty
+        // corner cell is an ordinary cell, not a header.
+        const head = (c, scope) => {
+          if (c === '') return h('td');
+          if (!c.includes('\\(')) return richEl('th', { scope }, c);
+          return h('th', { scope }, h('span', { class: 'sr-only' }, toSpeech(c)), richEl('span', { 'aria-hidden': 'true' }, c));
+        };
+        if (r.headers) table.append(h('thead', null, h('tr', null, r.headers.map((c) => head(c, 'col')))));
+        table.append(h('tbody', null, r.rows.map((row) => h('tr', null, row.map((c, i) => (r.rowHeaders && i === 0 ? head(c, 'row') : richEl('td', null, c)))))));
         wrap.append(h('div', { class: 'table-wrap' }, table));
       }
     } catch (err) {
@@ -123,4 +130,51 @@ export function fitChoices(group) {
     fonts.addEventListener('loadingdone', onFonts);
   }
   return group;
+}
+
+// Places where a formula too wide for the screen scrolls inside its own box (see styles.css).
+const TEXT_BOXES = '.question-prompt, .steps li, .answer-line, .problem, .rule p, .rule-example p, .notice p, .vocab dd, .card > p';
+
+/**
+ * Keep wide content usable on a narrow screen. A formula that is wider than its line is shrunk
+ * to fit (never below 60% of its size). Whatever still has to scroll sideways (a wide table, a
+ * very long formula) is made reachable from the keyboard, as a scrolling region must be.
+ * Safe to call again at any time: after new content appears, a resize, or the fonts arriving.
+ */
+export function fitWide(root) {
+  if (!root) return;
+  const floor = 0.6;
+  const scale = (room, need) => `${Math.round(Math.max(floor, (room / need) * 0.97) * 1000) / 10}%`;
+  for (const box of root.querySelectorAll(TEXT_BOXES)) {
+    const inline = box.querySelectorAll('.math-inline');
+    for (const m of inline) m.style.fontSize = '';
+    const room = box.clientWidth;
+    if (room > 0 && box.scrollWidth > room + 1) {
+      for (const m of inline) {
+        const need = m.getBoundingClientRect().width;
+        if (need > room) m.style.fontSize = scale(room, need);
+      }
+    }
+  }
+  for (const d of root.querySelectorAll('.katex-display')) {
+    const holder = d.parentElement;
+    holder.style.fontSize = '';
+    if (d.clientWidth > 0 && d.scrollWidth > d.clientWidth + 1) holder.style.fontSize = scale(d.clientWidth, d.scrollWidth);
+  }
+  for (const box of root.querySelectorAll(`${TEXT_BOXES}, .katex-display, .table-wrap`)) {
+    const scrolls = box.scrollWidth > box.clientWidth + 1;
+    if (scrolls && !box.hasAttribute('tabindex')) {
+      box.tabIndex = 0;
+      box.dataset.scroller = '1';
+      if (box.classList.contains('table-wrap')) {
+        box.setAttribute('role', 'group');
+        box.setAttribute('aria-label', 'Table. Scroll sideways to see all of it.');
+      }
+    } else if (!scrolls && box.dataset.scroller) {
+      box.removeAttribute('tabindex');
+      box.removeAttribute('role');
+      box.removeAttribute('aria-label');
+      delete box.dataset.scroller;
+    }
+  }
 }

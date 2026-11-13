@@ -5,6 +5,7 @@ import { settings, apply as applySettings } from './core/settings.js';
 import { h, focusOn, fill } from './ui/dom.js';
 import { errorBox, loading } from './ui/components.js';
 import { stopSpeaking } from './ui/speech.js';
+import { fitWide } from './ui/math.js';
 import { openAccountDialog } from './views/account.js';
 import { openSettingsDialog } from './views/settings.js';
 
@@ -153,6 +154,24 @@ document.getElementById('skip-link')?.addEventListener('click', (e) => {
   const main = document.getElementById('main');
   focusOn(main.querySelector('h1') ?? main);
 });
+
+// Wide formulas and tables: shrink them to the screen, and make whatever still scrolls sideways
+// reachable from the keyboard. Runs after any change to the page, a resize, or the fonts arriving.
+{
+  const main = document.getElementById('main');
+  let queued = false;
+  const refit = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      fitWide(main);
+    });
+  };
+  if (typeof MutationObserver === 'function') new MutationObserver(refit).observe(main, { childList: true, subtree: true });
+  window.addEventListener('resize', refit);
+  document.fonts?.addEventListener?.('loadingdone', refit);
+}
 
 window.addEventListener('hashchange', render);
 window.addEventListener('pagehide', () => store.flush());
