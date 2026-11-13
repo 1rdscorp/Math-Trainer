@@ -276,7 +276,7 @@ function challengeRescale(rng) {
         round(ans + 1, 1),
         round(ans * 2, 1),
       ],
-      solution: [R`Real length from the first map: \(${L} \times ${a} = ${actual}\) kilometers.`, R`On the second map each centimeter stands for ${b} kilometers, so divide: \(${actual} \div ${b} = ${num(ans)}\).`, `The road is ${num(ans)} centimeters long on the second map.`],
+      solution: [R`Real length from the first map: \(${L} \times ${a} = ${actual}\) kilometers.`, R`On the second map each centimeter stands for ${b} kilometers, so divide: \(${actual} \div ${b} = ${num(ans)}\).`, `The road is ${num(ans)} ${ans === 1 ? 'centimeter' : 'centimeters'} long on the second map.`],
       rule: 5,
       skill: 'scale drawings',
       check: () => (approx(ans * b, L * a) ? true : 'the two maps give different real lengths'),
@@ -415,14 +415,14 @@ export default {
     },
     {
       title: 'Reading a graph',
-      problem: R`A line through the origin passes through \((4, 10)\). Find the constant of proportionality, and explain what the point \((1, k)\) means if \(x\) is hours worked and \(y\) is dollars earned.`,
+      problem: R`A line through the origin passes through \((4, 10)\). Find the constant of proportionality, and explain what the point \((1, k)\) means if \(x\) is pounds of grapes and \(y\) is the cost in dollars.`,
       steps: [
         R`The graph is a straight line through \((0, 0)\), so the relationship is proportional.`,
         R`\(k = y \div x = 10 \div 4 = 2.5\).`,
-        R`The line passes through \((1, 2.5)\): 1 hour of work earns $2.50. That is the unit rate.`,
+        R`The line passes through \((1, 2.5)\): 1 pound of grapes costs $2.50. That is the unit rate.`,
       ],
-      answer: R`\(k = 2.5\); the point \((1, 2.5)\) shows the pay for 1 hour.`,
-      visual: { type: 'plot', x: [0, 6], y: [0, 15], axisLabels: ['hours', 'dollars'], fns: [{ f: (x) => 2.5 * x }], points: [{ x: 1, y: 2.5, label: '(1, 2.5)', color: 'b' }, { x: 4, y: 10, label: '(4, 10)' }], alt: 'A straight line through the origin, (1, 2.5) and (4, 10), with hours on the horizontal axis and dollars on the vertical axis.' },
+      answer: R`\(k = 2.5\); the point \((1, 2.5)\) shows the cost of 1 pound.`,
+      visual: { type: 'plot', x: [0, 6], y: [0, 15], axisLabels: ['pounds', 'dollars'], fns: [{ f: (x) => 2.5 * x }], points: [{ x: 1, y: 2.5, label: '(1, 2.5)', color: 'b' }, { x: 4, y: 10, label: '(4, 10)' }], alt: 'A straight line through the origin, (1, 2.5) and (4, 10), with pounds on the horizontal axis and dollars on the vertical axis.' },
     },
     {
       title: 'Word problem: a scale drawing',

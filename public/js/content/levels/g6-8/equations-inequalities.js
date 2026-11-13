@@ -1,5 +1,5 @@
 import { R, q, num, frac, Frac, lcm, linear, terms, paren, money, txt, person, round, checkRoots } from '../../lib/index.js';
-import { lineFor, clean, tape, unitFmt } from './_shared.js';
+import { lineFor, clean, tape, unitFmt, an } from './_shared.js';
 
 const asX = (v) => R`\(x = ${num(v)}\)`;
 const val = (v) => (v instanceof Frac ? v.value : v);
@@ -234,7 +234,7 @@ function mediumStory(rng) {
     const ticket = rng.int(6, 15);
     const total = n * (ticket + snack);
     return q({
-      prompt: `${n} friends go to a movie. Each one buys a ticket and a ${money(snack)} snack. Together they spend ${money(total)}. How much does one ticket cost?`,
+      prompt: `${n} friends go to a movie. Each one buys a ticket and ${an(snack)} ${money(snack)} snack. Together they spend ${money(total)}. How much does one ticket cost?`,
       correct: ticket,
       fmt: money,
       wrong: [
@@ -560,7 +560,7 @@ function challengeStory(rng) {
     const off = rng.int(4, 12);
     const total = n * (ticket + snack) - off;
     return q({
-      prompt: `${n} friends each buy a movie ticket and a ${money(snack)} snack. A coupon takes ${money(off)} off the whole bill, and they pay ${money(total)} in all. What is the price of one ticket?`,
+      prompt: `${n} friends each buy a movie ticket and ${an(snack)} ${money(snack)} snack. A coupon takes ${money(off)} off the whole bill, and they pay ${money(total)} in all. What is the price of one ticket?`,
       correct: ticket,
       fmt: money,
       wrong: [{ value: clean((total - off) / n - snack), why: `The coupon made the bill smaller. To find the bill before the coupon, add ${money(off)} back.` }, { value: clean((total + off - snack) / n), why: `Every friend buys a snack, so ${money(snack)} is spent ${n} times.` }, ticket + 1, ticket - 1, ticket + snack],

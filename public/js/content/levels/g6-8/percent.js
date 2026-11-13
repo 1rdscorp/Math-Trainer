@@ -1,5 +1,5 @@
 import { R, q, num, frac, gcd, money, txt, person, round, approx } from '../../lib/index.js';
-import { pct, usd, clean, unitFmt } from './_shared.js';
+import { pct, usd, clean, unitFmt, an } from './_shared.js';
 
 // A percent for use inside math mode: P(25) → "25\%".
 const P = (x) => R`${num(x)}\%`;
@@ -191,12 +191,12 @@ function mediumFindPercent(rng) {
     const a = (p * b) / 100;
     if (!Number.isInteger(a)) continue;
     const name = person(rng);
-    const story = p < 100 && rng.bool(0.5);
+    const story = p < 100 && a >= 2 && rng.bool(0.5); // "1 of them are filled" reads badly
     const text = story
       ? rng.pick([
           `${name} answered ${a} of the ${b} questions on a test correctly. What percent of the questions did ${name} answer correctly?`,
           `A theater has ${b} seats, and ${a} of them are filled. What percent of the seats are filled?`,
-          `${name} has saved ${money(a)} toward a ${money(b)} bike. What percent of the price has ${name} saved?`,
+          `${name} has saved ${money(a)} toward ${an(b)} ${money(b)} bike. What percent of the price has ${name} saved?`,
         ])
       : R`\(${a}\) is what percent of \(${b}\)?`;
     return q({
@@ -227,7 +227,7 @@ function mediumFindWhole(rng) {
     const b = rng.pick([20, 40, 60, 80, 120, 160, 200, 240, 300, 400]);
     const a = (p * b) / 100;
     if (!Number.isInteger(a)) continue;
-    const story = p < 100 && rng.bool(0.5);
+    const story = p < 100 && a >= 2 && rng.bool(0.5); // a story about "1 pages" or "1 students" reads badly
     const s = story
       ? rng.pick([
           { text: `${a} students in a school play are sixth graders. That is ${p}% of the cast. How many students are in the cast?` },
@@ -285,7 +285,7 @@ function mediumMoney(rng) {
   }
   if (kind === 'tip') {
     return q({
-      prompt: `${name}'s restaurant bill is ${money(price)}. ${name} leaves a ${p}% tip. How much is the tip?`,
+      prompt: `${name}'s restaurant bill is ${money(price)}. ${name} leaves ${an(p)} ${p}% tip. How much is the tip?`,
       correct: part,
       fmt: money,
       wrong: [
@@ -451,9 +451,9 @@ function hardFindOriginal(rng) {
     const name = person(rng);
     const item = rng.pick(['coat', 'watch', 'pair of boots', 'backpack', 'lamp']);
     const text = {
-      discount: `After a ${p}% discount, a ${item} costs ${money(result)}. What was the original price?`,
+      discount: `After ${an(p)} ${p}% discount, a ${item} costs ${money(result)}. What was the original price?`,
       markup: `A shop marks up the cost of a ${item} by ${p}% and sells it for ${money(result)}. How much did the shop pay for it?`,
-      raise: `After a ${p}% increase, the weekly rent for a market stall is ${money(result)}. What was the rent before the increase?`,
+      raise: `After ${an(p)} ${p}% increase, the weekly rent for a market stall is ${money(result)}. What was the rent before the increase?`,
     }[kind];
     const whole = 100 + sign * p;
     return q({
@@ -521,7 +521,7 @@ function challengeSuccessive(rng) {
   const end = round((mid * (100 + b)) / 100, 2);
   const actual = round(end - 100, 2);
   const naive = a + b;
-  const say = (v) => (v === 0 ? 'No change' : R`A \(${P(Math.abs(v))}\) ${v > 0 ? 'increase' : 'decrease'}`);
+  const say = (v) => (v === 0 ? 'No change' : R`${an(Math.abs(v)) === 'an' ? 'An' : 'A'} \(${P(Math.abs(v))}\) ${v > 0 ? 'increase' : 'decrease'}`);
   const item = rng.pick(['a video game', 'a bicycle', 'a phone case', 'a concert ticket', 'a pair of jeans', 'a tablet']);
   return q({
     prompt: `A store ${a > 0 ? 'raises' : 'cuts'} the price of ${item} by ${Math.abs(a)}%. Later it ${b > 0 ? 'raises' : 'cuts'} the new price by ${Math.abs(b)}%. Compared with the original price, what is the overall change?`,

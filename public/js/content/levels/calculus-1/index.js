@@ -8,5 +8,8 @@ import relatedRates from './related-rates.js';
 import linearizationLhopital from './linearization-lhopital.js';
 import curveAnalysis from './curve-analysis.js';
 import optimization from './optimization.js';
+import riemannDefinite from './riemann-definite.js';
+import antiderivativesFtc from './antiderivatives-ftc.js';
+import uSubstitution from './u-substitution.js';
 
-export default [limits, continuity, derivativeDefinition, derivativeRules, chainRuleImplicit, relatedRates, linearizationLhopital, curveAnalysis, optimization];
+export default [limits, continuity, derivativeDefinition, derivativeRules, chainRuleImplicit, relatedRates, linearizationLhopital, curveAnalysis, optimization, riemannDefinite, antiderivativesFtc, uSubstitution];

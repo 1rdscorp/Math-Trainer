@@ -642,7 +642,7 @@ function hardStory(rng) {
         b - lo + 2,
         a,
       ],
-      solution: [R`"How many degrees warmer" asks for a difference: \(${b} - (${lo})\).`, ...subtractSteps(b, lo), `The afternoon was ${b - lo} degrees warmer.`],
+      solution: [R`"How many degrees warmer" asks for a difference: \(${b} - (${lo})\).`, ...subtractSteps(b, lo), `The afternoon was ${b - lo} ${b - lo === 1 ? 'degree' : 'degrees'} warmer.`],
       rule: 4,
       skill: 'word problems',
       check: () => (lo + (b - lo) === b ? true : 'difference is wrong'),
@@ -849,7 +849,7 @@ function challengeDistance(rng) {
       solution: [
         `Both points have the same ${horizontal ? 'y' : 'x'}-coordinate, so they are on one ${horizontal ? 'horizontal' : 'vertical'} line. The distance is the difference of the ${coord}-coordinates.`,
         R`\(|${r} - ${paren(p)}| = |${dist}| = ${dist}\).`,
-        r === 0 ? R`Check: one point is on the ${horizontal ? 'y' : 'x'}-axis and the other is \(${Math.abs(p)}\) units from it. ✓` : opposite ? R`Check: one point is \(${Math.abs(p)}\) from the axis and the other is \(${r}\) on the other side: \(${Math.abs(p)} + ${r} = ${dist}\). ✓` : R`Check: both points are on the same side of the axis, \(${Math.abs(p)}\) and \(${Math.abs(r)}\) units away: \(${Math.abs(p)} - ${Math.abs(r)} = ${dist}\). ✓`,
+        r === 0 ? R`Check: one point is on the ${horizontal ? 'y' : 'x'}-axis and the other is \(${Math.abs(p)}\) units from it. ✓` : opposite ? R`Check: one point is \(${Math.abs(p)}\) from the axis and the other is \(${r}\) on the other side: \(${Math.abs(p)} + ${r} = ${dist}\). ✓` : R`Check: both points are on the same side of the axis, at distances \(${Math.abs(p)}\) and \(${Math.abs(r)}\) from it: \(${Math.abs(p)} - ${Math.abs(r)} = ${dist}\). ✓`,
       ],
       rule: 4,
       skill: 'distance on the plane',

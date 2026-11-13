@@ -600,7 +600,7 @@ function hardCompareRates(rng) {
   const [fast, slow] = r1 > r2 ? [p1, p2] : [p2, p1];
   const diff = Math.abs(r1 - r2);
   const totalDiff = Math.abs(w1 - w2);
-  const say = (who, d) => `${who}, by ${M(d)} words per minute`;
+  const say = (who, d) => `${who}, by ${M(d)} ${d === 1 ? 'word' : 'words'} per minute`;
   return q({
     prompt: `${p1} types ${w1} words in ${m1} minutes. ${p2} types ${w2} words in ${m2} minutes. Who types faster, and by how many words per minute?`,
     correct: say(fast, diff),
@@ -614,7 +614,7 @@ function hardCompareRates(rng) {
     solution: [
       R`${p1}: \(${w1} \div ${m1} = ${r1}\) words per minute.`,
       R`${p2}: \(${w2} \div ${m2} = ${r2}\) words per minute.`,
-      R`\(${Math.max(r1, r2)} - ${Math.min(r1, r2)} = ${diff}\), so ${fast} types faster by ${diff} words per minute.`,
+      R`\(${Math.max(r1, r2)} - ${Math.min(r1, r2)} = ${diff}\), so ${fast} types faster by ${diff} ${diff === 1 ? 'word' : 'words'} per minute.`,
     ],
     rule: 3,
     skill: 'comparing rates',

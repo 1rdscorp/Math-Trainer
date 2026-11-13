@@ -1,4 +1,4 @@
-import { R, q, num, frac, txt, person, round, approx, sum } from '../../lib/index.js';
+import { R, q, num, frac, txt, ordinal, person, round, approx, sum } from '../../lib/index.js';
 import { M, pct, clean, unitFmt } from './_shared.js';
 
 const sortNum = (a) => [...a].sort((x, y) => x - y);
@@ -100,7 +100,7 @@ function easyMedianModeRange(rng) {
     prompt: `${s.lead(p, vals.length)} ${list(vals)}. What is the median?`,
     correct: med,
     wrong: [middleAsListed !== med ? { value: middleAsListed, why: 'That is the middle of the list as it is written. Put the values in order first.' } : null, clean(mean(vals), 1) !== med ? { value: clean(mean(vals), 1), why: 'That is the mean. The median is the middle value when the values are in order.' } : null, sorted[(vals.length - 1) / 2 + 1], sorted[(vals.length - 1) / 2 - 1], hi - lo],
-    solution: [`Put the values in order: ${list(sorted)}.`, `There are ${vals.length} values, so the middle one is the ${(vals.length + 1) / 2}th.`, `The median is ${med}.`],
+    solution: [`Put the values in order: ${list(sorted)}.`, `There are ${vals.length} values, so the middle one is the ${ordinal((vals.length + 1) / 2)}.`, `The median is ${med}.`],
     rule: 1,
     skill: 'median',
     check: () => (vals.filter((v) => v < med).length === vals.filter((v) => v > med).length ? true : 'not the middle value'),

@@ -26,7 +26,9 @@ export function fterms(list) {
     let body;
     if (d !== 1 || bottom) {
       const up = n === 1 && top ? top : `${num(n)}${top}`;
-      const down = d === 1 ? bottom : `${d}${bottom}`;
+      // 2 over "x + 1" must not print as "2x + 1", and 2 over "3^{x}" must not print as "23^{x}".
+      const isSum = /[+-]/.test(bottom.replace(/\^\{[^{}]*\}/g, '').replace(/\([^()]*\)/g, ''));
+      const down = d === 1 ? bottom : isSum ? `${d}(${bottom})` : /^[\d.]/.test(bottom) ? `${d} \\cdot ${bottom}` : `${d}${bottom}`;
       body = `\\frac{${up}}{${down}}`;
     } else {
       body = n === 1 && top ? top : `${num(n)}${top}`;
