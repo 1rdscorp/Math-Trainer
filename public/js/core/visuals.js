@@ -471,9 +471,11 @@ function plot(s) {
   const [yMin, yMax] = s.y ?? [-10, 10];
   if (!(xMax > xMin) || !(yMax > yMin)) throw new Error('plot: bad axis range');
   const W = s.size?.[0] ?? 360;
-  const H = s.size?.[1] ?? (s.square ? 360 : 280);
   const m = { l: 34, r: 16, t: 14, b: 26 };
   const pw = W - m.l - m.r;
+  // `square: true` means equal units on both axes (so circles are round): the height follows the ranges.
+  const squareH = Math.round(m.t + m.b + (pw * (yMax - yMin)) / (xMax - xMin));
+  const H = s.size?.[1] ?? (s.square ? Math.max(200, Math.min(480, squareH)) : 280);
   const ph = H - m.t - m.b;
   const X = (x) => m.l + ((x - xMin) / (xMax - xMin)) * pw;
   const Y = (y) => m.t + ph - ((y - yMin) / (yMax - yMin)) * ph;

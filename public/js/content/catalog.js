@@ -642,6 +642,18 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "constructions",
+      "title": "Constructions",
+      "summary": "Copy, bisect and build figures with a compass and straightedge, and explain why each construction works.",
+      "grade": null,
+      "standards": [
+        "CCSS G-CO.D.12",
+        "CCSS G-CO.D.13",
+        "CCSS G-C.A.3",
+        "CCSS G-C.A.4"
+      ]
+    },
+    {
       "id": "similarity",
       "title": "Similarity",
       "summary": "Use scale factors and proportions to find lengths in similar figures, and compare their perimeters, areas and volumes.",
