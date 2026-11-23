@@ -64,7 +64,7 @@ export const LEVELS = Object.freeze([
     title: 'Precalculus',
     band: 'high',
     icon: '🌀',
-    blurb: 'Functions in depth, trigonometry, polar coordinates, vectors, matrices and conics.',
+    blurb: 'Functions and models in depth, the binomial theorem, trigonometry, polar coordinates, vectors, parametric curves, matrices and conics.',
     standards: 'Common Core (+) standards and AP Precalculus',
     load: () => import('./levels/precalculus/index.js'),
   },

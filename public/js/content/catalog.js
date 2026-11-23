@@ -958,6 +958,32 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "function-models",
+      "title": "Choosing & Checking Function Models",
+      "summary": "Transform parent functions, choose and build a model from a context or data, and check it with residuals and semi-log plots.",
+      "grade": null,
+      "standards": [
+        "AP Precalculus 1.12",
+        "AP Precalculus 1.13",
+        "AP Precalculus 1.14",
+        "AP Precalculus 2.4",
+        "AP Precalculus 2.6",
+        "AP Precalculus 2.15",
+        "CCSS F-LE.A.1"
+      ]
+    },
+    {
+      "id": "binomial-theorem",
+      "title": "Binomial Theorem & Series Notation",
+      "summary": "Use Pascal's triangle and nCr to expand binomials, find single terms, work with sigma notation, and apply binomial probability.",
+      "grade": null,
+      "standards": [
+        "CCSS A-APR.C.5",
+        "CCSS A-SSE.B.4",
+        "CCSS S-CP.B.9"
+      ]
+    },
+    {
       "id": "unit-circle-trig",
       "title": "Trigonometric Functions & the Unit Circle",
       "summary": "Use radians and the unit circle to find exact values of all six trig functions in any quadrant.",
@@ -1038,6 +1064,17 @@ export const CATALOG = {
         "CCSS N-VM.A.3",
         "CCSS N-VM.B.4",
         "CCSS N-VM.B.5"
+      ]
+    },
+    {
+      "id": "implicit-parametric",
+      "title": "Implicit Curves & Parametrizing",
+      "summary": "Test points on implicit curves, solve them for y, and parametrize segments, circles and ellipses with the right start and direction.",
+      "grade": null,
+      "standards": [
+        "AP Precalculus 4.4",
+        "AP Precalculus 4.5",
+        "AP Precalculus 4.7"
       ]
     },
     {

@@ -361,11 +361,11 @@ function legs(d1, t1, d2, t2) {
 }
 const shipVisual = (d1, t1, d2, t2, unit) => {
   const { P, Q } = legs(d1, t1, d2, t2);
-  const L = Math.max(d1, d2) * 0.45;
+  const L = Math.max(d1, d2) * 0.25; // short enough to stay clear of the label at the middle of the first leg
   return {
     type: 'polygon',
     points: [[0, 0], P, Q],
-    vertices: ['start', 'turn', 'end'],
+    vertices: ['start', '', 'end'], // the north line marks the turn; a label there would sit on it
     sides: [`${d1} ${unit}`, `${d2} ${unit}`, 'x'],
     extra: [{ from: [0, 0], to: [0, L], label: 'N' }, { from: P, to: [P[0], P[1] + L], label: 'N' }],
     alt: `Route drawn to scale: a first leg of ${d1} ${unit} on a bearing of ${bearing(t1)}, then a second leg of ${d2} ${unit} on a bearing of ${bearing(t2)}. The straight line from the start to the end is marked x. Dashed lines show north at the start and at the turn.`,

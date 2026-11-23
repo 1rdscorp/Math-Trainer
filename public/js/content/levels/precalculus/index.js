@@ -2,6 +2,9 @@
 import functionsAnalysis from './functions-analysis.js';
 import polynomialRational from './polynomial-rational.js';
 import exponentialLogarithmic from './exponential-logarithmic.js';
+import functionModels from './function-models.js';
+import binomialTheorem from './binomial-theorem.js';
+import implicitParametric from './implicit-parametric.js';
 import unitCircleTrig from './unit-circle-trig.js';
 import sinusoidalGraphs from './sinusoidal-graphs.js';
 import trigIdentitiesEquations from './trig-identities-equations.js';
@@ -11,4 +14,4 @@ import vectorsParametric from './vectors-parametric.js';
 import matrices from './matrices.js';
 import conicSections from './conic-sections.js';
 
-export default [functionsAnalysis, polynomialRational, exponentialLogarithmic, unitCircleTrig, sinusoidalGraphs, trigIdentitiesEquations, triangleLaws, polarComplex, vectorsParametric, matrices, conicSections];
+export default [functionsAnalysis, polynomialRational, exponentialLogarithmic, functionModels, binomialTheorem, unitCircleTrig, sinusoidalGraphs, trigIdentitiesEquations, triangleLaws, polarComplex, vectorsParametric, implicitParametric, matrices, conicSections];
