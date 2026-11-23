@@ -174,7 +174,7 @@ function tablePicker(state, redraw) {
   });
   const radio = (value, label) => {
     const id = `tt-what-${value}`;
-    return h('div', { class: 'row' }, h('input', { type: 'radio', name: 'tt-what', id, checked: state.what === value, onchange: () => { state.what = value; redraw(); } }), h('label', { for: id, style: 'font-weight:400' }, label));
+    return h('div', { class: 'radio-row' }, h('input', { type: 'radio', name: 'tt-what', id, checked: state.what === value, onchange: () => { state.what = value; redraw(); } }), h('label', { for: id, style: 'font-weight:400' }, label));
   };
   return h('fieldset', { class: 'stack' }, h('legend', null, 'What to practise'), radio('level', 'My level (recommended)'), radio('tables', 'Let me choose the tables'), state.what === 'tables' ? h('div', { class: 'row', role: 'group', 'aria-label': 'Tables to include' }, boxes) : null);
 }
@@ -199,7 +199,7 @@ function practice(ctx) {
     if (!factor) setup.timed = false;
     const timing = (value, label) => {
       const id = `tt-timing-${value}`;
-      return h('div', { class: 'row' }, h('input', { type: 'radio', name: 'tt-timing', id, checked: setup.timed === value, onchange: () => { setup.timed = value; } }), h('label', { for: id, style: 'font-weight:400' }, label));
+      return h('div', { class: 'radio-row' }, h('input', { type: 'radio', name: 'tt-timing', id, checked: setup.timed === value, onchange: () => { setup.timed = value; } }), h('label', { for: id, style: 'font-weight:400' }, label));
     };
     const comfort = h(
       'select',
@@ -449,17 +449,27 @@ function quiz(ctx) {
       const shownAt = performance.now();
       const feedback = h('div', { class: 'stack', role: 'status' });
       buttons = options.map((value, i) =>
-        h('button', { type: 'button', class: 'btn btn-big', 'aria-label': `Answer ${i + 1}: ${value}`, onclick: () => {
+        h('button', { type: 'button', class: 'btn btn-big', 'aria-label': `Answer ${i + 1}: ${value}`, onclick: (e) => {
           if (locked) return;
+          const picked = e.currentTarget;
           locked = true;
           const ok = value === info.answer;
           n += 1;
           if (ok) correct += 1;
           else missed.push(fact);
           store.change((doc) => recordFact(doc, fact.a, fact.b, ok, performance.now() - shownAt));
+          // Show which answer was right and, after a miss, which one was picked.
           buttons.forEach((b, j) => {
             b.disabled = true;
-            if (options[j] === info.answer) b.classList.add('btn-primary');
+            if (options[j] === info.answer) {
+              b.classList.add('is-right');
+              b.textContent = `${options[j]} ✓`;
+              b.setAttribute('aria-label', `Answer ${j + 1}: ${options[j]}, the right answer`);
+            } else if (b === picked) {
+              b.classList.add('is-wrong');
+              b.textContent = `${options[j]} ✗`;
+              b.setAttribute('aria-label', `Answer ${j + 1}: ${options[j]}, your answer`);
+            }
           });
           const nextBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: ask }, n >= QUIZ_QUESTIONS ? 'See my score' : 'Next question');
           fill(feedback, 
