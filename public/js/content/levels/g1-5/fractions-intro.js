@@ -112,7 +112,7 @@ function mediumNumberLine(rng) {
   const max = rng.bool(0.35) ? 2 : 1;
   const n = rng.intExcept(1, max * d - 1, [d]);
   return q({
-    prompt: `Each whole on the number line is cut into ${d} equal jumps. What fraction is at the point?`,
+    prompt: `Each whole on the number line is split into ${d} equal jumps. What fraction is at the point?`,
     visual: linePic(n, d, max),
     correct: F(n, d),
     wrong: [
@@ -506,7 +506,7 @@ export default {
     },
     {
       title: 'A fraction on a number line',
-      problem: 'Each whole is cut into 4 equal jumps. A point is 5 jumps from 0. What fraction is at the point?',
+      problem: 'Each whole is split into 4 equal jumps. A point is 5 jumps from 0. What fraction is at the point?',
       steps: [R`There are 4 jumps from 0 to 1. Each jump is \(\frac{1}{4}\).`, 'The point is 5 jumps from 0.', R`The point is at \(\frac{5}{4}\). That is more than 1.`],
       answer: R`\(\frac{5}{4}\)`,
       visual: linePic(5, 4, 2),

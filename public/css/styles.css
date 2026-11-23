@@ -621,14 +621,19 @@ input[aria-invalid='true'] { border-color: var(--bad); }
 .choice input:checked + label { border-color: var(--brand); background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand); }
 .choice input:checked + label .letter { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
 .choice input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 2px; }
-.choice.is-correct label { border-color: var(--good); background: var(--good-bg); }
-.choice.is-correct .letter { background: var(--good); border-color: var(--good); color: var(--surface); }
-.choice.is-wrong label { border-color: var(--bad); background: var(--bad-bg); }
-.choice.is-wrong .letter { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.choice.is-correct label, .choice.is-correct input:checked + label { border-color: var(--good); background: var(--good-bg); }
+.choice.is-correct .letter, .choice.is-correct input:checked + label .letter { background: var(--good); border-color: var(--good); color: var(--surface); }
+.choice.is-wrong label, .choice.is-wrong input:checked + label { border-color: var(--bad); background: var(--bad-bg); }
+.choice.is-wrong .letter, .choice.is-wrong input:checked + label .letter { background: var(--bad); border-color: var(--bad); color: var(--surface); }
 .choice input:disabled + label { cursor: default; }
 /* Bigger answer buttons for the youngest students. */
 .band-elementary .choice label { min-height: 4.4rem; font-size: 1.2rem; }
 .band-elementary .question-prompt { font-size: 1.25rem; }
+/* Young readers: math a little larger everywhere in Grades 1–5, and inline fractions bigger still
+   (KaTeX draws an inline fraction at about 70% of the text size, too small for a 7-year-old). */
+.band-elementary .katex { font-size: 1.22em; }
+.band-elementary .katex .mfrac .vlist-t { font-size: 1.18em; }
+.band-elementary p, .band-elementary li, .band-elementary .question-prompt { line-height: 1.85; }
 /* The "Correct" / "Your answer" mark is a small badge on the top edge of the choice, so it never
    takes room away from a long answer. */
 .choice .mark {
@@ -788,13 +793,23 @@ legend { font-weight: 700; padding: 0; margin-bottom: 0.4rem; }
 .tt-grid button.multiple { background: var(--warn-bg); border-color: var(--warn); font-weight: 700; }
 .tt-grid button.square { box-shadow: inset 0 0 0 2px var(--tier-hard); }
 .tt-grid button.m-strong { background: var(--good-bg); border-color: var(--good); }
+/* Phones: smaller cells (still at least 24 px, the WCAG minimum target) so most of the table fits; when
+   it still scrolls sideways, a hint says so (see views/times.js). */
+@media (max-width: 34rem) {
+  .tt-grid { border-spacing: 1px; }
+  .tt-grid th, .tt-grid button { min-width: 1.5rem; height: 1.8rem; font-size: 0.75rem; }
+}
 .tt-grid button.m-weak { background: var(--bad-bg); border-color: var(--bad); }
 .tt-grid button.m-some { background: var(--warn-bg); border-color: var(--warn); }
 .tt-scroll { overflow-x: auto; padding-bottom: 0.3rem; }
 .tt-grid tbody th, .tt-grid thead th:first-child { position: sticky; left: 0; z-index: 1; box-shadow: 2px 0 0 var(--bg); }
-@media (min-width: 46rem) {
-  .tt-grid th, .tt-grid button { min-width: 2.9rem; height: 2.6rem; font-size: 1rem; }
+@media (min-width: 60rem) {
+  .tt-grid th, .tt-grid button { min-width: 2.5rem; height: 2.4rem; font-size: 0.95rem; }
 }
+/* The table keeps its natural width; the explanation takes the rest of the row, or goes below. */
+.tt-layout { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.tt-layout > .tt-scroll { flex: 0 1 auto; max-width: 100%; }
+.tt-layout > :last-child { flex: 1 1 18rem; min-width: 0; }
 .big-fact { font-size: clamp(2rem, 9vw, 3.2rem); font-weight: 700; text-align: center; margin: 0.5rem 0; }
 .answer-input { font-size: 1.6rem !important; text-align: center; font-weight: 700; max-width: 11rem; margin-inline: auto; display: block; }
 .timer { font-variant-numeric: tabular-nums; font-weight: 700; }

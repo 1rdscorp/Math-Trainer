@@ -157,7 +157,7 @@ function subQuestion(a, b, extra = {}) {
 // ───────────── Stories that work with numbers of any size ─────────────
 
 const TOGETHER = [
-  (p, a, b) => `${p} read ${a} pages last month and ${b} pages this month. How many pages is that in all?`,
+  (p, a, b) => `A school collected ${a} cans in March and ${b} cans in April. How many cans is that in all?`,
   (p, a, b) => `A farm picked ${a} apples on Monday and ${b} apples on Tuesday. How many apples is that?`,
   (p, a, b) => `${p} has ${a} red beads and ${b} blue beads. How many beads does ${p} have?`,
   (p, a, b) => `A bus drove ${a} miles last week and ${b} miles this week. How many miles is that?`,
@@ -171,7 +171,7 @@ const TAKE = [
 const COMPARE = [
   (p, a, b, p2) => `${p} has ${a} cards. ${p2} has ${b} cards. How many more cards does ${p} have?`,
   (p, a, b) => `The Red team scored ${a} points. The Blue team scored ${b} points. How many more points did the Red team score?`,
-  (p, a, b) => `One book has ${a} pages. Another book has ${b} pages. How many more pages does the first book have?`,
+  (p, a, b) => `A train carried ${a} people on Monday and ${b} people on Tuesday. How many more people rode the train on Monday?`,
   (p, a, b) => `A big jar holds ${a} beans. A small jar holds ${b} beans. How many fewer beans are in the small jar?`,
 ];
 const STORY_LEAD = {

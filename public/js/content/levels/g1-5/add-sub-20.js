@@ -153,7 +153,7 @@ function easySubtract(rng) {
 function easyDoubles(rng) {
   const n = rng.int(1, 10);
   return q({
-    prompt: R`What is the double \(${n} + ${n}\)?`,
+    prompt: R`\(${n} + ${n}\) is a double. What is \(${n} + ${n}\)?`,
     visual: { type: 'counters', groups: [n, n], perRow: n, alt: `Two equal rows, each with ${plural(n, 'counter')}.` },
     correct: 2 * n,
     wrong: [in20(2 * n + 1), 2 * n - 1, in20(2 * n + 2), 2 * n - 2, noted(n, 'A double has two equal groups. Count both rows.')],

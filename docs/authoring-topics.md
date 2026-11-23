@@ -233,7 +233,7 @@ users; `plot` requires it. Colours are `'a'` blue, `'b'` orange, `'c'` green, `'
 | `solid` | `kind: 'box'/'cube'/'cylinder'/'cone'/'sphere'/'pyramid'/'triPrism'`, `labels: { l, w, h, s, r, d, slant, b }` (whichever apply; drawn schematically, not to scale) |
 | `clock` | `hour`, `minute` |
 | `barChart` | `bars: [{ label, value }]`, `yLabel?`, `xLabel?`, `step?` |
-| `dotPlot` | `values: [whole numbers]`, `label?` |
+| `dotPlot` | `values: [numbers]`, `label?`, `min?`, `max?`, `step?` (0.25 for a line plot in quarters; default 1), `labels?: [{ value, text }]` (tick text such as `1/4`; plain text, no LaTeX), `alt` |
 | `table` | `headers?`, `rows: [[…]]`, `caption?`, `rowHeaders?`. Cells are rich text, so LaTeX is allowed here. A cell may be `''` for a blank place. |
 
 A visual may also be an array of visuals. Use pictures where they carry the idea (ten-frames for

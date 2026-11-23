@@ -10,7 +10,7 @@ const RIGHT = {
 };
 
 const NOT_YET = {
-  elementary: ['Not yet. Let us look at it together.', 'Not quite. Mistakes help your brain grow.', 'Not this time. Here is how it works.', 'Close look needed. Let us go through the steps.'],
+  elementary: ['Not yet. Let\'s look at it together.', 'Not quite. Let\'s check the steps.', 'Not this time. Here is how it works.', 'Good try. Let\'s go through it step by step.'],
   middle: ['Not quite. Here is how it works.', 'Not yet. Take a look at the steps.', 'Not this time. Compare your work with the solution.'],
   high: ['Not quite. Here is the worked solution.', 'Not this time. Check the steps below.'],
   college: ['Not quite. See the solution below.', 'Incorrect. The worked solution follows.'],
@@ -24,7 +24,7 @@ const UP = {
 };
 
 const DOWN = {
-  elementary: (tier) => `Let us practise some ${tier} questions next. You can climb back up.`,
+  elementary: (tier) => `Let\'s practise some ${tier} questions next. You can climb back up.`,
   middle: (tier) => `Next come some ${tier} questions to rebuild. Three in a row moves you back up.`,
   high: (tier) => `Dropping to ${tier} for now. Three in a row moves you back up.`,
   college: (tier) => `Dropping to ${tier} for now. Three in a row moves you back up.`,

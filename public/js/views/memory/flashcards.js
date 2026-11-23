@@ -38,7 +38,7 @@ export default function flashcardsView(ctx) {
             'section',
             { class: 'card stack', 'aria-labelledby': `deck-${deck.id}` },
             h('h2', { id: `deck-${deck.id}`, style: 'font-size:1.12rem' }, h('span', { 'aria-hidden': 'true' }, `${deck.icon} `), deck.title),
-            h('p', { class: 'muted' }, `${deck.blurb} · ${deck.cards.length} cards`),
+            h('p', { class: 'muted' }, deck.grade ? h('span', { class: 'chip' }, deck.grade) : null, deck.grade ? ' ' : null, `${deck.blurb} · ${deck.cards.length} cards`),
             h('p', { class: 'row' }, p.due ? chip(`${p.due} to review`, 'warn') : null, p.fresh ? chip(`${p.fresh} new`) : null, p.learned ? chip(`${p.learned} started`, 'good') : null),
             boxesRow(deck),
             h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-primary', onclick: () => study(deck, false), 'aria-label': `${ready ? `Study ${ready} card${ready === 1 ? '' : 's'}` : 'All caught up'}: ${deck.title}` }, ready ? `Study ${ready} card${ready === 1 ? '' : 's'}` : 'All caught up'), !ready && p.nextDue ? h('span', { class: 'small muted' }, `Next review ${shortDate(p.nextDue)}`) : null),

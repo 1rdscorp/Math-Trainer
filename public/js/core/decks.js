@@ -81,13 +81,13 @@ function powersDeck() {
 }
 
 export const DECKS = Object.freeze([
-  { id: 'add', title: 'Addition facts', blurb: 'Sums up to 10 + 10', icon: '➕', cards: additionDeck() },
-  { id: 'sub', title: 'Subtraction facts', blurb: 'Differences within 20', icon: '➖', cards: subtractionDeck() },
-  { id: 'mul', title: 'Multiplication facts', blurb: 'The table from 1 × 1 to 12 × 12', icon: '✖️', cards: multiplicationDeck() },
-  { id: 'div', title: 'Division facts', blurb: 'Dividing by 2 to 12', icon: '➗', cards: divisionDeck() },
-  { id: 'squares', title: 'Squares, cubes and roots', blurb: 'Perfect squares to 15², roots, small cubes', icon: '🔲', cards: squaresDeck() },
-  { id: 'fractions', title: 'Fractions, decimals and percents', blurb: 'The common equivalents', icon: '🍰', cards: fractionDeck() },
-  { id: 'powers', title: 'Powers of 2, 3, 5 and 10', blurb: 'Handy powers to know on sight', icon: '⚡', cards: powersDeck() },
+  { id: 'add', grade: 'Grades 1–2', title: 'Addition facts', blurb: 'Sums up to 10 + 10', icon: '➕', cards: additionDeck() },
+  { id: 'sub', grade: 'Grades 1–2', title: 'Subtraction facts', blurb: 'Differences within 20', icon: '➖', cards: subtractionDeck() },
+  { id: 'mul', grade: 'Grades 3–4', title: 'Multiplication facts', blurb: 'The table from 1 × 1 to 12 × 12', icon: '✖️', cards: multiplicationDeck() },
+  { id: 'div', grade: 'Grades 3–4', title: 'Division facts', blurb: 'Dividing by 2 to 12', icon: '➗', cards: divisionDeck() },
+  { id: 'squares', grade: 'Grades 6–8', title: 'Squares, cubes and roots', blurb: 'Perfect squares to 15², roots, small cubes', icon: '🔲', cards: squaresDeck() },
+  { id: 'fractions', grade: 'Grades 4–7', title: 'Fractions, decimals and percents', blurb: 'The common equivalents', icon: '🍰', cards: fractionDeck() },
+  { id: 'powers', grade: 'Grades 6–8', title: 'Powers of 2, 3, 5 and 10', blurb: 'Handy powers to know on sight', icon: '⚡', cards: powersDeck() },
 ]);
 
 export function findDeck(id) {
