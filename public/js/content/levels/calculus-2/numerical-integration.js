@@ -208,7 +208,7 @@ function easyOverUnder(rng) {
 
 const MID_STORIES = [
   { what: (name, h) => `${name} reads a car's speed, in m/s, from the dashboard every ${h} seconds`, x: 't', y: 'v(t)', xu: 's', yu: 'm/s', ask: 'the distance the car travels', unit: 'm', hs: [2, 3, 5], base: [8, 20], step: [0, 3] },
-  { what: (name, h) => `Every ${h} hours, ${name} records the rate, in cubic meters per hour, at which water flows into a reservoir`, x: 't', y: 'r(t)', xu: 'h', yu: 'cubic meters per hour', ask: 'the volume of water that flows in', unit: 'm³', hs: [1, 2, 3], base: [30, 60], step: [-6, 6] },
+  { what: (name, h) => `${h === 1 ? 'Every hour' : `Every ${h} hours`}, ${name} records the rate, in cubic meters per hour, at which water flows into a reservoir`, x: 't', y: 'r(t)', xu: 'h', yu: 'cubic meters per hour', ask: 'the volume of water that flows in', unit: 'm³', hs: [1, 2, 3], base: [30, 60], step: [-6, 6] },
   { what: (name, h) => `${name} measures a cyclist's speed, in m/s, every ${h} seconds`, x: 't', y: 'v(t)', xu: 's', yu: 'm/s', ask: 'the distance the cyclist covers', unit: 'm', hs: [4, 5, 10], base: [4, 9], step: [-1, 2] },
 ];
 
