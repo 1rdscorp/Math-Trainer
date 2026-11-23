@@ -5,7 +5,7 @@ modern browser on a phone or a computer, needs no account, and has no adverts or
 
 ## What is in it
 
-- **Nine levels, 100 topics**: Grades 1–5 (12 topics), Grades 6–8 (12), Algebra 1 (11), Geometry (10),
+- **Nine levels, 106 topics**: Grades 1–5 (18 topics), Grades 6–8 (12), Algebra 1 (11), Geometry (10),
   Algebra 2 (10), Precalculus (11), Calculus 1 (12), Calculus 2 (11) and Calculus 3 (11). Each topic
   lists the curriculum standards it is aligned to.
 - **Every topic has four steps**
@@ -126,7 +126,7 @@ To add or change a topic, read [docs/authoring-topics.md](docs/authoring-topics.
 Every question is generated from random numbers, so the checks are automatic and run over
 thousands of generated questions rather than a fixed list.
 
-- **Answers.** About 95% of the 1,500 question generators carry an independent numeric check
+- **Answers.** About 95% of the 1,600 question generators carry an independent numeric check
   (substitute the solution back, differentiate the antiderivative numerically, integrate numerically,
   rebuild a figure from coordinates and measure it). The validator runs each check on every
   generated question.

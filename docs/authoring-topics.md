@@ -232,7 +232,7 @@ users; `plot` requires it. Colours are `'a'` blue, `'b'` orange, `'c'` green, `'
 | `transversal` | two parallel lines and a transversal; `labels: { 1: '65°', 6: 'x' }`. Positions: top crossing 1 upper-left, 2 upper-right, 3 lower-left, 4 lower-right; bottom crossing 5, 6, 7, 8 in the same pattern. |
 | `solid` | `kind: 'box'/'cube'/'cylinder'/'cone'/'sphere'/'pyramid'/'triPrism'`, `labels: { l, w, h, s, r, d, slant, b }` (whichever apply; drawn schematically, not to scale) |
 | `clock` | `hour`, `minute` |
-| `barChart` | `bars: [{ label, value }]`, `yLabel?`, `xLabel?`, `step?` |
+| `barChart` | `bars: [{ label, value }]`, `yLabel?`, `xLabel?`, `step?`, `showValues?: false` (hide the number printed on each bar, so the scale must be read) |
 | `dotPlot` | `values: [numbers]`, `label?`, `min?`, `max?`, `step?` (0.25 for a line plot in quarters; default 1), `labels?: [{ value, text }]` (tick text such as `1/4`; plain text, no LaTeX), `alt` |
 | `table` | `headers?`, `rows: [[…]]`, `caption?`, `rowHeaders?`. Cells are rich text, so LaTeX is allowed here. A cell may be `''` for a blank place. |
 

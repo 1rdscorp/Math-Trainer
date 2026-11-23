@@ -208,7 +208,7 @@ function mediumPrime(rng) {
   return q({
     prompt: 'Which number is composite?',
     correct: c,
-    wrong: [{ value: 1, why: '1 has only one factor. It is neither prime nor composite.' }, { value: 2, why: '2 has exactly two factors, 1 and 2. It is prime.' }, ...ps],
+    wrong: [rng.pick([{ value: 1, why: '1 has only one factor. It is neither prime nor composite.' }, { value: 2, why: '2 has exactly two factors, 1 and 2. It is prime.' }]), ...ps],
     solution: [`A composite number has more than two factors.`, R`\(${u} \times ${v} = ${c}\).`, `So ${c} has the factors 1, ${u}, ${v} and ${c}. It is composite.`],
     rule: 3,
     skill: 'prime or composite',
@@ -218,7 +218,7 @@ function mediumPrime(rng) {
 
 function mediumEqualGroups(rng) {
   const name = person(rng);
-  const n = rng.pick(MANY.filter((x) => x <= 96));
+  const n = rng.pick(MANY.filter((x) => divisors(x).some((d) => d >= 3 && d <= 12 && d < x)));
   const f = rng.pick(divisors(n).filter((d) => d >= 3 && d <= 12 && d < n));
   const nonf = rng.shuffle([3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter((d) => n % d !== 0));
   const chairs = rng.bool();
@@ -337,7 +337,7 @@ function featureSentences(k) {
     { text: 'Every term is even.', test: (t) => t % 2 === 0 },
     { text: 'The terms take turns: odd, even, odd, even.', test: (t, i) => t % 2 === (i % 2 === 0 ? 1 : 0) },
     { text: 'The terms take turns: even, odd, even, odd.', test: (t, i) => t % 2 === (i % 2 === 0 ? 0 : 1) },
-    { text: `Every term is a multiple of ${k}.`, test: (t) => t % k === 0 },
+    ...(k !== 2 ? [{ text: `Every term is a multiple of ${k}.`, test: (t) => t % k === 0 }] : []),
     ...(k !== 3 ? [{ text: 'Every term is a multiple of 3.', test: (t) => t % 3 === 0 }] : []),
     ...(k !== 5 ? [{ text: 'Every term is a multiple of 5.', test: (t) => t % 5 === 0 }] : []),
   ];
@@ -426,14 +426,11 @@ function challengeMystery(rng) {
     if (B > 100) continue;
     const clue12 = (y) => y % a === 0 && B % y === 0;
     const both = Array.from({ length: 100 }, (_, i) => i + 1).filter(clue12);
-    const thirds = [
-      { text: 'I am odd.', f: (y) => y % 2 === 1 },
-      { text: 'I am even.', f: (y) => y % 2 === 0 },
-      { text: `I am more than ${x - 1}.`, f: (y) => y > x - 1 },
-      { text: `I am less than ${x + 1}.`, f: (y) => y < x + 1 },
-    ].filter((c) => c.f(x) && both.filter(c.f).length === 1 && both.length >= 2);
-    if (!thirds.length) continue;
-    const third = rng.pick(thirds);
+    const i = both.indexOf(x);
+    if (i < 1 || i >= both.length - 1) continue;
+    const lo = both[i - 1];
+    const hi = both[i + 1];
+    const third = { text: `I am more than ${lo} and less than ${hi}.`, f: (y) => y > lo && y < hi };
     const twoClues = both.filter((y) => y !== x);
     const oneClue = filtered([x + a, x - a, x + 2 * a, 2 * x].filter((y) => y > 0), (y) => y !== x && !clue12(y));
     return q({
@@ -460,10 +457,10 @@ function challengePrimeChairs(rng) {
   const comps = rng.shuffle(Array.from({ length: 21 }, (_, i) => p - 10 + i).filter((y) => y > 3 && !isPrimeSlow(y)));
   const [u, v] = pairsOf(comps[0])[1];
   return q({
-    prompt: `${name} tries to set out some chairs in equal rows. The only way is 1 long row. No way with 2 or more rows works. How many chairs could there be?`,
+    prompt: `${name} tries to put some chairs in equal rows. Each try uses at least 2 rows. Each row has at least 2 chairs. No try works. How many chairs could there be?`,
     correct: p,
     wrong: [{ value: comps[0], why: `${comps[0]} chairs fit in ${u} rows of ${v}.` }, ...comps.slice(1)],
-    solution: [`Equal rows show a factor pair of the number of chairs.`, `Only 1 row works, so the only factor pair is 1 and the number itself.`, `That means the number is prime.`, `${p} is prime, so there could be ${p} chairs.`],
+    solution: [`Equal rows show a factor pair of the number of chairs.`, `No pair without 1 works. So the only factor pair is 1 and the number itself.`, `That means the number is prime.`, `${p} is prime, so there could be ${p} chairs.`],
     rule: 3,
     skill: 'word problems',
     check: () => (isPrimeSlow(p) && comps.slice(0, 3).every((c) => pairsOf(c).length > 1) ? true : 'chair count is not prime'),

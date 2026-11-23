@@ -390,14 +390,26 @@ function barModel(s) {
   const barH = 34;
   const out = [];
   let y = 10;
+  const labelWidth = (t) => String(t).length * 7.6 + 6;
   rows.forEach((r, ri) => {
+    // A part too narrow for its label gets the label just above it, with a short pointer.
+    const widths = r.parts.map((p) => (Math.max(p.value, 0) / maxTotal) * full);
+    const above = r.parts.some((p, pi) => p.label != null && labelWidth(p.label) > widths[pi]);
+    if (above) y += 20;
     if (r.label) out.push(text(left - 8, y + barH / 2, r.label, 'viz-text-sm', { 'text-anchor': 'end' }));
     let x = left;
     r.parts.forEach((p, pi) => {
-      const w = (Math.max(p.value, 0) / maxTotal) * full;
+      const w = widths[pi];
       const shade = p.shade === 'none' ? 'viz-fill-bg' : FILLS[colorIndex(p.shade, (ri + pi) % 4)];
       out.push(rect(x, y, w, barH, `${shade} viz-outline`));
-      if (p.label != null && w > 14) out.push(text(x + w / 2, y + barH / 2, p.label, 'viz-text-sm viz-text-b'));
+      if (p.label != null) {
+        if (labelWidth(p.label) <= w) out.push(text(x + w / 2, y + barH / 2, p.label, 'viz-text-sm viz-text-b'));
+        else {
+          const cx = Math.min(Math.max(x + w / 2, left + labelWidth(p.label) / 2), 344 - labelWidth(p.label) / 2);
+          out.push(line(x + w / 2, y - 1, x + w / 2, y - 5, 'viz-stroke viz-thin'));
+          out.push(text(cx, y - 12, p.label, 'viz-text-sm viz-text-b'));
+        }
+      }
       x += w;
     });
     y += barH;
@@ -613,8 +625,12 @@ function plot(s) {
       placeLabel((ax + bx) / 2, (ay + by) / 2, sg.label, 'viz-text-sm viz-text-b', [[nx, ny, 'middle'], [-nx, -ny, 'middle']]);
     }
   }
+  // A marked point on the edge of the window, such as (0, 0) or a point on an axis, is drawn whole;
+  // only points outside the window are clipped.
+  const dots = [];
+  const inWindow = (p) => p.x >= xMin - 1e-9 && p.x <= xMax + 1e-9 && p.y >= yMin - 1e-9 && p.y <= yMax + 1e-9;
   for (const p of s.points ?? []) {
-    inside.push(circle(X(p.x), Y(p.y), 4.5, p.open ? `viz-open-${'abcd'[colorIndex(p.color)]}` : `viz-dot-${'abcd'[colorIndex(p.color)]}`));
+    (inWindow(p) ? dots : inside).push(circle(X(p.x), Y(p.y), 4.5, p.open ? `viz-open-${'abcd'[colorIndex(p.color)]}` : `viz-dot-${'abcd'[colorIndex(p.color)]}`));
     if (p.label != null) {
       placeLabel(X(p.x), Y(p.y), p.label, 'viz-text-sm viz-text-b', [[8, -13, 'start'], [8, 15, 'start'], [-8, -13, 'end'], [-8, 15, 'end'], [0, -24, 'middle'], [0, 26, 'middle'], [14, -22, 'start'], [-14, -22, 'end'], [14, 24, 'start'], [-14, 24, 'end']]);
     }
@@ -628,6 +644,7 @@ function plot(s) {
     el('defs', {}, el('clipPath', { id }, rect(m.l, m.t, pw, ph, ''))),
     out,
     el('g', { 'clip-path': `url(#${id})` }, inside),
+    dots,
     labels,
   );
 }
@@ -735,7 +752,7 @@ function polygon(s) {
       const sweep = u1[0] * u2[1] - u1[1] * u2[0] > 0 ? 1 : 0;
       if (!s.right?.includes(i)) out.push(path(`M ${n(s1[0])} ${n(s1[1])} A ${r} ${r} 0 0 ${sweep} ${n(s2[0])} ${n(s2[1])}`, 'viz-stroke viz-thin'));
       const dist = Math.max(30, Math.min(58, 15 / Math.max(0.2, Math.sin(half)) + String(angleLabel).length * 2.2));
-      out.push(text(a[0] + bis[0] * dist, a[1] + bis[1] * dist, angleLabel, 'viz-text-sm'));
+      out.push(text(a[0] + bis[0] * dist, a[1] + bis[1] * dist, angleLabel, 'viz-text-sm viz-halo'));
       boxes.push(boxOf(a[0] + bis[0] * dist, a[1] + bis[1] * dist, angleLabel));
     }
     const vLabel = s.vertices?.[i];

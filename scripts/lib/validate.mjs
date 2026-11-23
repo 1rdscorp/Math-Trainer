@@ -72,6 +72,7 @@ export function checkRich(text, where, errors, warnings) {
   // usually the backslashes) were lost, as happens in a plain template literal nested inside R`…`.
   const stray = outside.match(/\^\{|_\{|\b(?:d?frac|sqrt|overline|text|mathbf)\{/);
   if (stray) errors.push(`${where}: TeX outside \\( \\) ("${stray[0]}"; were backslashes lost in a nested template literal?) → ${text.slice(0, 160)}`);
+  if (outside.includes('{,}')) errors.push(`${where}: "{,}" (a math-mode comma) in plain text; write 1,000 → ${text.slice(0, 160)}`);
   const cmd = outside.match(/\\[a-zA-Z]+/);
   if (cmd) errors.push(`${where}: LaTeX command outside \\( \\) → ${cmd[0]} in: ${text.slice(0, 160)}`);
   if (/\d\.\d{7,}/.test(outside)) errors.push(`${where}: unrounded decimal → ${text.slice(0, 160)}`);
