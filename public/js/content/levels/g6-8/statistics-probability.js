@@ -124,7 +124,7 @@ function easyDotPlot(rng) {
         correct: values.length,
         wrong: [{ value: 6, why: 'That is the number of different values on the number line. Count every dot.' }, sum(values) !== values.length ? { value: sum(values), why: `That adds up the values. Each dot is one of the ${who}, so count the dots.` } : null, values.length + 1, values.length - 1],
         solution: [`Each dot is one of the ${who}, so count all the dots.`, R`Add the stacks: \(${plus(counts.filter((c) => c > 0))} = ${values.length}\).`, `The dot plot shows ${values.length} ${who}.`],
-        rule: 1,
+        rule: 7,
         skill: 'reading a dot plot',
         check: () => (sum(counts) === values.length ? true : 'the stacks do not add up to the number of dots'),
       });
@@ -155,7 +155,7 @@ function easyDotPlot(rng) {
       correct: more,
       wrong: [atLeast !== more ? { value: atLeast, why: `"More than ${k}" does not include ${k} itself.` } : null, { value: values.length - more, why: `That counts the dots at ${k} or less. Count the dots to the right of ${k}.` }, lo + 5 - k !== more ? { value: lo + 5 - k, why: 'That counts the values on the number line. Count the dots above them.' } : null, more + 1, more + 2],
       solution: [`Values that are more than ${k} are to the right of ${k} on the plot.`, `Count the dots above ${Array.from({ length: lo + 5 - k }, (_, i) => k + 1 + i).join(', ')}: ${more} in all.`],
-      rule: 1,
+      rule: 7,
       skill: 'reading a dot plot',
       check: () => (sum(counts.slice(k - lo + 1)) === more ? true : 'the stacks to the right do not add up to the answer'),
     });
@@ -547,6 +547,11 @@ export default {
         title: 'Compound events: count every outcome',
         text: R`When two things happen (a coin and a number cube, two spinners, two draws), list every possible pair in a table, a tree diagram or an organized list. If the first step has \(a\) outcomes and the second has \(b\), there are \(a \times b\) pairs. Then count the favorable pairs.`,
         example: R`A coin and a number cube give \(2 \times 6 = 12\) outcomes. "Heads and an even number" is H2, H4, H6, so its probability is \(\frac{3}{12} = \frac{1}{4}\).`,
+      },
+      {
+        title: 'Reading a dot plot',
+        text: 'Each dot is one value in the data, and the number under a stack is that value. To count how many there are, add up the dots, not the numbers on the line. To answer "how many are more than 3", count only the dots to the right of 3.',
+        example: 'Stacks of 2, 4 and 1 dots above 1, 2 and 3 show 7 values in all. The values more than 1 are the 4 + 1 = 5 dots above 2 and 3.',
       },
     ],
     vocab: [
