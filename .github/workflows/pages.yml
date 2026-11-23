@@ -26,18 +26,33 @@ jobs:
     name: Tests and content validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm test
 
-  publish:
-    name: Publish to GitHub Pages
+  # Two jobs, as in GitHub's own Pages template: the upload is made in one job and deployed in the
+  # next. Deploying in the same job as the upload can fail because the new upload is not listed yet.
+  # Each attempt's upload has its own name, so a re-run cannot find two with the same name.
+  build-site:
+    name: Package the site
     needs: test
     if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: public
+          name: github-pages-${{ github.run_attempt }}
+
+  publish:
+    name: Publish to GitHub Pages
+    needs: build-site
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,10 +62,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
