@@ -56,9 +56,17 @@ export function openSettingsDialog(app) {
     h('div', { class: 'dialog-head' }, h('h2', { id: 'settings-title' }, 'Display settings'), h('button', { type: 'button', class: 'btn btn-ghost btn-small', 'aria-label': 'Close', onclick: close }, '✕')),
     h('div', { class: 'stack-lg' }, groups, h('p', { class: 'small muted' }, 'These settings are remembered on this device.'), h('div', null, h('button', { type: 'button', class: 'btn btn-primary', onclick: close }, 'Done'))),
   );
-  dialog.addEventListener('close', () => {
+  const timingBefore = settings.get('timing');
+  dialog.addEventListener('close', async () => {
     dialog.remove();
-    app.rerender();
+    // Text size and colours are pure styling, so the page stays as it is: a half-answered question
+    // keeps its answer and the scroll position is kept. Only the timer setting changes what the
+    // times-table and memory pages show, so those are redrawn when it changes.
+    const route = location.hash.replace(/^#\/?/, '');
+    if (settings.get('timing') !== timingBefore && /^(times-table|memory)/.test(route)) await app.rerender();
+    else window.dispatchEvent(new Event('resize')); // re-measure wide formulas for the new text size
+    // Give keyboard focus back to the button that opened the dialog.
+    document.getElementById('settings-button')?.focus({ preventScroll: true });
   });
   document.body.append(dialog);
   dialog.showModal();
