@@ -6,7 +6,11 @@ import { M, fit, fromBank } from './_shared.js';
 const F4 = (v) => M(num(v, { fixed: 4 })); // every decimal answer is shown to 4 places
 const r4 = (v) => round(v, 4);
 const d6 = (v) => num(round(v, 6));
-const sub = (n) => `x_{${n}}`;
+const ap = (v) => (Number.isInteger(round(v, 9)) ? `= ${num(round(v, 9))}` : `\\approx ${d6(v)}`); // "= 3" for an exact value, "≈ 0.4597" otherwise
+const sci = (v) => {
+  const e = Math.floor(Math.log10(v));
+  return `${num(round(v / 10 ** e, 2))} \\times 10^{${e}}`;
+};
 
 /** Bisection: a root of g in [a, b] (g(a) and g(b) of opposite signs), to full double precision. */
 function bisect(g, a, b) {
@@ -73,9 +77,11 @@ function polyCase(rng) {
     const a = rng.pick([2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 15, 17, 19, 20, 22, 25, 26, 28, 30, 33, 35, 40, 45, 50, 60, 70, 80, 90, 100]);
     return { coefs: [1, 0, 0, -a], x0: Math.round(Math.cbrt(a)), lo: 0, hi: 5 };
   }
-  const p = rng.int(1, 6);
-  const c = rng.nonzero(-12, 12);
+  let [p, c] = [0, 0];
   const f = (x) => x ** 3 + p * x + c;
+  do {
+    [p, c] = [rng.int(1, 6), rng.nonzero(-12, 12)];
+  } while (Number.isInteger(round(bisect(f, -10, 10), 9))); // an integer root needs no approximating
   const r = bisect(f, -10, 10);
   let x0 = Math.round(r);
   if (f(x0) === 0) x0 += 1;
@@ -187,7 +193,8 @@ const GRAPH_CASES = (() => {
         const t1 = u - (u ** n - a) / (n * u ** (n - 1));
         const dist = Math.abs(t1 - u);
         if (Math.abs(2 * t1 - Math.round(2 * t1)) > 1e-9 || dist < 0.5 || dist > 2.5 || t1 <= 0) continue;
-        if (Math.abs(a ** (1 / n) - t1) < 0.06 || Math.abs(u ** n - a) > 14) continue;
+        const r = a ** (1 / n);
+        if (Math.abs(r - t1) < 0.06 || Math.abs(u ** n - a) > 14 || Math.abs(t1 - r) >= Math.abs(u - r)) continue;
         out.push({ n, a, u, t1 });
       }
     }
@@ -218,7 +225,7 @@ function easyGraph(rng) {
       { value: round(root, 2), why: R`That is roughly where the curve itself crosses the x-axis, the root being searched for. \(x_1\) is where the tangent line crosses.` },
       { value: round(yInt, 2), why: 'That is where the tangent line crosses the y-axis. Newton\'s method uses where it crosses the x-axis.' },
       x0,
-    ], 0.04).map((w) => (typeof w === 'object' ? w : w)),
+    ], 0.04),
     solution: [
       R`Newton's method replaces the curve by its tangent line at \(x_0 = ${x0}\) and follows the line down to the x-axis.`,
       R`The dashed tangent line crosses the x-axis at \(x = ${num(x1)}\).`,
@@ -318,8 +325,8 @@ function mediumEquation(rng) {
     wrong: apart(x1, [slipStep(e.slips[0]), slipStep(e.slips[1]), { value: x0 + fv / dv, why: SIGN_WHY }, x0 - dv / fv]),
     solution: [
       R`Move everything to one side: \(f(x) = ${e.tex}\), so \(f'(x) = ${e.dtex}\).`,
-      R`\(f(${num(x0)}) \approx ${d6(fv)}\) and \(f'(${num(x0)}) \approx ${d6(dv)}\).`,
-      R`\(x_1 = ${num(x0)} - \dfrac{${d6(fv)}}{${d6(dv)}} \approx ${d6(x1)}\), which rounds to \(${num(x1, { fixed: 4 })}\).`,
+      R`\(f(${num(x0)}) ${ap(fv)}\) and \(f'(${num(x0)}) ${ap(dv)}\).`,
+      R`\(x_1 = ${num(x0)} - \dfrac{${d6(fv)}}{${d6(dv)}} ${ap(x1)}\), which rounds to \(${num(x1, { fixed: 4 })}\).`,
     ],
     rule: 2,
     skill: 'Newton step for an equation',
@@ -331,17 +338,15 @@ function mediumEquation(rng) {
 function mediumWord(rng) {
   const who = person(rng);
   if (rng.bool()) {
-    let b;
-    let c;
-    let root;
+    let [b, c, root, x0] = [0, 0, 0, 0];
+    const P = (x) => -(x ** 3) + b * x * x - c;
+    const dP = (x) => -3 * x * x + 2 * b * x;
     do {
       b = rng.int(4, 9);
       c = rng.int(2, 20);
-      root = bisect((x) => -(x ** 3) + b * x * x - c, 0, (2 * b) / 3);
-    } while (-((2 * b) / 3) ** 3 + b * ((2 * b) / 3) ** 2 - c <= 0 || root < 0.6);
-    const P = (x) => -(x ** 3) + b * x * x - c;
-    const dP = (x) => -3 * x * x + 2 * b * x;
-    const x0 = Math.max(1, Math.round(root));
+      root = P((2 * b) / 3) > 0 ? bisect(P, 0, (2 * b) / 3) : 0;
+      x0 = Math.max(1, Math.round(root));
+    } while (root < 0.6 || dP(x0) === 0 || P(x0) === 0);
     const x1 = x0 - P(x0) / dP(x0);
     return q({
       prompt: R`${who}'s bakery has weekly profit \(P(x) = ${poly([-1, b, 0, -c])}\) hundred dollars when it bakes \(x\) hundred loaves. Break-even is the smallest positive \(x\) with \(P(x) = 0\). Starting from \(x_0 = ${x0}\), find the next Newton estimate \(x_1\), rounded to 4 decimal places.`,
@@ -371,7 +376,7 @@ function mediumWord(rng) {
     prompt: R`${who} deposits $${txt(D)} at the start of each year for 3 years. At the end of the third year the account holds $${txt(B)}. The growth factor \(x = 1 + r\) satisfies \(x^{3} + x^{2} + x = ${num(k)}\). Starting from \(x_0 = 1.05\) (a 5% guess), find \(x_1\), rounded to 4 decimal places.`,
     correct: r4(x1),
     fmt: F4,
-    wrong: apart(x1, [{ value: x0 + f(x0) / df(x0), why: SIGN_WHY }, { value: x0 - f(x0) / (3 * x0 * x0), why: R`Differentiate every term: \(f'(x) = 3x^{2} + 2x + 1\).` }, { value: x0 - df(x0) / f(x0), why: FLIP_WHY }]),
+    wrong: apart(x1, [{ value: x0 + f(x0) / df(x0), why: SIGN_WHY }, { value: x0 - f(x0) / (3 * x0 * x0), why: R`Differentiate every term: \(f'(x) = 3x^{2} + 2x + 1\).` }, { value: x0 - f(x0), why: R`Divide the value \(f(x_0)\) by the slope \(f'(x_0)\) before subtracting.` }]),
     solution: [
       R`Write \(f(x) = x^{3} + x^{2} + x - ${num(k)}\), so \(f'(x) = 3x^{2} + 2x + 1\).`,
       R`\(f(1.05) \approx ${d6(f(x0))}\) and \(f'(1.05) = ${d6(df(x0))}\).`,
@@ -396,37 +401,36 @@ const OUTCOMES = {
 
 // Situations, each with the function as TeX and JS, its derivative, its roots, and a start.
 const SITUATIONS = [
-  (rng) => { const c = rng.pick([-1, 1, 3, -3]); const x0 = rng.pick([1, -1]); return { tex: poly([1, 0, -3, c]), f: (x) => x ** 3 - 3 * x + c, df: (x) => 3 * x * x - 3, x0 }; },
-  (rng) => { const a = rng.pick([1, 2, 3]); return { tex: poly([1, 0, -2 * a, 0]).replace(/ \+ 0$/, ''), f: (x) => x * x - 2 * a * x + a * a - 1, df: (x) => 2 * x - 2 * a, x0: a, texOverride: poly([1, -2 * a, a * a - 1]) }; },
+  (rng) => { const c = rng.pick([-1, 1, 3, -3]); const x0 = rng.pick([1, -1]); return { tex: poly([1, 0, -3, c]), f: (x) => x ** 3 - 3 * x + c, df: (x) => 3 * x * x - 3, x0, roots: [] }; },
+  (rng) => { const a = rng.pick([1, 2, 3]); return { tex: poly([1, -2 * a, a * a - 1]), f: (x) => x * x - 2 * a * x + a * a - 1, df: (x) => 2 * x - 2 * a, x0: a, roots: [a - 1, a + 1] }; },
   (rng) => ({ tex: R`\sqrt[3]{x}`, f: Math.cbrt, df: (x) => 1 / (3 * Math.cbrt(x) ** 2), x0: rng.pick([1, 2, -1, 0.5, 3]), roots: [0] }),
   (rng) => ({ tex: R`\arctan x`, f: Math.atan, df: (x) => 1 / (1 + x * x), x0: rng.pick([1.5, 2, 3, -1.5, -2]), roots: [0] }),
   (rng) => ({ tex: R`xe^{-x}`, f: (x) => x * Math.exp(-x), df: (x) => (1 - x) * Math.exp(-x), x0: rng.pick([2, 3, 4]), roots: [0] }),
-  (rng) => { const c = rng.pick([1, 2]); return { tex: poly([1, 0, -5 * c * c, 0]).replace(/ \+ 0$/, ''), f: (x) => x ** 3 - 5 * c * c * x, df: (x) => 3 * x * x - 5 * c * c, x0: rng.pick([c, -c]) }; },
-  () => ({ tex: poly([1, 0, -2, 2]), f: (x) => x ** 3 - 2 * x + 2, df: (x) => 3 * x * x - 2, x0: 0 }),
+  (rng) => { const c = rng.pick([1, 2]); return { tex: poly([1, 0, -5 * c * c, 0]), f: (x) => x ** 3 - 5 * c * c * x, df: (x) => 3 * x * x - 5 * c * c, x0: rng.pick([c, -c]), roots: [-Math.sqrt(5) * c, 0, Math.sqrt(5) * c] }; },
+  () => ({ tex: poly([1, 0, -2, 2]), f: (x) => x ** 3 - 2 * x + 2, df: (x) => 3 * x * x - 2, x0: 0, roots: [bisect((x) => x ** 3 - 2 * x + 2, -3, -1)] }),
   (rng) => ({ tex: poly([1, 0, -1, 0]), f: (x) => x ** 3 - x, df: (x) => 3 * x * x - 1, x0: rng.pick([0.5, -0.5, 0.55, -0.55]), roots: [-1, 0, 1] }),
   (rng) => ({ tex: R`\sin x`, f: Math.sin, df: Math.cos, x0: rng.pick([1.2, 1.4, 1.8]), roots: [-Math.PI, 0, Math.PI, 2 * Math.PI] }),
   (rng) => { const a = rng.pick([2, 3, 5, 7, 10]); const x0 = rng.pick([1, 2, 3]); return { tex: `x^{2} - ${a}`, f: (x) => x * x - a, df: (x) => 2 * x, x0, roots: [-Math.sqrt(a), Math.sqrt(a)] }; },
 ];
 
-/** Classify what Newton's method does from x0, by running it (with a numerical derivative, a second route). */
-function classify(s) {
-  if (Math.abs(numDeriv(s.f, s.x0)) < 1e-9) return 'flat';
-  const xs = newton(s.f, (x) => numDeriv(s.f, x, 1e-7), s.x0, 40);
+/** Classify what Newton's method does from x0 by running it with the derivative df. */
+function classify(s, df) {
+  if (Math.abs(df(s.x0)) < 1e-6) return 'flat';
+  const xs = newton(s.f, df, s.x0, 40);
   if (xs.fail) return 'diverge';
-  if (Math.abs(xs[2] - xs[0]) < 1e-9 && Math.abs(xs[1] - xs[0]) > 0.1) return 'cycle';
+  if (Math.abs(xs[2] - xs[0]) < 1e-6 && Math.abs(xs[1] - xs[0]) > 0.1) return 'cycle';
   const end = xs[xs.length - 1];
-  if (Math.abs(end) > 50 || Math.abs(s.f(end)) > 1e-8) return 'diverge';
-  const roots = s.roots ?? [bisect(s.f, end - 0.01, end + 0.01)];
-  const nearest = roots.reduce((b, r) => (Math.abs(r - s.x0) < Math.abs(b - s.x0) ? r : b), roots[0]);
+  if (!s.roots.some((r) => Math.abs(end - r) < 1e-6)) return 'diverge';
+  const nearest = s.roots.reduce((b, r) => (Math.abs(r - s.x0) < Math.abs(b - s.x0) ? r : b), s.roots[0]);
   return Math.abs(end - nearest) < 1e-6 ? 'good' : 'other';
 }
 
 function hardFailure(rng) {
   const s = rng.pick(SITUATIONS)(rng);
-  const kind = classify(s);
-  const tex = s.texOverride ?? s.tex;
+  const kind = classify(s, s.df);
+  const tex = s.tex;
   const xs = newton(s.f, s.df, s.x0, 3);
-  const shown = xs.slice(1).map((x, i) => R`\(x_{${i + 1}} \approx ${num(round(x, 4))}\)`).join(', ');
+  const shown = xs.slice(1).map((x, i) => R`\(x_{${i + 1}} ${Number.isInteger(round(x, 9)) ? '=' : '\\approx'} ${num(round(x, 4))}\)`).join(', ');
   const others = Object.keys(OUTCOMES).filter((k) => k !== kind);
   const pickW = rng.shuffle(others).slice(0, 3);
   return q({
@@ -446,7 +450,8 @@ function hardFailure(rng) {
     ],
     rule: 3,
     skill: 'when Newton\'s method fails',
-    check: () => (kind === classify({ ...s, df: (x) => numDeriv(s.f, x) }) && (kind === 'flat' || !checkIterates(s.f, xs.slice(0, 2), 1e-5).length) ? true : 'classification is not stable'),
+    // The same outcome with a numerical derivative, and the first step confirmed by the tangent line.
+    check: () => checkAll(kind === classify(s, (x) => numDeriv(s.f, x)) ? true : 'classification is not stable', kind === 'flat' ? true : checkIterates(s.f, xs.slice(0, 2), 1e-5)),
   });
 }
 
@@ -459,26 +464,30 @@ const ROOT_EQ = [
 ];
 
 function hardRoot(rng) {
-  const e = rng.pick(ROOT_EQ)(rng);
-  const root = bisect(e.f, -1, 8);
+  let [e, root] = [null, 0];
+  do {
+    e = rng.pick(ROOT_EQ)(rng);
+    root = bisect(e.f, -1, 8);
+  } while (Math.abs(root - r4(root)) > 4.5e-5); // not on the edge of a rounding
   const a = Math.floor(root);
   const x0 = a + 1;
   const xs = newton(e.f, e.df, x0, 8);
   let n = 1;
   while (n < xs.length - 1 && r4(xs[n]) !== r4(xs[n - 1])) n++;
-  const slipRoot = e.slip ? newton(e.slip, e.sdf, x0, 30) : null;
+  const slipRun = e.slip ? newton(e.slip, e.sdf, x0, 40) : null;
+  const slipRoot = slipRun && !slipRun.fail && Math.abs(e.slip(slipRun[slipRun.length - 1])) < 1e-9 ? slipRun[slipRun.length - 1] : null;
   return q({
     prompt: R`The equation \(${e.eq}\)${e.radians ? ' (x in radians)' : ''} has exactly one solution, and it lies between \(${a}\) and \(${a + 1}\). Use Newton's method to find it to 4 decimal places.`,
     correct: r4(root),
     fmt: F4,
     wrong: apart(root, [
       { value: xs[1], why: R`That is only \(x_1\). Keep going until two iterates agree to 4 decimal places.` },
-      slipRoot && !slipRoot.fail ? { value: slipRoot[slipRoot.length - 1], why: R`That solves a different equation. Move every term to one side: \(f(x) = ${e.ftex}\).` } : null,
+      slipRoot != null ? { value: slipRoot, why: R`That solves a different equation. Move every term to one side: \(f(x) = ${e.ftex}\).` } : null,
       { value: a + 0.5, why: 'That is the midpoint of the interval, one step of bisection, not the solution.' },
       xs[2],
     ]),
     solution: [
-      R`Let \(f(x) = ${e.ftex}\), so \(f'(x) = ${e.dtex}\). Start at \(x_0 = ${x0}\) (either end of the interval works here).`,
+      R`Let \(f(x) = ${e.ftex}\), so \(f'(x) = ${e.dtex}\). Start at the right end, \(x_0 = ${x0}\).`,
       R`Iterates: ${xs.slice(1, n + 1).map((x, i) => R`\(x_{${i + 1}} \approx ${num(x, { fixed: 6 })}\)`).join(', ')}.`,
       R`\(x_{${n - 1}}\) and \(x_{${n}}\) agree to 4 decimal places, so the solution is \(x \approx ${num(root, { fixed: 4 })}\).`,
     ],
@@ -510,7 +519,7 @@ function hardWord(rng) {
       ]),
       solution: [
         R`\(f(h) = h^{3} - ${3 * Rr}h^{2} + ${num(c)}\) and \(f'(h) = 3h^{2} - ${6 * Rr}h\).`,
-        R`\(h_1 = ${Rr} - \dfrac{f(${Rr})}{f'(${Rr})} = ${Rr} - \dfrac{${num(f(Rr))}}{${num(df(Rr))}} \approx ${d6(xs[1])}\).`,
+        R`\(h_1 = ${Rr} - \dfrac{f(${Rr})}{f'(${Rr})} = ${Rr} - \dfrac{${num(f(Rr))}}{${num(df(Rr))}} ${ap(xs[1])}\).`,
         R`\(h_2 = h_1 - \dfrac{f(h_1)}{f'(h_1)} \approx ${d6(xs[1])} - \dfrac{${d6(f(xs[1]))}}{${d6(df(xs[1]))}} \approx ${num(xs[2], { fixed: 4 })}\).`,
         R`The ball floats with about ${txt(round(xs[2], 2))} cm under water${s < 0.5 ? ', less than its radius, as a light wood should' : ', more than its radius, as a dense wood should'}.`,
       ],
@@ -542,7 +551,7 @@ function hardWord(rng) {
     ]),
     solution: [
       R`\(f(x) = ${lhs} - ${num(k)}\) and \(f'(x) = ${dl}\).`,
-      R`\(x_1 = 1 - \dfrac{f(1)}{f'(1)} = 1 - \dfrac{${num(round(f(1), 6))}}{${df(1)}} \approx ${d6(xs[1])}\).`,
+      R`\(x_1 = 1 - \dfrac{f(1)}{f'(1)} = 1 - \dfrac{${num(round(f(1), 6))}}{${df(1)}} ${ap(xs[1])}\).`,
       R`\(x_2 = x_1 - \dfrac{f(x_1)}{f'(x_1)} \approx ${num(xs[2], { fixed: 4 })}\): an interest rate of about \(${num(round(100 * (xs[2] - 1), 2))}\%\).`,
     ],
     rule: 2,
@@ -564,7 +573,7 @@ function challengeCompare(rng) {
     return q({
       prompt: R`The bisection method starts with an interval of length \(${num(L)}\) on which \(f\) changes sign, and halves it at each step. How many steps are needed before the interval is shorter than \(10^{-${k}}\)? (Newton's method from a good start usually needs only 3 or 4 steps for this accuracy.)`,
       correct: n,
-      wrong: [{ value: n - 1, why: R`After \(${n - 1}\) steps the length is \(${num(L)}/2^{${n - 1}} \approx ${num(round(L / 2 ** (n - 1), 7))}\), which is not yet below \(10^{-${k}}\).` }, { value: k, why: 'Each halving gains less than one decimal digit: it takes more than 3 halvings to divide by 10.' }, n + 2, 2 * k],
+      wrong: [{ value: n - 1, why: R`After \(${n - 1}\) steps the length is \(${num(L)}/2^{${n - 1}} \approx ${sci(L / 2 ** (n - 1))}\), which is not yet below \(10^{-${k}}\).` }, { value: k, why: 'Each halving gains less than one decimal digit: it takes more than 3 halvings to divide by 10.' }, n + 2, 2 * k],
       solution: [R`After \(n\) steps the interval has length \(\dfrac{${num(L)}}{2^{n}}\). Solve \(\dfrac{${num(L)}}{2^{n}} < 10^{-${k}}\).`, R`\(2^{n} > ${num(L)} \times 10^{${k}}\), so \(n > \log_2(${num(L * 10 ** k)}) \approx ${num(round(Math.log2(L * 10 ** k), 3))}\).`, R`The smallest whole number is \(n = ${n}\).`],
       rule: 5,
       skill: 'Newton versus bisection',
@@ -572,19 +581,22 @@ function challengeCompare(rng) {
     });
   }
   if (kind === 'bracket') {
-    const [p, c] = [rng.int(1, 5), rng.int(3, 40)];
+    let [p, c, a, steps] = [0, 0, 0, []];
     const f = (x) => x ** 3 + p * x - c;
-    const a = Math.floor(bisect(f, -1, 5));
-    const steps = [[a, a + 1]];
-    for (let i = 0; i < 3; i++) {
-      const [lo, hi] = steps[i];
-      const mid = (lo + hi) / 2;
-      steps.push(Math.sign(f(mid)) === Math.sign(f(lo)) ? [mid, hi] : [lo, mid]);
-    }
+    do {
+      [p, c] = [rng.int(1, 5), rng.int(3, 40)];
+      a = Math.floor(bisect(f, -1, 5));
+      steps = [[a, a + 1]];
+      for (let i = 0; i < 3; i++) {
+        const [lo, hi] = steps[i];
+        const mid = (lo + hi) / 2;
+        steps.push(Math.sign(f(mid)) === Math.sign(f(lo)) ? [mid, hi] : [lo, mid]);
+      }
+    } while (steps.some(([lo, hi]) => f(lo) === 0 || f(hi) === 0));
     const iv = ([lo, hi]) => M(`[${num(lo)}, ${num(hi)}]`);
     const [lo3, hi3] = steps[3];
     const w = 0.125;
-    const cand = [[lo3 - w, lo3], [hi3, hi3 + w], [lo3 - 2 * w, lo3 - w], [hi3 + w, hi3 + 2 * w]].filter(([l, h]) => l >= a && h <= a + 1);
+    const cand = [1, 2, 3].flatMap((k) => [[lo3 - k * w, lo3 - (k - 1) * w], [hi3 + (k - 1) * w, hi3 + k * w]]).filter(([l, h]) => l >= a && h <= a + 1);
     return q({
       prompt: R`\(f(x) = ${poly([1, 0, p, -c])}\) changes sign on \([${a}, ${a + 1}]\). Apply three steps of the bisection method. Which interval contains the root after the third step?`,
       correct: iv(steps[3]),
@@ -637,14 +649,15 @@ function challengeStart(rng) {
     if (xs.fail) return 'flat';
     const end = xs[xs.length - 1];
     const i = roots.findIndex((r) => Math.abs(r - end) < 1e-8);
-    return i;
+    return i < 0 ? 'none' : i;
   };
-  const good = grid.filter((x0) => where(x0) === ti && Math.abs(x0 - target) <= 1.6 * s);
+  const near = grid.filter((x0) => where(x0) === ti && Math.abs(x0 - target) <= 1.6 * s);
+  const good = near.length ? near : grid.filter((x0) => where(x0) === ti);
   const right = rng.pick(good);
   const flat = rng.pick([s, -s]);
   const bad = grid.filter((x0) => x0 !== flat && where(x0) !== ti && where(x0) !== 'flat');
   const others = [flat, ...rng.shuffle(bad).slice(0, 2)];
-  const describe = (x0) => (where(x0) === 'flat' ? R`\(f'(${num(x0)}) = 0\): the tangent line is horizontal` : R`from \(${num(x0)}\) the method converges to the root near \(${num(round(roots[where(x0)], 2))}\)`);
+  const describe = (x0) => (where(x0) === 'flat' ? R`\(f'(${num(x0)}) = 0\): the tangent line is horizontal` : where(x0) === 'none' ? R`from \(${num(x0)}\) the iterates do not settle on a root` : R`from \(${num(x0)}\) the method converges to the root near \(${num(round(roots[where(x0)], 2))}\)`);
   const fx = (v) => M(`x_0 = ${num(v)}`);
   const tex = poly([1, 0, -3 * s * s, c]);
   return q({
@@ -660,8 +673,8 @@ function challengeStart(rng) {
     skill: 'choosing a starting value',
     visual: {
       type: 'plot',
-      ...fit(f, -3 * s, 3 * s, { cap: [-12 * s ** 3, 12 * s ** 3] }),
-      step: [s === 1 ? 0.5 : 1, s === 1 ? 1 : 5],
+      ...fit(f, -3 * s, 3 * s, { cap: [-8 * s ** 3, 8 * s ** 3] }),
+      step: [s === 1 ? 0.5 : 1, s === 1 ? 2 : 16],
       fns: [{ f }],
       points: roots.map((r) => ({ x: r, y: 0, open: true })),
       alt: `Graph of y = ${tex.replace(/\^\{3\}/g, '³').replace(/\{|\}/g, '')}, a cubic that rises, turns at x = −${s} and x = ${s}, and crosses the x-axis at about ${roots.map((r) => txt(round(r, 2))).join(', ')}.`,
@@ -685,7 +698,7 @@ function challengeBackwards(rng) {
     return q({
       prompt: R`One step of Newton's method from \(x_0 = ${x0}\) gives \(x_1 = ${num(x1)}\). If \(f(${x0}) = ${num(fv)}\), what is \(f'(${x0})\)?`,
       correct: m,
-      wrong: [{ value: -m, why: R`From \(x_1 = x_0 - \dfrac{f(x_0)}{f'(x_0)}\): \(f'(x_0) = \dfrac{f(x_0)}{x_0 - x_1}\). Keep the order \(x_0 - x_1\).` }, { value: round(step / fv, 4), why: 'That is the reciprocal of the slope.' }, round(fv * step, 4), m + 1],
+      wrong: [{ value: -m, why: R`From \(x_1 = x_0 - \dfrac{f(x_0)}{f'(x_0)}\): \(f'(x_0) = \dfrac{f(x_0)}{x_0 - x_1}\). Keep the order \(x_0 - x_1\).` }, { value: round(-step / fv, 4), why: R`That fraction is upside down: \(f'(x_0) = \dfrac{f(x_0)}{x_0 - x_1}\).` }, round(fv * step, 4), m + 1],
       solution: [R`Rearrange \(x_1 = x_0 - \dfrac{f(x_0)}{f'(x_0)}\): \(f'(x_0) = \dfrac{f(x_0)}{x_0 - x_1}\).`, R`\(f'(${x0}) = \dfrac{${num(fv)}}{${x0} - ${x1 < 0 ? `(${num(x1)})` : num(x1)}} = \dfrac{${num(fv)}}{${num(-step)}} = ${m}\).`],
       rule: 0,
       skill: 'working backwards',
@@ -696,7 +709,7 @@ function challengeBackwards(rng) {
   return q({
     prompt: R`The tangent line to the graph of \(f\) at \(x = ${x0}\) is \(y = ${terms([[m, 'x'], [b, '']])}\). Newton's method starts at \(x_0 = ${x0}\). What is \(x_1\)?`,
     correct: x1,
-    wrong: [{ value: round(b, 4), why: 'That is where the tangent line crosses the y-axis. Newton\'s method uses where it crosses the x-axis.' }, { value: 2 * x0 - x1, why: SIGN_WHY }, { value: round(-m / b, 4) === x1 ? null : round(-m / b, 4) }, x0 + 2 * step],
+    wrong: [{ value: round(b, 4), why: 'That is where the tangent line crosses the y-axis. Newton\'s method uses where it crosses the x-axis.' }, { value: 2 * x0 - x1, why: SIGN_WHY }, { value: fv, why: R`That is \(f(${x0})\), the height of the point of tangency.` }, x0 + 2 * step],
     solution: [R`\(x_1\) is where the tangent line crosses the x-axis: set \(${terms([[m, 'x'], [b, '']])} = 0\).`, R`\(x = \dfrac{${num(-b)}}{${m}} = ${num(x1)}\).`],
     rule: 0,
     skill: 'working backwards',
@@ -856,9 +869,9 @@ export default {
         if (xs.fail === 'flat') return { error: `The tangent line at x${'₀₁₂₃₄₅₆'[xs.length - 1]} is horizontal, so the method stops there. Try a starting value closer to the root.` };
         if (xs.fail) return { error: 'The iterates run off to very large numbers from this start. Choose a starting value closer to the root.' };
         const steps = [R`\(f(x) = ${F.tex}\) and \(f'(x) = ${F.dtex}\). Formula: \(x_{n+1} = x_n - \dfrac{f(x_n)}{f'(x_n)}\).`];
-        for (let i = 1; i < xs.length; i++) steps.push(R`\(x_{${i}} = ${d6(xs[i - 1])} - \dfrac{${d6(F.f(xs[i - 1]))}}{${d6(F.df(xs[i - 1]))}} \approx ${d6(xs[i])}\)`);
+        for (let i = 1; i < xs.length; i++) steps.push(R`\(x_{${i}} = ${d6(xs[i - 1])} - \dfrac{${d6(F.f(xs[i - 1]))}}{${d6(F.df(xs[i - 1]))}} ${ap(xs[i])}\)`);
         const last = xs[xs.length - 1];
-        const err = Math.abs(last - F.root);
+        const err = Math.abs(last - (fn === 'sq' && last < 0 ? -F.root : F.root));
         return {
           problem: R`Approximate ${F.what} with Newton's method from \(x_0 = ${num(x0)}\).`,
           steps,
@@ -892,11 +905,13 @@ export default {
         const x = xs[xs.length - 1];
         const shown = xs.slice(1, 5);
         const who = 'Rosa';
+        const lhs = years <= 4 ? Array.from({ length: years }, (_, i) => power1(i + 1)).join(' + ') : `x + x^{2} + \\cdots + x^{${years}}`;
+        const dl = years <= 4 ? Array.from({ length: years }, (_, i) => (i === 0 ? '1' : `${i + 1}${power1(i)}`)).join(' + ') : `1 + 2x + \\cdots + ${years}x^{${years - 1}}`;
         return {
           problem: `${who} deposits $${txt(D)} at the start of each year for ${years} years and ends with $${txt(B)}. What yearly interest rate did the account earn?`,
           steps: [
-            R`Each deposit grows by the factor \(x = 1 + r\) each year, so \(${D}(x + x^{2} + \cdots + x^{${years}}) = ${B}\).`,
-            R`Divide by ${txt(D)} and set up \(f(x) = x + x^{2} + \cdots + x^{${years}} - ${num(round(k, 6))}\), with \(f'(x) = 1 + 2x + \cdots + ${years}x^{${years - 1}}\).`,
+            R`Each deposit grows by the factor \(x = 1 + r\) each year, so \(${num(D)}(${lhs}) = ${num(B)}\).`,
+            R`Divide by ${txt(D)} and set up \(f(x) = ${lhs} - ${num(round(k, 6))}\), with \(f'(x) = ${dl}\).`,
             R`Start at \(x_0 = 1.05\) (a 5% guess). Iterates: ${shown.map((v, i) => R`\(x_{${i + 1}} \approx ${num(v, { fixed: 6 })}\)`).join(', ')}.`,
             R`The iterates settle at \(x \approx ${num(x, { fixed: 6 })}\), so \(r \approx ${num(round(100 * (x - 1), 3))}\%\).`,
           ],
