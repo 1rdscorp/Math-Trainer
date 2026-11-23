@@ -1,5 +1,5 @@
 import { R, q, num, linear, signed, isPrime, person, people, frac } from '../../lib/index.js';
-import { dist, angleAt, angleMark, labelAt, rightMark, tickMark } from './_shared.js';
+import { dist, angleAt, angleMark, labelAt, tickMark } from './_shared.js';
 
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
@@ -771,7 +771,7 @@ function parallelProof(rng) {
   const [n3, n4] = nbOf(o2);
   const diff = (a, b) => () => sameClass(a, b);
   return {
-    given: R`\(\angle ${o1} \cong \angle ${o2}\)`,
+    given: R`line \(m\) (top) and line \(n\) (bottom) are cut by a transversal, and \(\angle ${o1} \cong \angle ${o2}\)`,
     prove: R`\(m \parallel n\)`,
     visual: { type: 'transversal', parallelMarks: false, labels: { 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8' }, alt: `Line m on top and line n below, cut by a transversal; they are not marked parallel. Angles 1 to 4 are at the top crossing: 1 upper left, 2 upper right, 3 lower left, 4 lower right. Angles 5 to 8 are at the bottom crossing in the same pattern. Angles ${o1} and ${o2} are ${kind} angles.` },
     steps: [
@@ -797,7 +797,7 @@ function sumProof() {
   return {
     given: R`\(\triangle ABC\), with line \(\ell\) through \(B\) parallel to \(\overline{AC}\)`,
     prove: R`\(m\angle A + m\angle 2 + m\angle C = 180^\circ\)`,
-    visual: { type: 'polygon', points: [TA, TC, TB], vertices: ['A', 'C', 'B'], extra: [{ from: LL, to: LR, dashed: false, label: 'ℓ' }, ...angleMark(LL, TB, TA, 0.9, '1'), ...angleMark(TA, TB, TC, 1.1, '2'), ...angleMark(TC, TB, LR, 0.9, '3')], alt: 'Triangle ABC with A at the bottom left, C at the bottom right and B at the top. Line ℓ passes through B parallel to AC. At B, angle 1 is between ℓ and BA, angle 2 is the angle of the triangle, and angle 3 is between BC and ℓ.' },
+    visual: { type: 'polygon', points: [TA, TC, TB], vertices: ['A', 'C', 'B'], extra: [{ from: LL, to: TB, dashed: false }, { from: TB, to: LR, dashed: false }, { from: [8.5, 4], to: LR, dashed: false, label: 'ℓ' }, ...angleMark(LL, TB, TA, 0.9, '1'), ...angleMark(TA, TB, TC, 1.1, '2'), ...angleMark(TC, TB, LR, 0.9, '3')], alt: 'Triangle ABC with A at the bottom left, C at the bottom right and B at the top. Line ℓ passes through B parallel to AC. At B, angle 1 is between ℓ and BA, angle 2 is the angle of the triangle, and angle 3 is between BC and ℓ.' },
     steps: [
       { st: R`\(\ell \parallel \overline{AC}\)`, why: T.given },
       { st: R`\(m\angle 1 + m\angle 2 + m\angle 3 = 180^\circ\)`, why: T.straight, wr: [T.vert, T.alt, T.comp], ws: [[R`\(m\angle 1 + m\angle 2 + m\angle 3 = 360^\circ\)`, () => near(a1 + a2 + a3, 360)], [R`\(m\angle 1 + m\angle 3 = 180^\circ\)`, () => near(a1 + a3, 180)], [R`\(m\angle 1 + m\angle 2 + m\angle 3 = 90^\circ\)`, () => near(a1 + a2 + a3, 90)]], ok: () => near(a1 + a2 + a3, 180) },
@@ -819,7 +819,7 @@ function exteriorProof() {
   return {
     given: R`\(\triangle ABC\), with \(\overline{BC}\) extended to \(D\)`,
     prove: R`\(m\angle ACD = m\angle A + m\angle B\)`,
-    visual: { type: 'polygon', points: [EB, EC, EA], vertices: ['B', '', 'A'], extra: [{ from: EC, to: ED, dashed: false }, labelAt(EC, EB, 'C', 'right'), labelAt(ED, EC, 'D', 'left'), ...angleMark(ED, EC, EA, 0.8)], alt: 'Triangle ABC with B at the bottom left, C at the bottom right and A at the top. Side BC is extended to the right past C to point D. The exterior angle ACD is marked.' },
+    visual: { type: 'polygon', points: [EB, EC, EA], vertices: ['B', '', 'A'], extra: [{ from: EC, to: ED, dashed: false }, labelAt(EC, EB, 'C', 'left'), labelAt(ED, EC, 'D', 'left'), ...angleMark(ED, EC, EA, 0.8)], alt: 'Triangle ABC with B at the bottom left, C at the bottom right and A at the top. Side BC is extended to the right past C to point D. The exterior angle ACD is marked.' },
     steps: [
       { st: R`\(m\angle A + m\angle B + m\angle ACB = 180^\circ\)`, why: T.sum, wr: [T.lin, T.vert, T.alt], ws: [[R`\(m\angle A + m\angle B + m\angle ACB = 360^\circ\)`, () => near(A + B + ACB, 360)], [R`\(m\angle A + m\angle B = 180^\circ\)`, () => near(A + B, 180)], [R`\(m\angle A + m\angle B + m\angle ACD = 180^\circ\)`, () => near(A + B + ACD, 180)]], ok: () => near(A + B + ACB, 180) },
       { st: R`\(m\angle ACB + m\angle ACD = 180^\circ\)`, why: T.lin, wr: [T.sum, T.vert, T.comp], ws: [[R`\(m\angle ACB = m\angle ACD\)`, () => near(ACB, ACD)], [R`\(m\angle ACB + m\angle ACD = 90^\circ\)`, () => near(ACB + ACD, 90)], [R`\(m\angle A + m\angle ACD = 180^\circ\)`, () => near(A + ACD, 180)]], ok: () => near(ACB + ACD, 180) },

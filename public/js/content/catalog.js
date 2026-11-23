@@ -618,6 +618,17 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "reasoning-proof",
+      "title": "Reasoning & Proof",
+      "summary": "Work with conditional statements, reason deductively, and justify each step of a two-column proof.",
+      "grade": null,
+      "standards": [
+        "CCSS G-CO.C.9",
+        "CCSS G-CO.C.10",
+        "CCSS G-CO.C.11"
+      ]
+    },
+    {
       "id": "transformations",
       "title": "Transformations",
       "summary": "Translate, reflect, rotate and dilate figures on the coordinate plane, combine moves, and describe symmetry.",
