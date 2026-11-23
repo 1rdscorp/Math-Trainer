@@ -419,7 +419,7 @@ function challengeFlagpole(rng) {
         points: [[0, 0], [d, 0], [d, r3(top)]],
         right: [1],
         sides: [`${d}`, '', ''],
-        extra: [{ from: [0, 0], to: [d, r3(roof)], dashed: false }, ...arcMark([0, 0], 0, a, 0.3 * d, degT(a)), ...arcMark([0, 0], 0, b, 0.45 * d, degT(b))],
+        extra: [{ from: [0, 0], to: [d, r3(roof)], dashed: false }, ...arcMark([0, 0], 0, a, 0.24 * d, degT(a)), ...arcMark([0, 0], 0, b, 0.56 * d, degT(b))],
         alt: `A right triangle with a horizontal base of ${d} m. The upright side on the right is the building with the flagpole on top. From the left end of the base, one line of sight rises at ${a} degrees to the top of the building, and a steeper one rises at ${b} degrees to the top of the flagpole.`,
       },
       correct: ans,

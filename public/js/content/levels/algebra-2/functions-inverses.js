@@ -233,7 +233,7 @@ function mediumWordCompose(rng) {
     const right = couponFirst ? k * (price - c) : k * price - c;
     const other = couponFirst ? k * price - c : k * (price - c);
     return q({
-      prompt: `A store takes $${c} off with a coupon, modelled by f(x) = x − ${c}, and has a ${p}%-off sale, modelled by g(x) = ${num(k)}x. ${couponFirst ? 'The coupon is applied first and then the sale discount' : 'The sale discount is applied first and then the coupon'}. What is the final price of an item marked $${price}?`,
+      prompt: `A store takes $${c} off with a coupon, modelled by \\(f(x) = x - ${c}\\), and has a ${p}% off sale, modelled by \\(g(x) = ${num(k)}x\\). ${couponFirst ? 'The coupon is applied first and then the sale discount' : 'The sale discount is applied first and then the coupon'}. What is the final price of an item marked $${price}?`,
       correct: right,
       fmt: money,
       wrong: [

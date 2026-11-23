@@ -618,6 +618,17 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "reasoning-proof",
+      "title": "Reasoning & Proof",
+      "summary": "Work with conditional statements, reason deductively, and justify each step of a two-column proof.",
+      "grade": null,
+      "standards": [
+        "CCSS G-CO.C.9",
+        "CCSS G-CO.C.10",
+        "CCSS G-CO.C.11"
+      ]
+    },
+    {
       "id": "transformations",
       "title": "Transformations",
       "summary": "Translate, reflect, rotate and dilate figures on the coordinate plane, combine moves, and describe symmetry.",
@@ -639,6 +650,18 @@ export const CATALOG = {
         "CCSS G-CO.B.7",
         "CCSS G-CO.B.8",
         "CCSS G-CO.C.10"
+      ]
+    },
+    {
+      "id": "constructions",
+      "title": "Constructions",
+      "summary": "Copy, bisect and build figures with a compass and straightedge, and explain why each construction works.",
+      "grade": null,
+      "standards": [
+        "CCSS G-CO.D.12",
+        "CCSS G-CO.D.13",
+        "CCSS G-C.A.3",
+        "CCSS G-C.A.4"
       ]
     },
     {
@@ -748,6 +771,17 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "nonlinear-systems",
+      "title": "Nonlinear Systems & Solving by Graphing",
+      "summary": "Solve systems with lines, parabolas and circles, read solutions of f(x) = g(x) from graphs and tables, and judge them in context.",
+      "grade": null,
+      "standards": [
+        "CCSS A-REI.C.7",
+        "CCSS A-REI.D.11",
+        "CCSS A-CED.A.3"
+      ]
+    },
+    {
       "id": "rational-expressions",
       "title": "Rational Expressions & Equations",
       "summary": "Simplify, multiply, divide, add and subtract algebraic fractions, and solve equations that contain them.",
@@ -838,6 +872,36 @@ export const CATALOG = {
         "CCSS S-CP.B.7",
         "CCSS S-CP.B.9",
         "CCSS S-ID.A.4"
+      ]
+    },
+    {
+      "id": "expected-value",
+      "title": "Expected Value & Probability Decisions",
+      "summary": "Build probability distributions, find expected values from theory and data, and use them to judge games and make decisions.",
+      "grade": null,
+      "standards": [
+        "CCSS S-CP.B.8",
+        "CCSS S-MD.A.1",
+        "CCSS S-MD.A.2",
+        "CCSS S-MD.A.3",
+        "CCSS S-MD.A.4",
+        "CCSS S-MD.B.5",
+        "CCSS S-MD.B.6",
+        "CCSS S-MD.B.7"
+      ]
+    },
+    {
+      "id": "statistical-inference",
+      "title": "Samples, Studies & Inference",
+      "summary": "Choose fair samples, tell experiments from observational studies, use a margin of error, and judge results with a simulation.",
+      "grade": null,
+      "standards": [
+        "CCSS S-IC.A.1",
+        "CCSS S-IC.A.2",
+        "CCSS S-IC.B.3",
+        "CCSS S-IC.B.4",
+        "CCSS S-IC.B.5",
+        "CCSS S-IC.B.6"
       ]
     }
   ],

@@ -199,7 +199,8 @@ function mediumDiagonal(rng) {
   const [w, h] = rng.pick(RECTANGLES);
   const sum = w * w + h * h;
   const s = simplifySqrt(sum);
-  const [thing, unit] = rng.pick([['A rectangular gate', 'ft'], ['A rectangular garden', 'm'], ['A rectangular tabletop', 'ft'], ['A rectangular sports field', 'm'], ['A rectangular picture frame', 'cm']]);
+  let [thing, unit] = rng.pick([['A rectangular gate', 'ft'], ['A rectangular garden', 'm'], ['A rectangular tabletop', 'ft'], ['A rectangular sports field', 'm'], ['A rectangular picture frame', 'cm']]);
+  if (w === h) thing = thing.replace('A rectangular', 'A square');
   const part = thing.includes('gate') ? 'the diagonal brace across it' : 'its diagonal';
   return q({
     prompt: `${thing} is ${w} ${unit} by ${h} ${unit}. How long is ${part}? Give the exact answer in simplest radical form.`,
