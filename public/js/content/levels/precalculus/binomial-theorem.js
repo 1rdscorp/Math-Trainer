@@ -53,7 +53,12 @@ const bruteProb = (n, p, pred) => {
 const sumTex = (lo, hi, body) => R`\displaystyle\sum_{k=${lo}}^{${hi}} ${body}`;
 // A list of terms written as a sum, negative terms in brackets: "3 + (-6) + 12".
 const plusList = (xs) => xs.map((v, i) => (i === 0 ? num(v) : paren(v))).join(' + ');
-const sq = (a) => (a < 0 ? `(${a})` : `${a}`);
+// Wrong probabilities: the slips first, then a few others, all between 0 and 1 and far enough apart.
+const probWrong = (v, cands) => {
+  const inRange = (c) => { const x = c && typeof c === 'object' ? c.value : c; return x != null && x > 0 && x < 1; };
+  const extra = [1 - v, v * 0.6, v * 1.4, v * 0.35, (1 + v) / 2].filter(inRange);
+  return apart(v, [...cands.filter(inRange), ...extra], { places: 3, gap: 0.08, positive: true }).filter(inRange);
+};
 
 // ───────────── Easy ─────────────
 
@@ -239,7 +244,7 @@ function mediumCoefficient(rng) {
       correct: T(k),
       wrong: [
         { value: T(k + 1), why: R`The expansion has ${n + 1} terms, so the middle one is the term with \(x^{${k}}\).` },
-        { value: R`\(${term(choose(n, k) * a * b ** (n - k), power('x', k))}\)`, why: R`The whole of \(${term(a, 'x')}\) is raised to the power ${k}, including the ${a}.` },
+        { value: R`\(${term(choose(n, k) * a * b ** (n - k), power('x', k))}\)`, why: R`The whole of \(${term(a, 'x')}\) is raised to the power ${k}, including the \(${a}\).` },
         T(k - 1),
         R`\(${term(choose(n, k) * Math.abs(a ** k * b ** (n - k)) * (ans < 0 ? 1 : -1), power('x', k))}\)`,
       ],
@@ -286,7 +291,7 @@ function mediumSigmaWrite(rng) {
       [sumTex(1, n, `(${linear(a1 === 0 ? 1 : a1, d, 'k')})`), 1, n, (k) => (a1 === 0 ? 1 : a1) * k + d],
     ];
     solution = [
-      R`The terms go up by \(${d}\) each time, so the sum is arithmetic with \(a_{k} = ${a1} + (k - 1)${paren(d)} = ${linear(d, a1 - d, 'k')}\).`,
+      R`The terms change by \(${d}\) each time, so the sum is arithmetic with \(a_{k} = ${a1} + ${paren(d)}(k - 1) = ${linear(d, a1 - d, 'k')}\).`,
       R`Number of terms: \(\dfrac{${last} - ${paren(a1)}}{${d}} + 1 = ${n}\).`,
       R`So the sum is \(${cands[0][0]}\), which equals \(\dfrac{${n}(${a1} + ${paren(last)})}{2} = ${(n * (a1 + last)) / 2}\).`,
     ];
@@ -347,11 +352,11 @@ function mediumBinomialProb(rng) {
     prompt: `${story} Round to three decimal places.`,
     correct: v,
     fmt: dec(3),
-    wrong: apart(v, [
+    wrong: probWrong(v, [
       { value: p ** k * (1 - p) ** (n - k), why: R`That is the probability of one particular order. There are \(${B(n, k)} = ${choose(n, k)}\) orders with exactly ${k} successes.` },
       { value: choose(n, k) * p ** (n - k) * (1 - p) ** k, why: R`The success probability \(${p}\) goes with the ${k} successes: \(${p}^{${k}}\), and \(${qn}^{${n - k}}\) for the ${n - k} failures.` },
       { value: choose(n, k) * p ** k, why: R`The ${n - k} failures each have probability \(${qn}\), so multiply by \(${qn}^{${n - k}}\) as well.` },
-    ], { places: 3, gap: 0.08, positive: true }),
+    ]),
     solution: [
       R`Each trial succeeds with probability \(${p}\) and fails with probability \(${qn}\).`,
       R`One order with ${k} successes and ${n - k} failures has probability \(${p}^{${k}} \cdot ${qn}^{${n - k}}\), and there are \(${B(n, k)} = ${choose(n, k)}\) such orders.`,
@@ -426,7 +431,7 @@ function hardSeriesSum(rng) {
       solution: [
         R`Split the sum: \(${A === 1 ? '' : A === -1 ? '-' : A}\sum k^{2} ${Bc === 0 ? '' : `${Bc < 0 ? '-' : '+'} ${Math.abs(Bc) === 1 ? '' : Math.abs(Bc)}\\sum k`} + \sum ${paren(C)}\).`,
         R`\(\sum_{k=1}^{${n}} k^{2} = \frac{${n} \cdot ${n + 1} \cdot ${2 * n + 1}}{6} = ${S2}\) and \(\sum_{k=1}^{${n}} k = \frac{${n} \cdot ${n + 1}}{2} = ${S1}\).`,
-        R`Total: \(${A} \cdot ${S2} + ${paren(Bc)} \cdot ${S1} + ${n} \cdot ${paren(C)} = ${ans}\).`,
+        R`Total: \(${A} \cdot ${S2} + ${paren(Bc)} \cdot ${S1} + ${n} \cdot ${paren(C)} = ${num(ans)}\).`,
       ],
       rule: 4,
       skill: 'sum formulas',
@@ -557,7 +562,7 @@ function hardAtLeast(rng) {
     prompt: `${story} What is the probability that ${phrase} ${kind === 'atLeastAll' ? many : one}? Round to three decimal places.`,
     correct: v,
     fmt: dec(3),
-    wrong: apart(v, wrong, { places: 3, gap: 0.08, positive: true }),
+    wrong: probWrong(v, wrong),
     solution: [R`Each trial succeeds with probability \(${p}\) and fails with probability \(${qn}\); \(P(k) = ${B(n, 'k')}${p}^{k}${qn}^{${n} - k}\).`, ...solution],
     rule: 5,
     skill: 'binomial probability',
@@ -585,7 +590,7 @@ function challengeApprox(rng) {
     wrong: [
       { value: round(1 + n * s, 8), why: 'That uses only the first two terms.' },
       { value: round(1 + n * s + n * s * s, 8), why: R`The third coefficient is \(${B(n, 2)} = ${choose(n, 2)}\), not ${n}.` },
-      { value: round(1 + n * s + choose(n, 2) * s, 8), why: R`The third term is \(${B(n, 2)}(${num(s)})^{2}\): the ${num(s)} must be squared.` },
+      1 + n * s + choose(n, 2) * s <= 0 ? null : { value: round(1 + n * s + choose(n, 2) * s, 8), why: R`The third term is \(${B(n, 2)}(${num(s)})^{2}\): the ${num(s)} must be squared.` },
       round(1 + n * s - choose(n, 2) * s * s, 8),
     ],
     solution: [
