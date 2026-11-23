@@ -28,7 +28,7 @@ export const LEVELS = Object.freeze([
     title: 'Grades 6–8',
     band: 'middle',
     icon: '📐',
-    blurb: 'Ratios, percents, negative numbers, expressions, equations, geometry and data.',
+    blurb: 'Ratios, percents, negative numbers, equations, functions, systems, transformations, geometry and data.',
     standards: 'Common Core, Grades 6–8',
     load: () => import('./levels/g6-8/index.js'),
   },

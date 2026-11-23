@@ -11,7 +11,10 @@ import statisticsProbability from './statistics-probability.js';
 import exponentsScientific from './exponents-scientific.js';
 import linearRelationships from './linear-relationships.js';
 import functions from './functions.js';
+import systems from './systems.js';
+import scatterPlots from './scatter-plots.js';
+import dataDisplays from './data-displays.js';
 import transformations from './transformations.js';
 import pythagoreanAngles from './pythagorean-angles.js';
 
-export default [ratiosRates, fractionDivisionFactors, percent, integersRationals, expressions, equationsInequalities, proportional, areaVolume, statisticsProbability, exponentsScientific, linearRelationships, functions, transformations, pythagoreanAngles];
+export default [ratiosRates, fractionDivisionFactors, percent, integersRationals, expressions, equationsInequalities, proportional, areaVolume, statisticsProbability, dataDisplays, exponentsScientific, linearRelationships, functions, systems, scatterPlots, transformations, pythagoreanAngles];

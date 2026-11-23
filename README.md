@@ -5,7 +5,7 @@ modern browser on a phone or a computer, needs no account, and has no adverts or
 
 ## What is in it
 
-- **Nine levels, 106 topics**: Grades 1–5 (18 topics), Grades 6–8 (12), Algebra 1 (11), Geometry (10),
+- **Nine levels, 111 topics**: Grades 1–5 (18 topics), Grades 6–8 (17), Algebra 1 (11), Geometry (10),
   Algebra 2 (10), Precalculus (11), Calculus 1 (12), Calculus 2 (11) and Calculus 3 (11). Each topic
   lists the curriculum standards it is aligned to.
 - **Every topic has four steps**
