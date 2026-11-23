@@ -286,7 +286,7 @@ function mediumBiasSource(rng) {
 
 function mediumMarginInterval(rng) {
   const kind = rng.pick(['build', 'plausible', 'not']);
-  const [n, E] = rng.pick(SQUARES.filter(([, e]) => e >= 2 && (kind === 'build' || Number.isInteger(e))));
+  const [n, E] = rng.pick(SQUARES.filter(([, e]) => e >= 2 && (kind === 'build' || (Number.isInteger(e) && e <= 5))));
   const s = rng.pick(POPS.filter((x) => !x.lo));
   const p = rng.int(Math.ceil(E) + 10, 90 - Math.ceil(E));
   const iv = (e) => `${pct(p - e)} to ${pct(p + e)}`;
@@ -614,7 +614,7 @@ function challengeEvaluateReport(rng) {
     const v = rng.pick(POPS.filter((x) => x.many === 'voters' || x.many === 'customers'));
     return q({
       prompt: `${org} invites the ${v.many} ${at(v)} to vote online on whether they ${v.trait}. ${txt(n)} of them vote, and ${p}% say yes. A headline reads: “${p}% of the ${v.many} ${at(v)} ${v.trait}.” Is the headline justified?`,
-      correct: `No: the ${v.many} who voted chose themselves, so they are unlikely to represent all of them, however many voted`,
+      correct: `No: the people who voted chose themselves, so they are unlikely to represent all the ${v.many}, however many voted`,
       wrong: [
         { value: `Yes: with ${txt(n)} votes the margin of error is only about ${txt(round(100 / Math.sqrt(n), 1))} percentage point${round(100 / Math.sqrt(n), 1) === 1 ? '' : 's'}`, why: 'The margin of error only describes chance variation in a random sample. It says nothing about bias in a self-selected sample.' },
         { value: 'Yes: a sample this large must represent the population', why: 'A large biased sample is still biased. Only random selection makes a sample representative.' },
@@ -784,7 +784,7 @@ export default {
       },
       {
         title: 'Using a simulation',
-        text: 'To judge a result, simulate many samples (or many random re-splits of an experiment\'s results) in a world where only chance is at work. Count how many simulated results are at least as extreme as the real one. If very few are (say 5 or fewer out of 100, so the real result is outside the middle 95% of the simulated ones), the result is unusual and chance alone is an unlikely explanation. For two treatments, compare the difference of the group means with the differences from the random re-splits.',
+        text: 'To judge a result, simulate many samples (or many random re-splits of an experiment\'s results) in a world where only chance is at work. Count how many simulated results are at least as extreme as the real one. If very few are (a common rule of thumb is 5 or fewer out of 100), the result is unusual and chance alone is an unlikely explanation. Another common version asks whether the real result lies outside the middle 95% of the simulated results. For two treatments, compare the difference of the group means with the differences from the random re-splits.',
         example: 'If a claim says 50% and only 1 of 100 simulated samples gives 66% or more, a real sample of 66% casts doubt on the claim.',
       },
     ],
@@ -849,7 +849,7 @@ export default {
       steps: [
         'Count the simulated samples at 64% or more: that is the result itself and everything more extreme.',
         `${plural(EX_COUNT, 'simulated sample')} of 100 reached 64% or more.`,
-        EX_COUNT <= 5 ? 'So few is very rare when the claim is true: 64% is outside the middle 95% of the simulated results. The sample casts doubt on the claim.' : 'That happens often enough by chance, so the sample is not strong evidence against the claim.',
+        EX_COUNT <= 5 ? `That is 5 or fewer out of 100, so a result like 64% is rare when the claim is true. The sample casts doubt on the claim.` : 'That happens often enough by chance, so the sample is not strong evidence against the claim.',
       ],
       answer: EX_COUNT <= 5 ? `Yes: only ${EX_COUNT} of 100 simulations reached 64%.` : `No: ${EX_COUNT} of 100 simulations reached 64%.`,
       visual: EX_PLOT,
