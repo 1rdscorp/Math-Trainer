@@ -19,7 +19,7 @@ export const LEVELS = Object.freeze([
     title: 'Grades 1–5',
     band: 'elementary',
     icon: '🍎',
-    blurb: 'Adding, subtracting, multiplying, dividing, fractions, decimals and shapes.',
+    blurb: 'Adding, subtracting, multiplying, dividing, fractions, decimals, shapes, angles, graphs and measuring.',
     standards: 'Common Core, Grades 1–5',
     load: () => import('./levels/g1-5/index.js'),
   },

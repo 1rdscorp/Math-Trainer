@@ -1055,7 +1055,7 @@ export default {
             R`Divide the outputs: \(\dfrac{${y2}}{${y1}} = ${num(ratio, { places: 4 })}\). In the formula this is \(b^{${x2} - ${x1}} = b^{${dx}}\).`,
             dx === 1 ? R`So \(b = ${num(b, { places: 4 })}\).` : R`Take the ${dx === 2 ? 'square' : dx === 3 ? 'cube' : `${dx}th`} root: \(b = ${num(ratio, { places: 4 })}^{1/${dx}} ${Number.isInteger(round(b, 9)) ? '=' : R`\approx`} ${num(b, { places: 4 })}\).`,
             x1 === 0 ? R`The first point is at \(x = 0\), so \(a = ${y1}\).` : R`Use the first point: \(a \cdot ${num(b, { places: 4 })}^{${x1}} = ${y1}\), so \(a ${Number.isInteger(round(a, 9)) ? '=' : R`\approx`} ${num(a, { places: 4 })}\).`,
-            b > 1 ? R`\(b > 1\): the function grows by ${num((b - 1) * 100, { places: 1 })}% for each unit of \(x\).` : b < 1 ? R`\(0 < b < 1\): the function decays by ${num((1 - b) * 100, { places: 1 })}% for each unit of \(x\).` : R`\(b = 1\): the function is constant.`,
+            b > 1 ? R`\(b > 1\): the function grows by \(${num((b - 1) * 100, { places: 1 })}\%\) for each unit of \(x\).` : b < 1 ? R`\(0 < b < 1\): the function decays by \(${num((1 - b) * 100, { places: 1 })}\%\) for each unit of \(x\).` : R`\(b = 1\): the function is constant.`,
           ],
           answer: R`\(f(x) ${Number.isInteger(round(a, 9)) && Number.isInteger(round(b, 9)) ? '=' : R`\approx`} ${num(a, { places: 4 })} \cdot ${num(b, { places: 4 })}^{x}\)`,
           visual: {

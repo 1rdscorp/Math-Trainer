@@ -51,6 +51,35 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "shapes",
+      "title": "Shapes & Their Parts",
+      "summary": "Name flat and solid shapes by their sides, corners and faces, put shapes together, and cut them into equal shares.",
+      "grade": "Grades 1–3",
+      "standards": [
+        "CCSS 1.G.A.1",
+        "CCSS 1.G.A.2",
+        "CCSS 1.G.A.3",
+        "CCSS 2.G.A.1",
+        "CCSS 2.G.A.3",
+        "CCSS 3.G.A.1",
+        "CCSS 3.G.A.2"
+      ]
+    },
+    {
+      "id": "data-graphs",
+      "title": "Picture Graphs, Bar Graphs & Line Plots",
+      "summary": "Sort and count data, read picture graphs, bar graphs and line plots, and answer questions with them.",
+      "grade": "Grades 1–5",
+      "standards": [
+        "CCSS 1.MD.C.4",
+        "CCSS 2.MD.D.10",
+        "CCSS 3.MD.B.3",
+        "CCSS 3.MD.B.4",
+        "CCSS 4.MD.B.4",
+        "CCSS 5.MD.B.2"
+      ]
+    },
+    {
       "id": "multiplication",
       "title": "Multiplication: Equal Groups & Arrays",
       "summary": "Multiply by thinking of equal groups and arrays, learn the facts to 100, and use smart strategies.",
@@ -107,6 +136,35 @@ export const CATALOG = {
         "CCSS 3.MD.D.8",
         "CCSS 4.MD.A.3",
         "CCSS 5.MD.C.5"
+      ]
+    },
+    {
+      "id": "measurement",
+      "title": "Measuring & Converting Units",
+      "summary": "Measure lengths, pick sensible units, and change between bigger and smaller units to solve problems.",
+      "grade": "Grades 2–5",
+      "standards": [
+        "CCSS 2.MD.A.1",
+        "CCSS 2.MD.A.3",
+        "CCSS 2.MD.A.4",
+        "CCSS 2.MD.B.5",
+        "CCSS 4.MD.A.1",
+        "CCSS 4.MD.A.2",
+        "CCSS 5.MD.A.1"
+      ]
+    },
+    {
+      "id": "lines-angles",
+      "title": "Lines, Angles & Symmetry",
+      "summary": "Name lines, rays and angles, measure angles in degrees, add angles, and find parallel sides and lines of symmetry.",
+      "grade": "Grade 4",
+      "standards": [
+        "CCSS 4.G.A.1",
+        "CCSS 4.G.A.2",
+        "CCSS 4.G.A.3",
+        "CCSS 4.MD.C.5",
+        "CCSS 4.MD.C.6",
+        "CCSS 4.MD.C.7"
       ]
     },
     {

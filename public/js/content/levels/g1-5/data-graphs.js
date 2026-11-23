@@ -771,8 +771,8 @@ export default {
         if (stars.some((s) => s > 12)) return { error: 'That needs more than 12 stars in a row. Pick a bigger key.' };
         const hi = Math.max(...vals);
         const lo = Math.min(...vals);
-        const big = cats[vals.indexOf(hi)];
-        const small = cats[vals.indexOf(lo)];
+        const big = joinList(cats.filter((_, i) => vals[i] === hi));
+        const small = joinList(cats.filter((_, i) => vals[i] === lo));
         return {
           problem: 'Show the votes in a picture graph. Then compare the groups.',
           steps: [
