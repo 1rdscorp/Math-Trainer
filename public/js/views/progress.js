@@ -114,7 +114,7 @@ export default function progressView(ctx) {
                       'span',
                       null,
                       h('strong', null, w.info.meta.title),
-                      h('span', { class: 'muted' }, ` · ${w.info.level.title} · ${w.accuracy}% correct over ${w.attempts} questions`),
+                      h('span', { class: 'muted' }, ` · ${w.info.level.title} · ${w.accuracy}% correct over ${count(w.attempts, 'question')}`),
                       w.skills.length ? h('span', { class: 'small' }, h('br'), 'Tricky parts: ', w.skills.map((k) => `${k.tag} (${k.accuracy}%)`).join(', ')) : null,
                     ),
                     h('span', { class: 'row' }, h('a', { class: 'btn btn-small', href: `#/topic/${w.key}/learn`, 'aria-label': `Review the rules for ${w.info.meta.title}` }, 'Review'), h('a', { class: 'btn btn-small btn-primary', href: `#/topic/${w.key}/quiz`, 'aria-label': `Practise ${w.info.meta.title}` }, 'Practise')),
@@ -218,7 +218,7 @@ export default function progressView(ctx) {
   const extras = [];
   if (doc.times.rounds > 0 || Object.keys(doc.times.facts).length) {
     const known = Object.values(doc.times.facts).filter(([a, c]) => a >= 2 && c / a >= 0.75).length;
-    extras.push(h('li', null, h('strong', null, 'Multiplication table: '), `level ${doc.times.level + 1}, ${count(known, 'fact')} answered reliably, ${count(doc.times.rounds, 'practice round')}. `, h('a', { href: '#/times-table' }, 'Open')));
+    extras.push(h('li', null, h('strong', null, 'Multiplication table: '), `level ${doc.times.level + 1}, ${count(known, 'fact')} answered reliably, ${count(doc.times.rounds, 'round')} played. `, h('a', { href: '#/times-table' }, 'Open the multiplication table')));
   }
   const names = { sequence: 'Number recall', pattern: 'Pattern memory', pairs: 'Matching pairs', speed: 'Mental math' };
   for (const [game, g] of Object.entries(doc.memory)) {
