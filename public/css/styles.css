@@ -293,6 +293,9 @@ main {
 .row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
 .row > * { min-width: 0; }
 .row-between { justify-content: space-between; }
+/* A radio button with its label beside it, even when the label runs to several lines. */
+.radio-row { display: flex; gap: 0.6rem; align-items: flex-start; }
+.radio-row input { flex: none; margin-top: 0.3em; }
 .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
 .grid-2 { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
 .muted { color: var(--ink-2); }
@@ -325,6 +328,9 @@ main {
 .btn-small { min-height: 2.5rem; padding: 0.3rem 0.75rem; font-size: 0.92rem; }
 .btn-big { min-height: 3.25rem; padding: 0.7rem 1.5rem; font-size: 1.1rem; }
 .btn[aria-disabled='true'], .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+/* Answered multiple-choice buttons (times-table quiz): the right one and a wrongly picked one stay fully visible. */
+.btn.is-right:disabled { opacity: 1; background: var(--good-bg); border-color: var(--good); color: var(--good); }
+.btn.is-wrong:disabled { opacity: 1; background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
 .btn-danger { border-color: var(--bad); color: var(--bad); }
 .icon-btn { min-width: 2.75rem; padding-inline: 0.5rem; }
 
