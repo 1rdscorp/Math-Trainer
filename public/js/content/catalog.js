@@ -1286,6 +1286,15 @@ export const CATALOG = {
   ],
   "calculus-2": [
     {
+      "id": "hyperbolic-functions",
+      "title": "Hyperbolic Functions",
+      "summary": "Evaluate, differentiate and integrate sinh, cosh and tanh and their inverses, and model a hanging cable with a catenary.",
+      "grade": null,
+      "standards": [
+        "Calculus II: hyperbolic functions"
+      ]
+    },
+    {
       "id": "integration-by-parts",
       "title": "Integration by Parts",
       "summary": "Integrate products such as x·eˣ, x·sin x and x·ln x, including repeated, definite and cyclic cases.",
@@ -1324,6 +1333,16 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "numerical-integration",
+      "title": "Numerical Integration",
+      "summary": "Approximate integrals with the midpoint, trapezoidal and Simpson's rules, and use error bounds to choose n.",
+      "grade": null,
+      "standards": [
+        "Calculus II: approximate integration",
+        "AP Calculus 6.2"
+      ]
+    },
+    {
       "id": "area-between-curves",
       "title": "Average Value & Area Between Curves",
       "summary": "Use definite integrals for average value, distance travelled, accumulated change and the area between curves.",
@@ -1351,6 +1370,27 @@ export const CATALOG = {
         "AP Calculus 8.12",
         "AP Calculus 8.13",
         "OpenStax Calculus Vol. 2 §2.3"
+      ]
+    },
+    {
+      "id": "surface-area",
+      "title": "Surface Area of Revolution",
+      "summary": "Set up and evaluate S = ∫2πr ds for curves revolved about either axis, including parametric curves, and check with geometry.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 8.13",
+        "Calculus II: surface area"
+      ]
+    },
+    {
+      "id": "physical-applications",
+      "title": "Work, Fluid Force & Centers of Mass",
+      "summary": "Set up and evaluate integrals for work, pumping, hydrostatic force, moments and centroids by slicing the physical object.",
+      "grade": null,
+      "standards": [
+        "Calculus II: work",
+        "Calculus II: hydrostatic force",
+        "Calculus II: moments and centers of mass"
       ]
     },
     {
