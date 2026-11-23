@@ -91,7 +91,7 @@ export const LEVELS = Object.freeze([
     title: 'Calculus 3',
     band: 'college',
     icon: '∇',
-    blurb: 'Vectors, partial derivatives, multiple integrals and vector calculus.',
+    blurb: 'Vectors, partial derivatives, multiple integrals and their uses, parametric surfaces and vector calculus.',
     standards: 'College multivariable calculus (OpenStax Calculus Vol. 3)',
     load: () => import('./levels/calculus-3/index.js'),
   },
