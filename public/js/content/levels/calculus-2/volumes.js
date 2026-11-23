@@ -132,7 +132,7 @@ function mediumWasher(rng) {
     const par = terms([[b, 'x^{2}']]);
     return q({
       prompt: R`The region enclosed by \(y = ${line}\) and \(y = ${par}\) is revolved about the \(x\)-axis. Find the volume of the solid.`,
-      visual: regionPlot((x) => a * x, (x) => b * x * x, 0, L.value, { alt: `The line y = ${a}x and the parabola y = ${b}x² meet at x = 0 and x = ${L.text()}. The region between them is shaded, with the line on top.`, pad: 0.25 }),
+      visual: regionPlot((x) => a * x, (x) => b * x * x, 0, L.value, { alt: `The line y = ${a === 1 ? '' : a}x and the parabola y = ${b === 1 ? '' : b}x² meet at x = 0 and x = ${L.text()}. The region between them is shaded, with the line on top.`, pad: 0.25 }),
       ...exactChoices(right, [
         { k: piK(frac(a ** 5, 30 * b ** 3)), why: R`A washer has area \(\pi(R^{2} - r^{2})\), not \(\pi(R - r)^{2}\).` },
         { k: N(frac(a ** 3, 6 * b * b)), why: 'That is the area of the flat region. The volume integrates the areas of washers.' },
@@ -443,7 +443,7 @@ function challengeShellsShifted(rng) {
   const axisName = axis === 0 ? R`the \(y\)-axis` : R`the line \(x = ${axis}\)`;
   return q({
     prompt: R`The region enclosed by \(y = ${line}\) and \(y = x^{2}\) is revolved about ${axisName}. Find the volume of the solid.`,
-    visual: regionPlot((x) => a * x, (x) => x * x, 0, a, { vline: axis, alt: `The line y = ${a}x and the parabola y = x² meet at x = 0 and x = ${a}; the region between them is shaded. The vertical line x = ${axis} is the axis of rotation.`, pad: 0.3 }),
+    visual: regionPlot((x) => a * x, (x) => x * x, 0, a, { vline: axis, alt: `The line y = ${a === 1 ? '' : a}x and the parabola y = x² meet at x = 0 and x = ${a}; the region between them is shaded. The vertical line x = ${axis} is the axis of rotation.`, pad: 0.3 }),
     ...exactChoices(right, [
       { k: piK(frac(2 * a ** 5, 15)), why: R`That is the volume when the region is revolved about the \(x\)-axis.` },
       { k: piK(frac(a ** 3, 3)), why: R`Each shell has circumference \(2\pi\cdot\text{radius}\). The radius factor is missing from the integrand.` },
@@ -652,7 +652,7 @@ export default {
       compute({ k, n, b, axis }) {
         const f = terms([[k, power('x', n)]]);
         const fJs = (x) => k * x ** n;
-        const visual = regionPlot(fJs, () => 0, 0, b, { alt: `The region under y = ${k}x to the power ${n} from x = 0 to x = ${b}, shaded. It is revolved about the ${axis}-axis.`, pad: 0.4 });
+        const visual = regionPlot(fJs, () => 0, 0, b, { alt: `The region under y = ${k === 1 ? '' : k}x${n === 2 ? ' squared' : n === 3 ? ' cubed' : ` to the power ${n}`} from x = 0 to x = ${b}, shaded. It is revolved about the ${axis}-axis.`, pad: 0.4 });
         const problem = R`The region under \(y = ${f}\) from \(x = 0\) to \(x = ${b}\) is revolved about the \(${axis}\)-axis. Find the volume.`;
         if (axis === 'x') {
           const c = frac(k * k * b ** (2 * n + 1), 2 * n + 1);

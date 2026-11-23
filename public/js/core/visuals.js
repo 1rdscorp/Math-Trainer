@@ -520,8 +520,16 @@ function plot(s) {
   }
   // `axes: false` (with `grid: false`) gives a plain drawing area, e.g. for compass-and-straightedge constructions.
   if (s.axes !== false) out.push(line(m.l, axisY, m.l + pw, axisY, 'viz-axis'), line(axisX, m.t, axisX, m.t + ph, 'viz-axis'));
-  if (s.axisLabels?.[0]) out.push(text(m.l + pw - 4, Math.max(axisY - 10, m.t + 8), s.axisLabels[0], 'viz-text-sm viz-text-i', { 'text-anchor': 'end' }));
-  if (s.axisLabels?.[1]) out.push(text(Math.min(axisX + 8, W - 20), m.t + 7, s.axisLabels[1], 'viz-text-sm viz-text-i', { 'text-anchor': 'start' }));
+  if (s.axisLabels?.[0]) {
+    const [ax, ay] = [m.l + pw - 4, Math.max(axisY - 10, m.t + 8)];
+    out.push(text(ax, ay, s.axisLabels[0], 'viz-text-sm viz-text-i', { 'text-anchor': 'end' }));
+    taken.push([ax - String(s.axisLabels[0]).length * 7 - 2, ay - 8, ax + 2, ay + 8]);
+  }
+  if (s.axisLabels?.[1]) {
+    const [ax, ay] = [Math.min(axisX + 8, W - 20), m.t + 7];
+    out.push(text(ax, ay, s.axisLabels[1], 'viz-text-sm viz-text-i', { 'text-anchor': 'start' }));
+    taken.push([ax - 2, ay - 8, ax + String(s.axisLabels[1]).length * 7 + 2, ay + 8]);
+  }
 
   const span = yMax - yMin;
   const clampY = (y) => Math.max(yMin - 3 * span, Math.min(yMax + 3 * span, y));
