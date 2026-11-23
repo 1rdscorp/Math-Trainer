@@ -11,4 +11,9 @@ import sequencesSeriesIntro from './sequences-series-intro.js';
 import convergenceTests from './convergence-tests.js';
 import taylorSeries from './taylor-series.js';
 
-export default [integrationByParts, trigIntegralsSubstitution, partialFractions, improperIntegrals, areaBetweenCurves, volumes, differentialEquations, parametricPolar, sequencesSeriesIntro, convergenceTests, taylorSeries];
+import hyperbolicFunctions from './hyperbolic-functions.js';
+import numericalIntegration from './numerical-integration.js';
+import surfaceArea from './surface-area.js';
+import physicalApplications from './physical-applications.js';
+
+export default [hyperbolicFunctions, integrationByParts, trigIntegralsSubstitution, partialFractions, improperIntegrals, numericalIntegration, areaBetweenCurves, volumes, surfaceArea, physicalApplications, differentialEquations, parametricPolar, sequencesSeriesIntro, convergenceTests, taylorSeries];

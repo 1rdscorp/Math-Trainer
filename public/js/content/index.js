@@ -82,7 +82,7 @@ export const LEVELS = Object.freeze([
     title: 'Calculus 2',
     band: 'college',
     icon: '∫',
-    blurb: 'Integration techniques and applications, differential equations, and infinite series.',
+    blurb: 'Hyperbolic functions, integration techniques and numerical methods, areas, volumes, surfaces, work and fluid force, differential equations and series.',
     standards: 'AP Calculus BC / college Calculus II',
     load: () => import('./levels/calculus-2/index.js'),
   },
