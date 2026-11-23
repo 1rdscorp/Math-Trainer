@@ -8,6 +8,8 @@
 // Every spec may carry `alt`: a sentence describing the picture for screen-reader users.
 // Labels inside pictures are plain text (use Unicode such as ×, ÷, √, π, °, ², ½), not LaTeX.
 
+import { tidy } from './tidy.js';
+
 let uid = 0;
 
 /** Coordinate guard: every number that reaches the SVG must be finite. */
@@ -54,7 +56,8 @@ function arrowHead(x, y, a, cls = 'viz-ink-fill', size = 8) {
   return polygonEl([[x, y], p(0.4, size), p(-0.4, size)], cls);
 }
 
-function svg(w, h, alt, ...kids) {
+function svg(w, h, rawAlt, ...kids) {
+  const alt = tidy(String(rawAlt)); // the same grammar fixes as the visible text ("1 metre", not "1 meters")
   return {
     kind: 'svg',
     width: w,
@@ -1204,7 +1207,7 @@ function table(s) {
     headers: s.headers ?? null,
     rowHeaders: !!s.rowHeaders,
     rows: s.rows.map((r) => r.map((c) => (typeof c === 'number' ? fmt(c) : String(c)))),
-    alt: s.alt ?? s.caption ?? 'Table',
+    alt: tidy(String(s.alt ?? s.caption ?? 'Table')),
   };
 }
 
