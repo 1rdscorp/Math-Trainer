@@ -37,7 +37,7 @@ export const LEVELS = Object.freeze([
     title: 'Algebra 1',
     band: 'high',
     icon: '✖️',
-    blurb: 'Linear equations and functions, systems, exponents, polynomials and quadratics.',
+    blurb: 'Equations, inequalities, functions, systems, absolute value, exponents, radicals, polynomials, quadratics and data.',
     standards: 'Common Core high school (Algebra I pathway)',
     load: () => import('./levels/algebra-1/index.js'),
   },

@@ -137,7 +137,7 @@ function easyParking(rng) {
     correct: right,
     fmt: (v) => money(v),
     wrong: [
-      mins ? { value: rate * hours, why: 'A part of an hour is charged as a whole hour, so round the time up, not down.' } : { value: rate * (hours + 1), why: `Exactly ${hours} hours is ${hours} whole hours; a new hour has not started yet.` },
+      mins && !hours ? rate * (started + 3) : mins ? { value: rate * hours, why: 'A part of an hour is charged as a whole hour, so round the time up, not down.' } : { value: rate * (hours + 1), why: `Exactly ${hours} hours is ${hours} whole hours; a new hour has not started yet.` },
       mins ? { value: round((rate * total) / 60, 2), why: 'The charge does not grow minute by minute. It jumps by a whole hour’s fee as each new hour starts.' } : null,
       rate * (started + 1),
       rate * (started + 2),
@@ -352,7 +352,7 @@ function hardKeyFeatures(rng) {
   const ps = [piece(s1, c - s1 * p, -Infinity, p, false, true), piece(0, c, p, qq, true, true), piece(s3, c - s3 * qq, qq, Infinity, false, false)];
   const f = (x) => evalPieces(ps, x);
   const alt = `Graph made of three straight pieces. It ${hill ? 'rises' : 'falls'} from the left to the point ${pointText(p, c)}, stays level at height ${show(c)} until ${pointText(qq, c)}, then ${hill ? 'falls' : 'rises'} to the right.`;
-  const visual = { type: 'plot', x: [-8, 8], y: [-8, 8], step: [1, 1], fns: ps.map((pc) => ({ f: pc.f, domain: [pc.lo, pc.hi] })), points: [{ x: p, y: c }, { x: qq, y: c }], alt };
+  const visual = { type: 'plot', x: [-8, 8], y: [-8, 8], step: [1, 1], fns: ps.map((pc) => ({ f: pc.f, domain: [pc.lo, pc.hi], color: 'a' })), points: [{ x: p, y: c }, { x: qq, y: c }], alt };
   const ivLeft = R`\(x < ${p}\)`;
   const ivMid = R`\(${p} < x < ${qq}\)`;
   const ivRight = R`\(x > ${qq}\)`;
@@ -360,7 +360,7 @@ function hardKeyFeatures(rng) {
   if (ask === 'extreme') {
     const ext = hill ? 'maximum' : 'minimum';
     return q({
-      prompt: `The graph shows a function f. What is its ${ext} value?`,
+      prompt: `The graph shows a function \\(f\\). What is its ${ext} value?`,
       visual,
       correct: c,
       wrong: [
@@ -381,7 +381,7 @@ function hardKeyFeatures(rng) {
   const yVersion = ask === 'constant' ? R`\(y = ${c}\)` : R`\(y ${hill ? '<' : '>'} ${c}\)`;
   const slope = (x) => f(x + 0.01) - f(x);
   return q({
-    prompt: `The graph shows a function f. On which interval is f **${ask}**?`,
+    prompt: `The graph shows a function \\(f\\). On which interval is \\(f\\) **${ask}**?`,
     visual,
     correct: want,
     wrong: [ivLeft, ivMid, ivRight].filter((v) => v !== want).map((v) => ({ value: v, why: v === ivMid ? R`Between \(x = ${p}\) and \(x = ${qq}\) the graph is level: it neither rises nor falls.` : `Read the graph from left to right: on this interval it ${(v === ivLeft) === hill ? 'rises' : 'falls'}.` })).concat([{ value: yVersion, why: R`The interval where f is ${ask} is a set of \(x\)-values, read along the horizontal axis, not a set of heights.` }]),
@@ -676,7 +676,7 @@ function phoneModel({ B, D, r, g }) {
     answer: `The bill is ${money(C)}.`,
     visual: {
       type: 'plot', x: [0, Math.ceil(xMax)], y: [0, Math.ceil(cost(xMax) * 1.15)], axisLabels: ['g', 'C'],
-      fns: [{ f: () => B, domain: [0, D] }, { f: (u) => B + r * (u - D), domain: [D, xMax] }],
+      fns: [{ f: () => B, domain: [0, D], color: 'a' }, { f: (u) => B + r * (u - D), domain: [D, xMax], color: 'a' }],
       points: [{ x: g, y: C, color: 'b', label: `(${txt(g)}, ${money(C)})` }],
       alt: `Graph of the monthly cost: flat at ${money(B)} from 0 to ${D} GB, then rising by ${money(r)} per GB. The point for ${txt(g)} GB is at ${money(C)}.`,
     },

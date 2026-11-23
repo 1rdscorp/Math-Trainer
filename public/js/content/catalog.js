@@ -502,6 +502,18 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "piecewise-absolute",
+      "title": "Absolute Value, Piecewise & Step Functions",
+      "summary": "Graph and transform y = a|x − h| + k, evaluate and graph piecewise and step functions, and write them from a story.",
+      "grade": null,
+      "standards": [
+        "CCSS F-IF.C.7",
+        "CCSS F-IF.B.4",
+        "CCSS F-IF.B.5",
+        "CCSS F-BF.B.3"
+      ]
+    },
+    {
       "id": "exponents-exponential",
       "title": "Exponent Rules & Exponential Functions",
       "summary": "Simplify expressions with integer exponents, and model growth and decay with exponential functions and geometric sequences.",
@@ -512,6 +524,17 @@ export const CATALOG = {
         "CCSS F-LE.A.2",
         "CCSS F-IF.C.8",
         "CCSS F-BF.A.2"
+      ]
+    },
+    {
+      "id": "radicals",
+      "title": "Square Roots & Radicals",
+      "summary": "Simplify, multiply, divide and add square roots, tell rational from irrational numbers, and solve x² = k exactly.",
+      "grade": null,
+      "standards": [
+        "CCSS N-RN.A.2",
+        "CCSS N-RN.B.3",
+        "CCSS A-REI.B.4"
       ]
     },
     {
