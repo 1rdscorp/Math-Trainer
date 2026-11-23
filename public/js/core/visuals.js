@@ -484,6 +484,8 @@ function plot(s) {
   const inside = [];
   // Boxes that labels must keep clear of: the numbers on the axes, the marked points, other labels.
   const taken = [];
+  // The numbers on the axes are drawn after the curves (with a halo), so a curve never hides one.
+  const ticks = [];
   const tickBox = (cx, cy, str, anchor) => {
     const w = String(str).length * 6.4 + 2;
     const left = anchor === 'end' ? cx - w : cx - w / 2;
@@ -501,7 +503,7 @@ function plot(s) {
     const k = Math.round(x / xStep);
     if (Math.abs(x) > 1e-9 && k % xLabelEvery === 0) {
       const str = s.piTicks ? piLabel(x) : fmt(x);
-      out.push(text(X(x), Math.min(axisY + 13, H - 9), str, 'viz-text-xs'));
+      ticks.push(text(X(x), Math.min(axisY + 13, H - 9), str, 'viz-text-xs viz-halo'));
       tickBox(X(x), Math.min(axisY + 13, H - 9), str, 'middle');
     }
   }
@@ -510,7 +512,7 @@ function plot(s) {
     if (s.grid !== false) out.push(line(m.l, Y(y), m.l + pw, Y(y), 'viz-grid'));
     const k = Math.round(y / yStep);
     if (Math.abs(y) > 1e-9 && k % yLabelEvery === 0) {
-      out.push(text(Math.max(axisX - 6, 16), Y(y), fmt(y), 'viz-text-xs', { 'text-anchor': 'end' }));
+      ticks.push(text(Math.max(axisX - 6, 16), Y(y), fmt(y), 'viz-text-xs viz-halo', { 'text-anchor': 'end' }));
       tickBox(Math.max(axisX - 6, 16), Y(y), fmt(y), 'end');
     }
   }
@@ -658,6 +660,7 @@ function plot(s) {
     el('defs', {}, el('clipPath', { id }, rect(m.l, m.t, pw, ph, ''))),
     out,
     el('g', { 'clip-path': `url(#${id})` }, inside),
+    ticks,
     dots,
     labels,
   );
