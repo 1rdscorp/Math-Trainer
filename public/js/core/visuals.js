@@ -1098,11 +1098,17 @@ function barChart(s) {
 function dotPlot(s) {
   const values = s.values ?? [];
   if (!values.length) throw new Error('dotPlot: no values');
+  // `step` lets a line plot use fractions of a unit (step: 0.25 for quarters); `labels` replaces
+  // the tick numbers, e.g. [{ value: 0.25, text: '1/4' }].
+  const step = s.step ?? 1;
+  if (!(step > 0)) throw new Error('dotPlot: step must be positive');
+  const key = (v) => Math.round(v / step);
   const min = s.min ?? Math.min(...values);
   const max = s.max ?? Math.max(...values);
-  const span = Math.max(1, max - min);
+  const span = Math.max(step, max - min);
+  if (span / step > 40) throw new Error('dotPlot: too many ticks');
   const counts = new Map();
-  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
+  for (const v of values) counts.set(key(v), (counts.get(key(v)) ?? 0) + 1);
   const tallest = Math.max(...counts.values());
   const W = 360;
   const x0 = 28;
@@ -1110,14 +1116,18 @@ function dotPlot(s) {
   const X = (v) => x0 + ((v - min) / span) * (x1 - x0);
   const yLine = 20 + tallest * 16;
   const out = [line(14, yLine, 346, yLine, 'viz-axis')];
-  const every = Math.max(1, Math.ceil((span + 1) / 14));
-  for (let v = min; v <= max; v++) {
+  const ticks = Math.round(span / step);
+  const custom = s.labels ? new Map(s.labels.map((l) => [key(l.value), l.text])) : null;
+  const every = custom ? 1 : Math.max(1, Math.ceil((ticks + 1) / 14));
+  for (let i = 0; i <= ticks; i++) {
+    const v = min + i * step;
     out.push(line(X(v), yLine - 4, X(v), yLine + 4, 'viz-axis'));
-    if ((v - min) % every === 0) out.push(text(X(v), yLine + 16, fmt(v), 'viz-text-xs'));
+    const label = custom ? custom.get(key(v)) : i % every === 0 ? fmt(Math.round(v * 1e6) / 1e6) : null;
+    if (label != null) out.push(text(X(v), yLine + 16, label, 'viz-text-xs'));
   }
-  for (const [v, c] of counts) for (let k = 0; k < c; k++) out.push(circle(X(v), yLine - 10 - k * 16, 6, 'viz-dot-a'));
+  for (const [k, c] of counts) for (let j = 0; j < c; j++) out.push(circle(X(k * step), yLine - 10 - j * 16, 6, 'viz-dot-a'));
   if (s.label) out.push(text(W / 2, yLine + 34, s.label, 'viz-text-xs'));
-  const alt = s.alt ?? `Dot plot of the values ${[...values].sort((a, b) => a - b).join(', ')}.`;
+  const alt = s.alt ?? `Dot plot of the values ${[...values].sort((a, b) => a - b).map((v) => fmt(v)).join(', ')}.`;
   return svg(W, yLine + (s.label ? 46 : 28), alt, out);
 }
 
