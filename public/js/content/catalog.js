@@ -570,6 +570,17 @@ export const CATALOG = {
         "CCSS S-ID.C.7",
         "CCSS S-ID.C.8"
       ]
+    },
+    {
+      "id": "two-way-tables",
+      "title": "Two-Way Tables & Relative Frequency",
+      "summary": "Summarise two categorical variables in a table, find joint, marginal and conditional relative frequencies, and judge association.",
+      "grade": null,
+      "standards": [
+        "CCSS S-ID.B.5",
+        "CCSS S-ID.A.3",
+        "CCSS S-ID.C.9"
+      ]
     }
   ],
   "geometry": [

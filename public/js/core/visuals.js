@@ -1160,7 +1160,10 @@ function dotPlot(s) {
   const x0 = 28;
   const x1 = 332;
   const X = (v) => x0 + ((v - min) / span) * (x1 - x0);
-  const yLine = 20 + tallest * 16;
+  // Dots shrink when the ticks are close together, so neighbouring values do not run into each other.
+  const r = Math.max(3, Math.min(6, ((x1 - x0) / (span / step)) * 0.42));
+  const pitch = 2 * r + 4;
+  const yLine = 8 + r + tallest * pitch;
   const out = [line(14, yLine, 346, yLine, 'viz-axis')];
   const ticks = Math.round(span / step);
   const custom = s.labels ? new Map(s.labels.map((l) => [key(l.value), l.text])) : null;
@@ -1171,7 +1174,7 @@ function dotPlot(s) {
     const label = custom ? custom.get(key(v)) : i % every === 0 ? fmt(Math.round(v * 1e6) / 1e6) : null;
     if (label != null) out.push(text(X(v), yLine + 16, label, 'viz-text-xs'));
   }
-  for (const [k, c] of counts) for (let j = 0; j < c; j++) out.push(circle(X(k * step), yLine - 10 - j * 16, 6, 'viz-dot-a'));
+  for (const [k, c] of counts) for (let j = 0; j < c; j++) out.push(circle(X(k * step), yLine - r - 4 - j * pitch, r, 'viz-dot-a'));
   if (s.label) out.push(text(W / 2, yLine + 34, s.label, 'viz-text-xs'));
   const alt = s.alt ?? `Dot plot of the values ${[...values].sort((a, b) => a - b).map((v) => fmt(v)).join(', ')}.`;
   return svg(W, yLine + (s.label ? 46 : 28), alt, out);

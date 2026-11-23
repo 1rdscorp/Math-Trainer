@@ -10,5 +10,6 @@ import factoring from './factoring.js';
 import quadraticEquations from './quadratic-equations.js';
 import quadraticFunctions from './quadratic-functions.js';
 import dataStatistics from './data-statistics.js';
+import twoWayTables from './two-way-tables.js';
 
-export default [linearEquations, inequalities, functions, linearFunctions, systems, exponentsExponential, polynomials, factoring, quadraticEquations, quadraticFunctions, dataStatistics];
+export default [linearEquations, inequalities, functions, linearFunctions, systems, exponentsExponential, polynomials, factoring, quadraticEquations, quadraticFunctions, dataStatistics, twoWayTables];

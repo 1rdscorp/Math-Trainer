@@ -56,6 +56,8 @@ function twoRows(rng, c) {
   const rows = [c.rows[i], c.rows[j]];
   return { ...c, rows, intro: c.intro };
 }
+/** For a trimmed context, a sentence naming the two groups surveyed (with a leading space); otherwise ''. */
+const groups = (c) => (c.trim ? ` Each of them is in one of two groups: ${c.rows[0].label} or ${c.rows[1].label}.` : '');
 /** A random context with two rows and (if cols2) two columns. */
 function pick2(rng, cols2 = false) {
   for (;;) {
@@ -135,6 +137,7 @@ const pc = (k, n) => Math.round((100 * k) / n);
 const tie = (k, n, s = 100) => (2 * s * k) % n === 0 && ((2 * s * k) / n) % 2 === 1;
 const exact = (k, n) => (100 * k) % n === 0;
 const P = (v) => R`\(${v}\%\)`;
+const eq = (k, n) => (exact(k, n) ? '=' : R`\approx`);
 /** k/n worked out as a decimal and a percent, to the nearest whole percent. */
 const divTex = (k, n) => (exact(k, n) ? R`\frac{${k}}{${n}} = ${num(k / n)} = ${pc(k, n)}\%` : R`\frac{${k}}{${n}} \approx ${num(round(k / n, 4))} \approx ${pc(k, n)}\%`);
 /** A percent in a sentence: "30%" or "about 31%". */
@@ -161,6 +164,7 @@ function apart(correct, cands, gap = 3, lo = 0, hi = 100) {
   return out;
 }
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
+const points = (u, v) => (Math.abs(u - v) === 1 ? '1 percentage point' : `${Math.abs(u - v)} percentage points`);
 
 /** A random R × C table of counts from lo to hi. */
 const randTable = (rng, R0, C0, lo, hi) => Array.from({ length: R0 }, () => Array.from({ length: C0 }, () => rng.int(lo, hi)));
@@ -179,7 +183,7 @@ function easyTally(rng) {
   const raw = { type: 'table', headers: ['Name', c.rowHead, c.colHead], rows: recs.map((r) => [r.nm, c.rows[r.i].label, c.cols[r.j].label]), caption: 'Survey answers', alt: `A list of ${n} ${c.who} and their answers. ` + recs.map((r) => `${r.nm}: ${c.rows[r.i].label}, ${c.cols[r.j].label}`).join('; ') + '.' };
   const blank = gridVisual(c, withTotals(t).map((r) => r.map(() => null)), 'Two-way table to fill in');
   const match = recs.filter((r) => r.i === i && r.j === j).map((r) => r.nm);
-  const summary = c.rows.map((rw, a) => `${rw.label}: ` + c.cols.map((cl, b) => `${t[a][b]} ${cl.label.toLowerCase()}`).join(', ')).join('; ');
+  const summary = c.rows.map((rw, a) => `${rw.label}: ` + c.cols.map((cl, b) => `${t[a][b]} ${cl.label}`).join(', ')).join('; ');
   return q({
     prompt: `${c.intro} The first table lists ${n} answers. Summarise them in the two-way table. How many of these ${c.who} ${row.is} and ${col.pred}?`,
     visual: [raw, blank],
@@ -191,7 +195,7 @@ function easyTally(rng) {
       ...t.map((r) => r[j]).filter((_, a) => a !== i),
     ],
     solution: [
-      `Look for the people whose ${c.rowHead.toLowerCase()} is "${row.label}" and whose ${c.colHead.toLowerCase()} is "${col.label}": ${joinList(match)}.`,
+      `Look for the people with "${row.label}" in the ${c.rowHead} column and "${col.label}" in the ${c.colHead} column: ${joinList(match)}.`,
       `That is ${t[i][j]}. This number goes in the cell where the row "${row.label}" meets the column "${col.label}".`,
       `The whole table: ${summary}.`,
     ],
@@ -213,7 +217,7 @@ function easyJointMarginal(rng) {
   const spec = {
     joint: {
       k: t[i][j], what: `${row.is} and ${col.pred}`, find: `the cell where the row "${row.label}" meets the column "${col.label}"`,
-      wrong: [[t[i][j], RT[i], `That divides by the row total, ${RT[i]}: it is a share of the ${row.noun}. "Of all" means divide by the grand total, ${N}.`], [t[i][j], CT[j], `That divides by the column total, ${CT[j]}: it is a share of the ${col.noun}. "Of all" means divide by the grand total, ${N}.`], [RT[i], N, `That is the whole row "${row.label}". The question asks only about those who also ${col.pred}.`]],
+      wrong: [[t[i][j], RT[i], `That divides by the row total, ${RT[i]}: it is a share of the ${row.noun}. "Of all" means divide by the grand total, ${N}.`], [t[i][j], CT[j], `That divides by the column total, ${CT[j]}: it is a share of the ${col.noun}. "Of all" means divide by the grand total, ${N}.`], [RT[i], N, `That is the whole row "${row.label}". The question asks only about those of them who ${col.pred}.`]],
     },
     row: {
       k: RT[i], what: row.is, find: `the total of the row "${row.label}"`,
@@ -231,13 +235,13 @@ function easyJointMarginal(rng) {
   const cands = spec.wrong.map(([a, b, why]) => ({ value: asNum(a, b), why }));
   const ask = { frac: `What fraction of ${all} ${spec.what}? Give the fraction in lowest terms.`, dec: `What proportion of ${all} ${spec.what}? Give it as a decimal to the nearest hundredth.`, pct: `What percent of ${all} ${spec.what}? ${NEAREST}` }[form];
   const fracTex = frac(k, N).tex();
-  const last = { frac: R`\(\frac{${k}}{${N}}${frac(k, N).d === N ? '' : R` = ${fracTex}`}\) in lowest terms.`, dec: R`\(\frac{${k}}{${N}} ${(10000 * k) % N === 0 ? '=' : R`\approx`} ${num(round(k / N, 4))}\), which is \(${num(correct)}\) to the nearest hundredth.`, pct: R`\(${divTex(k, N)}\) to the nearest whole percent.` }[form];
+  const last = { frac: R`\(\frac{${k}}{${N}}${frac(k, N).d === N ? '' : R` = ${fracTex}`}\) in lowest terms.`, dec: R`\(\frac{${k}}{${N}} ${(10000 * k) % N === 0 ? '=' : R`\approx`} ${num(round(k / N, 4))}\), which is \(${num(correct, { fixed: 2 })}\) to the nearest hundredth.`, pct: R`\(${divTex(k, N)}\) to the nearest whole percent.` }[form];
   const visual = countTable(c, t);
   return q({
     prompt: `${c.intro} ${ask}`,
     visual,
     correct,
-    fmt: form === 'pct' ? P : form === 'dec' ? (v) => R`\(${num(v)}\)` : undefined,
+    fmt: form === 'pct' ? P : form === 'dec' ? (v) => R`\(${num(v, { fixed: 2 })}\)` : undefined,
     wrong: form === 'frac' ? cands : apart(correct, cands, form === 'dec' ? 0.03 : 3, 0, form === 'dec' ? 1 : 100),
     solution: [
       `"Of ${all}" means divide by the grand total, ${N}. ${kind === 'joint' ? 'This is a joint relative frequency.' : 'This is a marginal relative frequency.'}`,
@@ -332,7 +336,7 @@ function mediumConditional(rng) {
     wrong: apart(correct, [
       { value: pc(k, other), why: byRow ? `That divides by the column total, ${CT[j]}. "Of the ${row.noun}" means divide by the row total, ${RT[i]}.` : `That divides by the row total, ${RT[i]}. "Of the ${col.noun}" means divide by the column total, ${CT[j]}.` },
       { value: pc(k, N), why: `That divides by the grand total, ${N}, which gives a share of all the ${c.who}. Divide by the ${byRow ? 'row' : 'column'} total, ${den}.` },
-      { value: pc(rest, den), why: `That is the percent of the ${byRow ? row.noun : col.noun} who are not in the cell "${row.label}, ${col.label}".` },
+      { value: pc(rest, den), why: byRow ? `That is the rest of the row "${row.label}": those not in the column "${col.label}".` : `That is the rest of the column "${col.label}": those not in the row "${row.label}".` },
       pc(k, den + other),
     ]),
     solution: [
@@ -368,23 +372,25 @@ function mediumStory(rng) {
   }[target];
   const hide = [[0, 1], [1, 0], [1, 2], [2, 0], [2, 1]];
   const visual = countTable(c, t, hide);
-  const all = { b: [[0, 1]], c: [[1, 2], [1, 0]], C0: [[1, 2], [1, 0], [2, 0]], C1: [[0, 1], [2, 1]] }[target];
+  const want = { b: [0, 1], c: [1, 0], C0: [2, 0], C1: [2, 1] }[target];
   const sol = solveGrid(readGrid(visual));
-  const useful = sol.steps.filter((s) => all.some(([x, y]) => s.at[0] === x && s.at[1] === y));
+  const sb = R`In the row "${r0.label}", subtract: \(${R1} - ${a} = ${b}\).`;
+  const sR2 = R`In the Total column, subtract: \(${N} - ${R1} = ${R2}\) ${r1.noun}.`;
+  const sc = R`In the row "${r1.label}", subtract: \(${R2} - ${d} = ${cc}\).`;
+  const useful = { b: [sb], c: [sR2, sc], C0: [sR2, sc, R`In the column "${c0.label}", add: \(${a} + ${cc} = ${CT[0]}\).`], C1: [sb, R`In the column "${c1.label}", add: \(${b} + ${d} = ${CT[1]}\).`] }[target];
   return q({
-    prompt: `${N} ${c.who} were surveyed. ${R1} of them ${r0.is}, and ${a} of those ${c0.pred}. Of the others, ${d} ${c1.pred}. ${spec.ask}`,
+    prompt: `${N} ${c.who} were surveyed.${groups(c)} ${R1} of them ${r0.is}, and ${a} of those ${c0.pred}. Of the ${r1.noun}, ${d} ${c1.pred}. ${spec.ask}`,
     visual,
     correct: spec.ans,
     wrong: spec.wrong,
     solution: [
       `Put the given numbers in the table: the grand total ${N}, the row total ${R1} and the cells ${a} and ${d}.`,
-      ...useful.map((s) => stepText(c, s)),
+      ...useful,
       `So the answer is ${spec.ans}.`,
     ],
     rule: 0,
     skill: 'building a table from a story',
     check: () => {
-      const want = { b: [0, 1], c: [1, 0], C0: [2, 0], C1: [2, 1] }[target];
       return sol.done ? checkEqual(sol.g[want[0]][want[1]], spec.ans) : 'the table cannot be completed';
     },
   });
@@ -472,7 +478,7 @@ const GROUPS = [
   { what: 'the minutes that students in two classes spent on homework last night', a: 'Class A', b: 'Class B', label: 'minutes of homework', unit: 'minutes', lo: 25 },
   { what: 'the travel times, in minutes, of passengers on two bus routes', a: 'Route A', b: 'Route B', label: 'travel time (minutes)', unit: 'minutes', lo: 22 },
   { what: 'the number of push-ups each student did in one minute, in two gym classes', a: 'Class A', b: 'Class B', label: 'push-ups', unit: 'push-ups', lo: 24 },
-  { what: 'the number of points each player scored in a season, for two basketball teams', a: 'Team A', b: 'Team B', label: 'points', unit: 'points', lo: 30 },
+  { what: 'the number of points each player scored in a tournament, for two basketball teams', a: 'Team A', b: 'Team B', label: 'points', unit: 'points', lo: 30 },
 ];
 const sorted = (xs) => [...xs].sort((u, v) => u - v);
 const median = (xs) => {
@@ -574,7 +580,7 @@ function hardAssociation(rng) {
     const gap = Math.abs(pc(k1, R1) - pc(k2, R2));
     const countGap = Math.abs(k1 - k2) / Math.max(k1, k2);
     if (tie(k1, R1) || tie(k2, R2)) continue;
-    const ok = big ? gap >= 20 && countGap <= 0.1 : gap <= 4 && countGap >= 0.35 && Math.abs(p1 - p2) < 5;
+    const ok = big ? gap >= 20 && countGap <= 0.1 : gap <= 3 && countGap >= 0.35 && Math.abs(p1 - p2) < 4 && Math.min(p1, p2) >= 25 && Math.max(p1, p2) <= 75;
     if (!ok) continue;
     const fill = (k, Rt) => {
       if (C0 === 2) return j === 0 ? [k, Rt - k] : [Rt - k, k];
@@ -603,14 +609,14 @@ function hardAssociation(rng) {
     visual,
     correct: right(q1, q2, rowWay),
     wrong: [
-      { value: wrongV(q1, q2, rowWay), why: `The percents of each row are ${q1}% and ${q2}%: a difference of ${Math.abs(q1 - q2)} percentage points, which is ${big ? 'large' : 'small'}.` },
+      { value: wrongV(q1, q2, rowWay), why: `The percents of each row are ${q1}% and ${q2}%: a difference of ${points(q1, q2)}, which is ${big ? 'large' : 'small'}.` },
       { value: wrongV(k1, k2, countWay), why: `The rows have different totals (${RT[0]} and ${RT[1]}), so their counts cannot be compared directly. Divide each count by its own row total.` },
       { value: wrongV(a1, a2, allWay), why: `Those percents divide by the grand total, ${N}, so they are joint relative frequencies and still depend on the row sizes. Divide by each row total.` },
     ],
     solution: [
       `The rows have different totals (${RT[0]} and ${RT[1]}), so compare percents of each row, not counts.`,
       R`${cap(r0.noun)}: \(${divTex(k1, RT[0])}\). ${cap(r1.noun)}: \(${divTex(k2, RT[1])}\).`,
-      big ? `The percents differ by ${Math.abs(q1 - q2)} percentage points, so the variables appear to be associated.` : `The percents differ by only ${Math.abs(q1 - q2)} percentage points, so there is little or no association, even though the counts (${k1} and ${k2}) are very different.`,
+      big ? `The percents differ by ${points(q1, q2)}, so the variables appear to be associated.` : q1 === q2 ? `The percents are the same, so there is no association, even though the counts (${k1} and ${k2}) are very different.` : `The percents differ by only ${points(q1, q2)}, so there is little or no association, even though the counts (${k1} and ${k2}) are very different.`,
     ],
     rule: 4,
     skill: 'association in a two-way table',
@@ -729,15 +735,18 @@ function hardOutlierCompare(rng) {
   const V = Math.max(...B);
   const [medA, medB] = [median(A), median(B)];
   const [mnA, mnB] = [round(mean(A), 1), round(mean(B), 1)];
-  const show = (xs) => rng.shuffle([...xs]).join(', ');
+  const [sA, sB] = [rng.shuffle([...A]), rng.shuffle([...B])];
+  const [uA, uB] = [sA[3], sB[3]];
   const f = (v) => num(v);
+  const unsorted = uA === uB ? null : uA > uB ? R`Use the medians: ${G.a} is typically higher (median \(${f(uA)}\) against \(${f(uB)}\)).` : R`Use the medians: ${G.b} is typically higher (median \(${f(uB)}\) against \(${f(uA)}\)).`;
   return q({
-    prompt: `The data are ${G.what}.\n${G.a}: ${show(A)}\n${G.b}: ${show(B)}\nWhich statement gives the fairer comparison of a typical value for the two groups?`,
+    prompt: `The data are ${G.what}. ${G.a}: ${sA.join(', ')}. ${G.b}: ${sB.join(', ')}. Which statement gives the fairer comparison of a typical value for the two groups?`,
     visual: [dots(A, `${G.a}: ${G.label}`, lo, hi), dots(B, `${G.b}: ${G.label}`, lo, hi)],
     correct: R`Use the medians: ${G.a} is typically higher (median \(${f(medA)}\) against \(${f(medB)}\)). The ${V} in ${G.b} is an outlier.`,
     wrong: [
       { value: R`Use the means: ${G.b} is typically higher (mean \(${f(mnB)}\) against \(${f(mnA)}\)).`, why: `The mean of ${G.b} is higher only because of the outlier ${V}, which pulls it up. One extreme value hardly moves the median, so the medians describe a typical value better.` },
-      { value: R`Use the medians: ${G.b} is typically higher (median \(${f(medB)}\) against \(${f(medA)}\)).`, why: `Put each list in order first. The middle value of ${G.a} is ${f(medA)} and of ${G.b} is ${f(medB)}.` },
+      { value: unsorted, why: `Those are the middle numbers of the lists as written. Put each list in order first: then the middle values are ${f(medA)} for ${G.a} and ${f(medB)} for ${G.b}.` },
+      { value: R`Use the medians: ${G.b} is typically higher (median \(${f(medB)}\) against \(${f(medA)}\)).`, why: `The middle value of ${G.a} in order is ${f(medA)}, and of ${G.b} is ${f(medB)}, so ${G.a} has the higher median.` },
       { value: R`Use the means: ${G.a} is typically higher (mean \(${f(mnA)}\) against \(${f(mnB)}\)).`, why: R`Work the means out: \(${sum(A)} \div ${n} \approx ${f(mnA)}\) for ${G.a} and \(${sum(B)} \div ${n} \approx ${f(mnB)}\) for ${G.b}. Because of the outlier, the mean of ${G.b} is the higher one, and that is why the mean is the wrong tool here.` },
     ],
     solution: [
@@ -853,18 +862,18 @@ function challengeWorkBack(rng) {
   const visual = countTable(c, t, [[0, 0], [0, 1], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1]]);
   const pDiff = ((Pc - p) * R2) / 100;
   return q({
-    prompt: `${N} ${c.who} were surveyed, and ${R1} of them ${r0.is}. Of those ${R1}, ${p}% ${c0.pred}. Of all ${N} ${c.who}, ${Pc}% ${c0.pred}. How many ${r1.noun} ${c0.pred}?`,
+    prompt: `${N} ${c.who} were surveyed.${groups(c)} ${R1} of them ${r0.is}. Of those ${R1}, ${p}% ${c0.pred}. Of all ${N} ${c.who}, ${Pc}% ${c0.pred}. How many ${r1.noun} ${c0.pred}?`,
     visual,
     correct: cc,
     wrong: [
       { value: Number.isInteger(pDiff) && pDiff > 0 ? pDiff : null, why: `The ${Pc}% is a share of all ${N}, and the ${p}% is a share of only ${R1}. Percents of different wholes cannot be subtracted. Turn each into a count first.` },
       { value: colT - p, why: `${p}% is a percent, not a count. ${p}% of ${R1} is ${a}.` },
-      { value: colT, why: `${colT} is everyone who ${c0.pred}, in both rows. Take away the ${a} ${r0.noun}.` },
+      { value: colT, why: `${colT} is all the ${c.who} who ${c0.pred}, in both rows. Take away the ${a} ${r0.noun}.` },
       a,
     ],
     solution: [
       R`The ${r0.noun} who ${c0.pred}: ${p}% of ${R1} is \(${num(p / 100)} \times ${R1} = ${a}\).`,
-      R`Everyone who ${c0.pred}: ${Pc}% of ${N} is \(${num(Pc / 100)} \times ${N} = ${colT}\). That is the total of the column "${c0.label}".`,
+      R`All the ${c.who} who ${c0.pred}: ${Pc}% of ${N} is \(${num(Pc / 100)} \times ${N} = ${colT}\). That is the total of the column "${c0.label}".`,
       R`In that column, subtract: \(${colT} - ${a} = ${cc}\).`,
       R`Check: \(\frac{${a}}{${R1}} = ${p}\%\) and \(\frac{${colT}}{${N}} = ${Pc}\%\). So ${cc} ${r1.noun} ${c0.pred}.`,
     ],
@@ -940,7 +949,7 @@ function challengeDirection(rng) {
     wrong: [
       { value: R`Yes. \(${pA}\%\) of the ${col.noun} ${r0.is}, so \(${pA}\%\) of the ${r0.noun} ${col.pred}.`, why: `Those are different wholes. ${pA}% is a share of the column "${col.label}" (${CT[j]}). The second part is about a share of the row "${r0.label}" (${RT[0]}).` },
       { value: `Yes. More ${r0.noun} than ${r1.noun} ${col.pred} (${k} compared with ${t[1][j]}).`, why: `"Most ${r0.noun}" means more than half of the row "${r0.label}": compare ${k} with the row total, ${RT[0]}.` },
-      { value: R`Yes. \(${pB}\%\) of the ${r0.noun} ${col.pred}, which is more than half.`, why: R`\(${pB}\%\) is less than half.` },
+      { value: `Yes. Both parts are about the same ${k} ${c.who}, so the two percents must be equal.`, why: `The ${k} are the same ${c.who}, but the wholes are different: ${CT[j]} in the column "${col.label}" and ${RT[0]} in the row "${r0.label}".` },
     ],
     solution: [
       R`First part, a share of the column "${col.label}": \(${divTex(k, CT[j])}\). That is true: most of them ${r0.is}.`,
@@ -977,10 +986,10 @@ function associationModel({ a, b, c: cc, d }) {
     problem: `${JOB.intro} ${a} Grade 9 students have a job and ${b} do not; ${cc} Grade 12 students have a job and ${d} do not. Is there an association between grade and having a job?`,
     steps: [
       `Totals: Grade 9 has ${RT[0]} students, Grade 12 has ${RT[1]}, and ${N} were surveyed in all.`,
-      R`Joint relative frequency (of all): \(\frac{${a}}{${N}} \approx ${pc(a, N)}\%\) of all the students are in Grade 9 and have a job.`,
-      R`Marginal relative frequency (of all): \(\frac{${CT[0]}}{${N}} \approx ${pc(CT[0], N)}\%\) of all the students have a job.`,
-      R`Conditional, of each row: Grade 9 \(\frac{${a}}{${RT[0]}} \approx ${p1}\%\) have a job; Grade 12 \(\frac{${cc}}{${RT[1]}} \approx ${p2}\%\).`,
-      `The difference is ${gap} percentage points. ${verdict} (There is no fixed cut-off; this is a rough guide.)`,
+      R`Joint relative frequency (of all): \(\frac{${a}}{${N}} ${eq(a, N)} ${pc(a, N)}\%\) of all the students are in Grade 9 and have a job.`,
+      R`Marginal relative frequency (of all): \(\frac{${CT[0]}}{${N}} ${eq(CT[0], N)} ${pc(CT[0], N)}\%\) of all the students have a job.`,
+      R`Conditional, of each row: Grade 9 \(\frac{${a}}{${RT[0]}} ${eq(a, RT[0])} ${p1}\%\) have a job; Grade 12 \(\frac{${cc}}{${RT[1]}} ${eq(cc, RT[1])} ${p2}\%\).`,
+      `The difference is ${points(p1, p2)}. ${verdict} (There is no fixed cut-off; this is a rough guide.)`,
       'Even a clear association would not show that being in one grade causes having a job. A survey shows how variables go together, not why.',
     ],
     answer: gap < 5 ? `Little or no association (${p1}% compared with ${p2}%)` : gap < 15 ? `Possibly a weak association (${p1}% compared with ${p2}%)` : `An association (${p1}% compared with ${p2}%)`,
@@ -998,8 +1007,8 @@ function completeModel({ N, R1, C1, a }) {
   if (a > R1 || a > C1) return { error: `The ${a} households in apartments with a pet are part of both totals, so it cannot be bigger than either of them.` };
   if (d < 0) return { error: `These numbers do not fit: the last cell would be ${d}, and a count cannot be negative. Try a larger grand total.` };
   const t = [[a, b], [cc, d]];
-  const rowPart = R1 === 0 ? 'There are no households in apartments, so that row percent cannot be found.' : R`Of the households in apartments, \(\frac{${a}}{${R1}} \approx ${pc(a, R1)}\%\) have a pet (a share of the row).`;
-  const colPart = C1 === 0 ? 'No household has a pet, so that column percent cannot be found.' : R`Of the households with a pet, \(\frac{${a}}{${C1}} \approx ${pc(a, C1)}\%\) live in an apartment (a share of the column).`;
+  const rowPart = R1 === 0 ? 'There are no households in apartments, so that row percent cannot be found.' : R`Of the households in apartments, \(\frac{${a}}{${R1}} ${eq(a, R1)} ${pc(a, R1)}\%\) have a pet (a share of the row).`;
+  const colPart = C1 === 0 ? 'No household has a pet, so that column percent cannot be found.' : R`Of the households with a pet, \(\frac{${a}}{${C1}} ${eq(a, C1)} ${pc(a, C1)}\%\) live in an apartment (a share of the column).`;
   return {
     problem: `${N} households were surveyed. ${R1} live in an apartment and ${C1} have a pet. ${a} live in an apartment and have a pet. Complete the table.`,
     steps: [
