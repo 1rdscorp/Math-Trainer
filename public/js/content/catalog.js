@@ -1202,6 +1202,16 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "newtons-method",
+      "title": "Newton's Method",
+      "summary": "Approximate roots and solutions of equations by following tangent lines, and recognise when Newton's method fails.",
+      "grade": null,
+      "standards": [
+        "Calculus I: Newton's method",
+        "AP Calculus 4.6"
+      ]
+    },
+    {
       "id": "curve-analysis",
       "title": "Analyzing Functions with Derivatives",
       "summary": "Use the first and second derivatives to find where a function rises, falls and bends, and where its extreme values are.",
@@ -1260,6 +1270,17 @@ export const CATALOG = {
       "standards": [
         "AP Calculus 6.9",
         "AP Calculus 6.14"
+      ]
+    },
+    {
+      "id": "integration-techniques",
+      "title": "Integration by Algebra & Inverse Trig",
+      "summary": "Rewrite an integrand with algebra or an identity, by splitting, dividing or completing the square, so a basic or inverse-trig rule applies.",
+      "grade": null,
+      "standards": [
+        "AP Calculus 6.10",
+        "AP Calculus 6.9",
+        "AP Calculus 6.8"
       ]
     }
   ],
