@@ -1567,6 +1567,16 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "multiple-integral-applications",
+      "title": "Mass, Moments & Probability with Multiple Integrals",
+      "summary": "Use double and triple integrals for mass, charge, centers of mass and moments of inertia, and for probabilities from joint densities.",
+      "grade": null,
+      "standards": [
+        "Calculus III: applications of double integrals",
+        "Calculus III: applications of triple integrals"
+      ]
+    },
+    {
       "id": "line-integrals-green",
       "title": "Vector Fields, Line Integrals & Green's Theorem",
       "summary": "Integrate functions and vector fields along curves, use potentials and path independence, and apply Green's theorem.",

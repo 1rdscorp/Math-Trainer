@@ -11,4 +11,6 @@ import tripleIntegrals from './triple-integrals.js';
 import lineIntegralsGreen from './line-integrals-green.js';
 import surfaceIntegralsTheorems from './surface-integrals-theorems.js';
 
-export default [vectorsSpace, linesPlanes, vectorFunctions, partialDerivatives, tangentPlanesChainRule, gradientDirectional, optimizationLagrange, doubleIntegrals, tripleIntegrals, lineIntegralsGreen, surfaceIntegralsTheorems];
+import multipleIntegralApplications from './multiple-integral-applications.js';
+
+export default [vectorsSpace, linesPlanes, vectorFunctions, partialDerivatives, tangentPlanesChainRule, gradientDirectional, optimizationLagrange, doubleIntegrals, tripleIntegrals, multipleIntegralApplications, lineIntegralsGreen, surfaceIntegralsTheorems];
