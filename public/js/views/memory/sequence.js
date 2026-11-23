@@ -108,7 +108,7 @@ export default function sequenceView(ctx) {
         stair.change > 0 ? h('p', { class: 'notice notice-good' }, `Two in a row! The next row has ${lengthNow()} digits.`) : null,
         stair.change < 0 ? h('p', { class: 'notice notice-info' }, `The next row is a little shorter: ${lengthNow()} digits. You can build back up.`) : null,
         stair.change === 0 && before === stair.level ? h('p', { class: 'muted' }, ok ? `One more like that and the row gets longer. Next: ${lengthNow()} digits.` : `Next row: ${lengthNow()} digits again.`) : null,
-        h('p', { class: 'small muted' }, `Longest row so far: ${best || '–'} digits.`),
+        h('p', { class: 'small muted' }, best ? `Longest row so far: ${best} digits.` : 'No row right yet. Keep going!'),
         h('div', { class: 'row', style: 'justify-content:center' }, again, h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => intro().focus() }, 'Change settings')),
         guestNotice(app, { compact: true }),
       ),

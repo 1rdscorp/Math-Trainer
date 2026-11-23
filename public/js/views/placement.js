@@ -173,9 +173,14 @@ export default function placementView(ctx) {
     const rung = RUNGS[r.rung];
     const level = findLevel(rung.level);
     const topics = topicList(level.id);
-    // Start at the first topic of the rung that exists, or the first topic of the level.
-    const startId = rung.sources.map(([id]) => id).find((id) => topics.some((t) => t.id === id)) ?? topics[0]?.id;
-    const start = topics.find((t) => t.id === startId);
+    // Where to begin. If this is the first rung of its level, nothing in the level has been shown
+    // yet, so start at the level's first topic (failing "systems and quadratics" means starting
+    // Algebra 1 at linear equations, not at systems). Otherwise start at whichever of the rung's
+    // topics comes first in teaching order.
+    const firstOfLevel = RUNGS[r.rung - 1]?.level !== rung.level;
+    const rungTopics = topics.filter((t) => rung.sources.some(([id]) => id === t.id));
+    const start = (firstOfLevel ? topics[0] : rungTopics[0]) ?? topics[0];
+    const fromTheStart = firstOfLevel && start && !rung.sources.some(([id]) => id === start.id);
     app.store.change((doc) => { doc.placement = { level: level.id, topic: start?.id ?? null, at: Date.now() }; });
 
     const heading = h('h2', { tabindex: '-1' }, r.toppedOut ? `You are ready for ${level.title}, the top level here.` : `A good place to start: ${level.title}`);
@@ -188,7 +193,16 @@ export default function placementView(ctx) {
         heading,
         r.toppedOut
           ? h('p', null, 'You answered every kind of question correctly. Pick any topic you would like to sharpen.')
-          : h('p', null, r.passed != null ? `You were comfortable with ${RUNGS[r.passed].label}. ` : '', r.certain ? `The next thing to work on is ${rung.label}.` : `Going by the questions so far, a sensible next step is ${rung.label}.`),
+          : h(
+              'p',
+              null,
+              r.passed != null ? `You were comfortable with ${RUNGS[r.passed].label}. ` : '',
+              fromTheStart && r.passed != null
+                ? `You are ready for ${level.title}. Start at its first topic and work up to ${rung.label}.`
+                : r.certain
+                  ? `The next thing to work on is ${rung.label}.`
+                  : `Going by the questions so far, a sensible next step is ${rung.label}.`,
+            ),
         start ? h('p', null, h('a', { class: 'btn btn-primary btn-big', href: `#/topic/${level.id}/${start.id}/learn` }, `Start with: ${start.title}`)) : null,
         h('div', { class: 'row' }, h('a', { class: 'btn', href: `#/level/${level.id}` }, `See all ${level.title} topics`), below ? h('a', { class: 'btn btn-ghost', href: `#/level/${below.id}` }, `Review ${below.title} first`) : null, h('a', { class: 'btn btn-ghost', href: '#/' }, 'Choose a different level')),
         h('p', { class: 'small muted' }, 'This is only a starting point from a few questions. If the topics feel too easy or too hard, move up or down whenever you like.'),

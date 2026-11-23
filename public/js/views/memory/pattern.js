@@ -130,7 +130,7 @@ export default function patternView(ctx) {
         ok ? null : h('p', { class: 'small muted' }, 'Solid squares were right. Dashed squares were lit but missed. Dark squares were tapped by mistake.'),
         stair.change > 0 ? h('p', { class: 'notice notice-good' }, `Two in a row! Next: ${next.lit} squares on a ${next.size} × ${next.size} grid.`) : null,
         stair.change < 0 ? h('p', { class: 'notice notice-info' }, `The next pattern is a little smaller: ${next.lit} squares. You can build back up.`) : null,
-        h('p', { class: 'small muted' }, `Biggest pattern so far: ${best || '–'} squares.`),
+        h('p', { class: 'small muted' }, best ? `Biggest pattern so far: ${best} squares.` : 'No pattern right yet. Keep going!'),
         h('div', null, h('button', { type: 'button', class: 'btn btn-primary btn-big', onclick: round }, 'Next pattern')),
         guestNotice(app, { compact: true }),
       ),

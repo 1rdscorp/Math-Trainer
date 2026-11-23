@@ -511,6 +511,9 @@ main {
   overflow-x: auto;
   overflow-y: hidden;
 }
+/* A paragraph that only holds buttons or links-as-buttons has nothing to scroll, and clipping it
+   would cut the top and bottom off the focus outline of the button inside. */
+.notice p:has(> .btn), .card > p:has(> .btn) { overflow: visible; }
 .choice label { min-width: 0; }
 .choice-text { min-width: 0; flex: 1 1 auto; }
 .math-error { color: var(--bad); font-family: monospace; }
