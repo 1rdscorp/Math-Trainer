@@ -649,7 +649,10 @@ function plot(s) {
       const off = 11 + String(sg.label).length * 2.2;
       const nx = -((by - ay) / len) * off;
       const ny = ((bx - ax) / len) * off;
-      placeLabel((ax + bx) / 2, (ay + by) / 2, sg.label, 'viz-text-sm viz-text-b', [[nx, ny, 'middle'], [-nx, -ny, 'middle']]);
+      // The middle of the segment first, then a quarter of the way from either end, on either side.
+      const opts = [[nx, ny, 'middle'], [-nx, -ny, 'middle']];
+      const at = [0.5, 0.25, 0.75].map((t) => [ax + (bx - ax) * t, ay + (by - ay) * t]);
+      if (!at.some(([px, py]) => placeLabel(px, py, sg.label, 'viz-text-sm viz-text-b', opts, true))) placeLabel(at[0][0], at[0][1], sg.label, 'viz-text-sm viz-text-b', opts);
     }
   }
   // A marked point on the edge of the window, such as (0, 0) or a point on an axis, is drawn whole;

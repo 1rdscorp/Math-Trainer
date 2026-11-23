@@ -61,7 +61,9 @@ function tankPic({ shape, half, H, d, s = 0, u, widthLabel, alt }) {
   segs.push({ from: [half, H], to: [-half, H], dashed: true, color: 'd', label: widthLabel });
   segs.push({ from: [half * 1.3, 0], to: [half * 1.3, H], dashed: true, color: 'c', label: `${H} ${u.len}` });
   if (d < H) segs.push({ from: [-half * 1.3, d], to: [-half * 1.3, 0], dashed: true, color: 'c', label: `water ${d} ${u.len}` });
-  if (s > 0) segs.push({ from: [0, H], to: [0, top], color: 'd', label: `spout ${s} ${u.len}` });
+  // The spout stands left of centre, so its label does not fight the width label over the middle of the top.
+  const sx = -half * 0.9;
+  if (s > 0) segs.push({ from: [sx, H], to: [sx, top], color: 'd', label: `spout ${s} ${u.len}` });
   segs.push({ from: [-wAt(y0), y0], to: [wAt(y0), y0], color: 'b', label: 'slice at height y' });
   segs.push({ from: [wAt(y0) * 0.5, y0], to: [wAt(y0) * 0.5, top], arrow: true, dashed: true, color: 'b', label: `lift ${top} − y` });
   const span = Math.max(top, 2 * half);
