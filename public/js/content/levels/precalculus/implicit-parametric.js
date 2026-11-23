@@ -13,7 +13,7 @@ const subTex = (c, x, y) => terms([[c.A, `(${num(x)})^{2}`], [c.B, `(${num(x)})(
 const pt = (x, y) => M(point(x, y));
 const ptText = (x, y) => `(${txt(x)}, ${txt(y)})`;
 const yOr = (ys) => (ys.length === 1 ? R`only \(y = ${num(ys[0])}\)` : R`\(y = ${num(ys[0])}\) or \(y = ${num(ys[1])}\)`);
-const sameSet = (a, b) => a.length === b.length && a.every((v) => b.some((w) => Math.abs(v - w) < 1e-9));
+const sameSet = (a, b) => [...new Set(a)].sort((u, v) => u - v).join() === [...new Set(b)].sort((u, v) => u - v).join();
 // "x = h + a cos t" with tidy signs; fn is the LaTeX of the trig part.
 const coordTex = (v, c, a, fn) => `${v} = ${terms([[c, ''], [a, fn]])}`;
 const pairTex = (xs, ys) => R`\(${xs},\ ${ys}\)`;
@@ -118,13 +118,17 @@ function easySegment(rng) {
     prompt: R`A point moves along the segment \(x = ${linear(D2[0], P2[0], 't')},\ y = ${linear(D2[1], P2[1], 't')}\), \(0 \le t \le 1\), from \(${point(...P2)}\) to \(${point(...Q2)}\). Where is it when \(t = ${f.tex()}\)?`,
     correct: pt(...ans),
     wrong: [
-      { value: pt(...at(1 - f.value)), why: R`That is \(${f.tex()}\) of the way back from the end. Substitute \(t = ${f.tex()}\) into both equations.` },
-      { value: pt(f.value * Q2[0], f.value * Q2[1]), why: R`Start from \(${point(...P2)}\), then add \(${f.tex()}\) of the change \(\langle ${D2[0]}, ${D2[1]} \rangle\).` },
-      f.value === 0.5 ? pt(...at(0.25)) : pt(...at(0.5)),
-      pt(ans[1], ans[0]),
-      pt(...at(f.value / 2)),
-      pt(...Q2),
-    ],
+      { value: [...at(1 - f.value)], why: R`That is \(${f.tex()}\) of the way back from the end. Substitute \(t = ${f.tex()}\) into both equations.` },
+      { value: [f.value * Q2[0], f.value * Q2[1]], why: R`Start from \(${point(...P2)}\), then add \(${f.tex()}\) of the change \(\langle ${D2[0]}, ${D2[1]} \rangle\).` },
+      { value: f.value === 0.5 ? at(0.25) : at(0.5) },
+      { value: [ans[1], ans[0]] },
+      { value: at(f.value / 2) },
+      { value: Q2 },
+      { value: [P2[0] + D2[0] / m, P2[1] + D2[1] / m] },
+      { value: [ans[0], P2[1]] },
+      { value: [f.value * D2[0], f.value * D2[1]], why: R`That is only the change so far. Add it to the starting point \(${point(...P2)}\).` },
+      { value: [ans[0], P2[1] - f.value * D2[1]] },
+    ].filter((o) => o.value.every((v) => Math.abs(v - Math.round(v)) < 1e-9)).map((o) => ({ ...o, value: pt(...o.value.map((v) => Math.round(v))) })),
     solution: [
       R`Substitute \(t = ${f.tex()}\): \(x = ${P2[0]} + ${f.tex()}(${D2[0]}) = ${ans[0]}\).`,
       R`\(y = ${P2[1]} + ${f.tex()}(${D2[1]}) = ${ans[1]}\).`,
@@ -212,13 +216,17 @@ function mediumSolveForY(rng) {
   const ys = y1 === y2 ? [y1] : [y1, y2].sort((u, v) => u - v);
   const lin = B * x0 + E;
   const cst = A * x0 * x0 + D * x0 - c.G;
-  const cands = [ys.map((v) => -v), [ys[0]], ys.length === 2 ? [ys[1]] : [ys[0], -ys[0]], [ys[0] + 1, ys[ys.length - 1] + 1], ys.length === 2 ? [ys[0], -ys[1]] : [ys[0] + 2], [ys[0] - 1, ys[ys.length - 1] - 1], [ys[0] - 2, ys[ys.length - 1] + 2], [-ys[0]]];
-  const wrongs = cands.filter((s) => !sameSet(s, ys) && !s.every((v) => on(c, x0, v)));
   const two = ys.length === 2;
+  const signWhy = R`Factor carefully: \(${terms([[1, 'y^{2}'], [lin, 'y'], [cst, '']])} = 0\). The roots have the opposite signs to the numbers in the factors.`;
+  const oneWhy = 'A quadratic in y can have two solutions. Here both work, so the vertical line meets the curve twice.';
+  const cands = two
+    ? [[ys.map((v) => -v), signWhy], [[ys[0]], oneWhy], [[ys[1]], oneWhy], [[ys[0], -ys[1]]], [[-ys[0], ys[1]]], [[ys[0] + 1, ys[1] + 1]], [[ys[0] - 1, ys[1] - 1]], [[ys[0] - 2, ys[1] + 2]]]
+    : [[[-ys[0]], signWhy], [[ys[0], -ys[0]], R`The discriminant is 0, so there is exactly one solution.`], [[ys[0] + 1]], [[ys[0] - 1]], [[ys[0] + 2]]];
+  const wrongs = cands.filter(([set], i) => new Set(set).size === set.length && !sameSet(set, ys) && !set.every((v) => on(c, x0, v)) && cands.findIndex(([o]) => sameSet(o, set) && o.length === set.length) === i);
   return q({
     prompt: R`For the curve \(${curveTex(c)}\), find every \(y\)-value that goes with \(x = ${x0}\).`,
     correct: yOr(ys),
-    wrong: wrongs.map((s, i) => (i === 0 ? { value: yOr(s), why: R`Factor carefully: \(${terms([[1, 'y^{2}'], [lin, 'y'], [cst, '']])} = 0\). The signs of the roots are opposite to the signs in the factors.` } : two && s.length === 1 ? { value: yOr(s), why: 'A quadratic in y can have two solutions. Here both work, so the vertical line meets the curve twice.' } : yOr(s))),
+    wrong: wrongs.map(([set, why]) => (why ? { value: yOr(set), why } : yOr(set))),
     solution: [
       R`Substitute \(x = ${x0}\): \(${terms([[A, `(${x0})^{2}`], [B, `(${x0})y`], [1, 'y^{2}'], [D, `(${x0})`], [E, 'y']])} = ${c.G}\).`,
       R`Collect terms on one side: \(${terms([[1, 'y^{2}'], [lin, 'y'], [cst, '']])} = 0\), a quadratic in \(y\).`,
@@ -250,24 +258,27 @@ function mediumAxisCrossings(rng) {
   const right = rs.map(P);
   const cands = [
     [rs.map(Qp), R`Points on the ${xAxis ? 'x' : 'y'}-axis have ${xAxis ? 'y' : 'x'}-coordinate 0.`],
-    [rs.map((r) => P(-r)), R`Solving \((${linear(1, -rs[0], xAxis ? 'x' : 'y')})(${linear(1, -rs[1], xAxis ? 'x' : 'y')}) = 0\) gives \(${rs[0]}\) and \(${rs[1]}\); the signs flip from the factors.`],
+    [rs.map((r) => P(-r)), R`Factoring gives \(${xAxis ? 'x' : 'y'} = ${rs[0]}\) or \(${xAxis ? 'x' : 'y'} = ${rs[1]}\): each root has the opposite sign to the number in its factor.`],
     [[P(rs[0])], null],
     [[P(rs[1])], null],
     [rs.map((r) => P(r + 1)), null],
     [rs.map((r) => P(r - 2)), null],
+    [rs.map((r) => P(r - 1)), null],
+    [rs.map((r) => P(2 * r)), null],
     [[P(-rs[0])], null],
     [[Qp(rs[1])], null],
   ];
   const wrongs = cands.filter(([pts]) => !pts.every((p) => on(c, ...p)) && set(pts) !== set(right));
   const v = xAxis ? 'x' : 'y';
   const lin = -(r1 + r2);
+  const fac = (r) => (r === 0 ? v : `(${linear(1, -r, v)})`);
   return q({
     prompt: R`Where does the curve \(${curveTex(c)}\) cross the ${v}-axis?`,
     correct: set(right),
     wrong: wrongs.map(([pts, why]) => (why ? { value: set(pts), why } : set(pts))),
     solution: [
       R`On the ${v}-axis, \(${xAxis ? 'y' : 'x'} = 0\). Every term with \(${xAxis ? 'y' : 'x'}\) drops out: \(${terms([[1, `${v}^{2}`], [lin, v]])} = ${c.G}\).`,
-      R`Rearrange and factor: \(${terms([[1, `${v}^{2}`], [lin, v], [-c.G, '']])} = (${linear(1, -rs[0], v)})(${linear(1, -rs[1], v)}) = 0\), so \(${v} = ${rs[0]}\) or \(${v} = ${rs[1]}\).`,
+      R`Rearrange and factor: \(${terms([[1, `${v}^{2}`], [lin, v], [-c.G, '']])} = ${rs[1] === 0 ? fac(rs[1]) + fac(rs[0]) : fac(rs[0]) + fac(rs[1])} = 0\), so \(${v} = ${rs[0]}\) or \(${v} = ${rs[1]}\).`,
       R`The curve crosses the ${v}-axis at ${set(right)}.`,
     ],
     rule: 2,
@@ -364,13 +375,13 @@ function hardTraceCount(rng) {
     correct: say(n, ccw),
     wrong: [
       { value: say(n, !ccw), why: R`Follow the point: it starts at \(${point(...ab)}\) and a quarter-turn later is at \(${point(...after)}\).` },
-      { value: say(other, ccw), why: R`The angle is \(${arg}\), which runs from 0 to \(${num(wv * T)}\pi\) as \(t\) runs from 0 to \(${Ttex}\). Each \(2\pi\) of angle is one trip around.` },
+      { value: say(other, ccw), why: R`The angle is \(${arg}\), which runs from 0 to \(${wv * T === 1 ? '' : num(wv * T)}\pi\) as \(t\) runs from 0 to \(${Ttex}\). Each \(2\pi\) of angle is one trip around.` },
       say(third, !ccw),
       say(other, !ccw),
       say(third, ccw),
     ],
     solution: [
-      R`As \(t\) goes from 0 to \(${Ttex}\), the angle \(${arg}\) goes from 0 to \(${num(wv * T)}\pi\), which is ${n === 0.5 ? 'half of one' : n === 1 ? 'one' : n} full turn${n > 1 ? 's' : ''} of \(2\pi\).`,
+      R`As \(t\) goes from 0 to \(${Ttex}\), the angle \(${arg}\) goes from 0 to \(${wv * T === 1 ? '' : num(wv * T)}\pi\), which is ${n === 0.5 ? 'half of one' : n === 1 ? 'one' : n} full turn${n > 1 ? 's' : ''} of \(2\pi\).`,
       R`At angle 0 the point is \(${point(...ab)}\); a quarter-turn later it is at \(${point(...after)}\). Seen from the centre \(${point(h, k)}\), that is ${ccw ? 'counterclockwise' : 'clockwise'}.`,
       `So the ellipse is traced ${say(n, ccw).toLowerCase()}.`,
     ],
@@ -529,11 +540,12 @@ function hardParamWord(rng) {
     prompt: `${intro} After how many seconds does it cross the line \\(x = ${cx}\\)?`,
     visual,
     correct: ans,
-    unit: 'seconds',
+    fmt: (val) => `${M(num(val))} ${(typeof val === 'number' ? val : val.value) === 1 ? 'second' : 'seconds'}`,
     wrong: [
       { value: frac(cx - A[0], T * u), why: R`That is the fraction of the trip. Multiply by the ${T} seconds the trip takes.` },
-      { value: frac(cx, u), why: R`Solve \(${linear(u, A[0], 't')} = ${cx}\); the starting \(x\)-value must be subtracted first.` },
+      cx / u > 0 ? { value: frac(cx, u), why: R`Solve \(${linear(u, A[0], 't')} = ${cx}\); the starting \(x\)-value must be subtracted first.` } : null,
       T - s,
+      s + 1,
     ],
     solution: [
       R`Each second it moves \(\dfrac{${T * u}}{${T}} = ${u}\) m in \(x\), so \(x = ${linear(u, A[0], 't')}\).`,

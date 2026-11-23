@@ -958,6 +958,21 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "function-models",
+      "title": "Choosing & Checking Function Models",
+      "summary": "Transform parent functions, choose and build a model from a context or data, and check it with residuals and semi-log plots.",
+      "grade": null,
+      "standards": [
+        "AP Precalculus 1.12",
+        "AP Precalculus 1.13",
+        "AP Precalculus 1.14",
+        "AP Precalculus 2.4",
+        "AP Precalculus 2.6",
+        "AP Precalculus 2.15",
+        "CCSS F-LE.A.1"
+      ]
+    },
+    {
       "id": "unit-circle-trig",
       "title": "Trigonometric Functions & the Unit Circle",
       "summary": "Use radians and the unit circle to find exact values of all six trig functions in any quadrant.",
