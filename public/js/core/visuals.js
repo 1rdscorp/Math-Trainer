@@ -613,8 +613,12 @@ function plot(s) {
       placeLabel((ax + bx) / 2, (ay + by) / 2, sg.label, 'viz-text-sm viz-text-b', [[nx, ny, 'middle'], [-nx, -ny, 'middle']]);
     }
   }
+  // A marked point on the edge of the window, such as (0, 0) or a point on an axis, is drawn whole;
+  // only points outside the window are clipped.
+  const dots = [];
+  const inWindow = (p) => p.x >= xMin - 1e-9 && p.x <= xMax + 1e-9 && p.y >= yMin - 1e-9 && p.y <= yMax + 1e-9;
   for (const p of s.points ?? []) {
-    inside.push(circle(X(p.x), Y(p.y), 4.5, p.open ? `viz-open-${'abcd'[colorIndex(p.color)]}` : `viz-dot-${'abcd'[colorIndex(p.color)]}`));
+    (inWindow(p) ? dots : inside).push(circle(X(p.x), Y(p.y), 4.5, p.open ? `viz-open-${'abcd'[colorIndex(p.color)]}` : `viz-dot-${'abcd'[colorIndex(p.color)]}`));
     if (p.label != null) {
       placeLabel(X(p.x), Y(p.y), p.label, 'viz-text-sm viz-text-b', [[8, -13, 'start'], [8, 15, 'start'], [-8, -13, 'end'], [-8, 15, 'end'], [0, -24, 'middle'], [0, 26, 'middle'], [14, -22, 'start'], [-14, -22, 'end'], [14, 24, 'start'], [-14, 24, 'end']]);
     }
@@ -628,6 +632,7 @@ function plot(s) {
     el('defs', {}, el('clipPath', { id }, rect(m.l, m.t, pw, ph, ''))),
     out,
     el('g', { 'clip-path': `url(#${id})` }, inside),
+    dots,
     labels,
   );
 }

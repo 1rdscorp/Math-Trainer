@@ -75,6 +75,16 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "factors-patterns",
+      "title": "Factors, Multiples & Patterns",
+      "summary": "Find factor pairs and multiples, tell prime from composite, and follow number patterns.",
+      "grade": "Grade 4",
+      "standards": [
+        "CCSS 4.OA.B.4",
+        "CCSS 4.OA.C.5"
+      ]
+    },
+    {
       "id": "fractions-intro",
       "title": "Understanding Fractions",
       "summary": "Name fractions of a whole and on a number line, find equal fractions, and compare fractions.",
@@ -145,6 +155,21 @@ export const CATALOG = {
         "CCSS 5.NBT.A.3",
         "CCSS 5.NBT.A.4",
         "CCSS 5.NBT.B.7"
+      ]
+    },
+    {
+      "id": "expressions-coordinates",
+      "title": "Expressions & the Coordinate Plane",
+      "summary": "Work out and write expressions, graph number patterns, find points on a grid, and sort shapes into families.",
+      "grade": "Grade 5",
+      "standards": [
+        "CCSS 5.OA.A.1",
+        "CCSS 5.OA.A.2",
+        "CCSS 5.OA.B.3",
+        "CCSS 5.G.A.1",
+        "CCSS 5.G.A.2",
+        "CCSS 5.G.B.3",
+        "CCSS 5.G.B.4"
       ]
     }
   ],
