@@ -501,7 +501,7 @@ function plot(s) {
   for (let x = first(xMin, xStep); x <= xMax + 1e-9; x += xStep, i++) {
     if (s.grid !== false) out.push(line(X(x), m.t, X(x), m.t + ph, 'viz-grid'));
     const k = Math.round(x / xStep);
-    if (Math.abs(x) > 1e-9 && k % xLabelEvery === 0) {
+    if (s.axes !== false && Math.abs(x) > 1e-9 && k % xLabelEvery === 0) {
       const str = s.piTicks ? piLabel(x) : fmt(x);
       ticks.push(text(X(x), Math.min(axisY + 13, H - 9), str, 'viz-text-xs viz-halo'));
       tickBox(X(x), Math.min(axisY + 13, H - 9), str, 'middle');
@@ -511,12 +511,13 @@ function plot(s) {
   for (let y = first(yMin, yStep); y <= yMax + 1e-9; y += yStep) {
     if (s.grid !== false) out.push(line(m.l, Y(y), m.l + pw, Y(y), 'viz-grid'));
     const k = Math.round(y / yStep);
-    if (Math.abs(y) > 1e-9 && k % yLabelEvery === 0) {
+    if (s.axes !== false && Math.abs(y) > 1e-9 && k % yLabelEvery === 0) {
       ticks.push(text(Math.max(axisX - 6, 16), Y(y), fmt(y), 'viz-text-xs viz-halo', { 'text-anchor': 'end' }));
       tickBox(Math.max(axisX - 6, 16), Y(y), fmt(y), 'end');
     }
   }
-  out.push(line(m.l, axisY, m.l + pw, axisY, 'viz-axis'), line(axisX, m.t, axisX, m.t + ph, 'viz-axis'));
+  // `axes: false` (with `grid: false`) gives a plain drawing area, e.g. for compass-and-straightedge constructions.
+  if (s.axes !== false) out.push(line(m.l, axisY, m.l + pw, axisY, 'viz-axis'), line(axisX, m.t, axisX, m.t + ph, 'viz-axis'));
   if (s.axisLabels?.[0]) out.push(text(m.l + pw - 4, Math.max(axisY - 10, m.t + 8), s.axisLabels[0], 'viz-text-sm viz-text-i', { 'text-anchor': 'end' }));
   if (s.axisLabels?.[1]) out.push(text(Math.min(axisX + 8, W - 20), m.t + 7, s.axisLabels[1], 'viz-text-sm viz-text-i', { 'text-anchor': 'start' }));
 
@@ -554,7 +555,7 @@ function plot(s) {
   const labels = [];
   for (const pt of s.points ?? []) taken.push([X(pt.x) - 5, Y(pt.y) - 5, X(pt.x) + 5, Y(pt.y) + 5]);
   // The axis lines too, so a label does not sit across an axis.
-  taken.push([m.l, axisY - 2, m.l + pw, axisY + 2], [axisX - 2, m.t, axisX + 2, m.t + ph]);
+  if (s.axes !== false) taken.push([m.l, axisY - 2, m.l + pw, axisY + 2], [axisX - 2, m.t, axisX + 2, m.t + ph]);
   const placeLabel = (x, y, str, cls, options, strict = false, avoid = []) => {
     const w = String(str).length * 7 + 6;
     const hgt = 16;
