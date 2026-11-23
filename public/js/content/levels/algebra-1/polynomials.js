@@ -334,7 +334,7 @@ function challengeMissing(rng) {
 function challengeCombo(rng) {
   const a = rng.nonzero(-6, 6);
   const b = rng.nonzero(-6, 6);
-  const c = rng.intExcept(-6, 6, [0, -b]);
+  const c = rng.intExcept(-6, 6, [0, -b, b]);
   const [m, k] = [2 * a - b - c, a * a - b * c];
   if (m === 0 || k === 0 || b + c === 0) return challengeCombo(rng);
   const form = (coefs) => P(coefs.length === 2 ? coefs : coefs);

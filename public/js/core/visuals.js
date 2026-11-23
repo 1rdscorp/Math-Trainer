@@ -484,6 +484,8 @@ function plot(s) {
   const inside = [];
   // Boxes that labels must keep clear of: the numbers on the axes, the marked points, other labels.
   const taken = [];
+  // The numbers on the axes are drawn after the curves (with a halo), so a curve never hides one.
+  const ticks = [];
   const tickBox = (cx, cy, str, anchor) => {
     const w = String(str).length * 6.4 + 2;
     const left = anchor === 'end' ? cx - w : cx - w / 2;
@@ -501,7 +503,7 @@ function plot(s) {
     const k = Math.round(x / xStep);
     if (Math.abs(x) > 1e-9 && k % xLabelEvery === 0) {
       const str = s.piTicks ? piLabel(x) : fmt(x);
-      out.push(text(X(x), Math.min(axisY + 13, H - 9), str, 'viz-text-xs'));
+      ticks.push(text(X(x), Math.min(axisY + 13, H - 9), str, 'viz-text-xs viz-halo'));
       tickBox(X(x), Math.min(axisY + 13, H - 9), str, 'middle');
     }
   }
@@ -510,7 +512,7 @@ function plot(s) {
     if (s.grid !== false) out.push(line(m.l, Y(y), m.l + pw, Y(y), 'viz-grid'));
     const k = Math.round(y / yStep);
     if (Math.abs(y) > 1e-9 && k % yLabelEvery === 0) {
-      out.push(text(Math.max(axisX - 6, 16), Y(y), fmt(y), 'viz-text-xs', { 'text-anchor': 'end' }));
+      ticks.push(text(Math.max(axisX - 6, 16), Y(y), fmt(y), 'viz-text-xs viz-halo', { 'text-anchor': 'end' }));
       tickBox(Math.max(axisX - 6, 16), Y(y), fmt(y), 'end');
     }
   }
@@ -553,20 +555,21 @@ function plot(s) {
   for (const pt of s.points ?? []) taken.push([X(pt.x) - 5, Y(pt.y) - 5, X(pt.x) + 5, Y(pt.y) + 5]);
   // The axis lines too, so a label does not sit across an axis.
   taken.push([m.l, axisY - 2, m.l + pw, axisY + 2], [axisX - 2, m.t, axisX + 2, m.t + ph]);
-  const placeLabel = (x, y, str, cls, options) => {
+  const placeLabel = (x, y, str, cls, options, strict = false, avoid = []) => {
     const w = String(str).length * 7 + 6;
     const hgt = 16;
     for (const [dx, dy, anchor] of options) {
       const left = anchor === 'end' ? x + dx - w : anchor === 'middle' ? x + dx - w / 2 : x + dx;
       const box = [left, y + dy - hgt / 2, left + w, y + dy + hgt / 2];
       const inside = box[0] >= 2 && box[2] <= W - 2 && box[1] >= 2 && box[3] <= H - 2;
-      const clash = taken.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1]);
+      const clash = taken.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1]) || avoid.some(([px, py]) => px > box[0] - 2 && px < box[2] + 2 && py > box[1] - 2 && py < box[3] + 2);
       if (inside && !clash) {
         taken.push(box);
         labels.push(text(x + dx, y + dy, str, `${cls} viz-halo`, { 'text-anchor': anchor }));
-        return;
+        return true;
       }
     }
+    if (strict) return false;
     const [dx, dy, anchor] = options[0];
     labels.push(text(x + dx, y + dy, str, `${cls} viz-halo`, { 'text-anchor': anchor }));
   };
@@ -590,19 +593,30 @@ function plot(s) {
     }
     if (d) inside.push(path(d.trim(), cls));
   };
+  // Sample points of every curve, so a curve's label can keep off the other curves.
+  const curvePts = (s.fns ?? []).map((fn) => {
+    const [a, b] = fn.domain ?? [xMin, xMax];
+    const pts = [];
+    for (let k = 0; k <= 160; k++) {
+      const x = Math.max(a, xMin) + ((Math.min(b, xMax) - Math.max(a, xMin)) * k) / 160;
+      const y = fn.f(x);
+      if (Number.isFinite(y) && y >= yMin && y <= yMax) pts.push([X(x), Y(y)]);
+    }
+    return pts;
+  });
   (s.fns ?? []).forEach((fn, k) => {
     const [a, b] = fn.domain ?? [xMin, xMax];
+    const others = curvePts.filter((_, j) => j !== k).flat();
     const cls = `${LINES[colorIndex(fn.color, k % 4)]}${fn.dashed ? ' viz-dash' : ''}`;
     curve((x) => [x, fn.f(x)], Math.max(a, xMin), Math.min(b, xMax), cls);
     if (fn.label) {
-      const tries = fn.labelAt != null ? [fn.labelAt] : [0.82, 0.7, 0.58, 0.9, 0.46, 0.34, 0.22].map((t) => xMin + t * (xMax - xMin));
-      for (const lx of tries) {
-        const ly = fn.f(lx);
-        if (Number.isFinite(ly) && ly < yMax - 0.12 * span && ly > yMin + 0.05 * span) {
-          placeLabel(X(lx), Y(ly), fn.label, 'viz-text-sm viz-text-b', [[0, -13, 'middle'], [0, 15, 'middle']]);
-          break;
-        }
-      }
+      const spread = [0.82, 0.7, 0.58, 0.9, 0.46, 0.34, 0.22].map((t) => xMin + t * (xMax - xMin));
+      const tries = fn.labelAt != null ? [fn.labelAt, ...spread] : spread;
+      // Try every candidate spot for one that is clear; only if none is, use the first that fits the window.
+      const fits = tries.filter((lx) => lx >= a && lx <= b && Number.isFinite(fn.f(lx)) && fn.f(lx) < yMax - 0.12 * span && fn.f(lx) > yMin + 0.05 * span);
+      const opts = [[0, -13, 'middle'], [0, 15, 'middle'], [8, -11, 'start'], [-8, -11, 'end'], [8, 13, 'start'], [-8, 13, 'end']];
+      const placed = fits.some((lx) => placeLabel(X(lx), Y(fn.f(lx)), fn.label, 'viz-text-sm viz-text-b', opts, true, others)) || fits.some((lx) => placeLabel(X(lx), Y(fn.f(lx)), fn.label, 'viz-text-sm viz-text-b', opts, true));
+      if (!placed && fits.length) placeLabel(X(fits[0]), Y(fn.f(fits[0])), fn.label, 'viz-text-sm viz-text-b', opts);
     }
   });
   (s.param ?? []).forEach((pc, k) => {
@@ -646,6 +660,7 @@ function plot(s) {
     el('defs', {}, el('clipPath', { id }, rect(m.l, m.t, pw, ph, ''))),
     out,
     el('g', { 'clip-path': `url(#${id})` }, inside),
+    ticks,
     dots,
     labels,
   );
@@ -1145,7 +1160,10 @@ function dotPlot(s) {
   const x0 = 28;
   const x1 = 332;
   const X = (v) => x0 + ((v - min) / span) * (x1 - x0);
-  const yLine = 20 + tallest * 16;
+  // Dots shrink when the ticks are close together, so neighbouring values do not run into each other.
+  const r = Math.max(3, Math.min(6, ((x1 - x0) / (span / step)) * 0.42));
+  const pitch = 2 * r + 4;
+  const yLine = 8 + r + tallest * pitch;
   const out = [line(14, yLine, 346, yLine, 'viz-axis')];
   const ticks = Math.round(span / step);
   const custom = s.labels ? new Map(s.labels.map((l) => [key(l.value), l.text])) : null;
@@ -1156,7 +1174,7 @@ function dotPlot(s) {
     const label = custom ? custom.get(key(v)) : i % every === 0 ? fmt(Math.round(v * 1e6) / 1e6) : null;
     if (label != null) out.push(text(X(v), yLine + 16, label, 'viz-text-xs'));
   }
-  for (const [k, c] of counts) for (let j = 0; j < c; j++) out.push(circle(X(k * step), yLine - 10 - j * 16, 6, 'viz-dot-a'));
+  for (const [k, c] of counts) for (let j = 0; j < c; j++) out.push(circle(X(k * step), yLine - r - 4 - j * pitch, r, 'viz-dot-a'));
   if (s.label) out.push(text(W / 2, yLine + 34, s.label, 'viz-text-xs'));
   const alt = s.alt ?? `Dot plot of the values ${[...values].sort((a, b) => a - b).map((v) => fmt(v)).join(', ')}.`;
   return svg(W, yLine + (s.label ? 46 : 28), alt, out);
