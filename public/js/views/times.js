@@ -130,6 +130,16 @@ function explore(ctx) {
   multipleSelect.style.width = 'auto';
 
   select(7, 8, false);
+  // On a narrow phone the table scrolls sideways; say so, but only when it really does.
+  const hint = h('p', { class: 'small muted', 'aria-hidden': 'true', hidden: true }, 'Swipe the table sideways to see every column.');
+  const scroller = h('div', { class: 'tt-scroll', role: 'region', 'aria-label': 'Multiplication table', tabindex: '-1' }, table);
+  const checkOverflow = () => {
+    if (!scroller.isConnected) return window.removeEventListener('resize', checkOverflow);
+    hint.hidden = scroller.scrollWidth <= scroller.clientWidth + 1;
+  };
+  requestAnimationFrame(checkOverflow);
+  window.addEventListener('resize', checkOverflow);
+
   return h(
     'section',
     { class: 'stack', 'aria-labelledby': 'explore-title' },
@@ -137,7 +147,8 @@ function explore(ctx) {
     h('p', { class: 'muted' }, 'Tap any number to see where it comes from. Find the row and the column: where they cross is the answer.'),
     controls,
     hasStats ? h('p', { class: 'small muted' }, 'With "Colour by what I know" on: green means you usually get it right, yellow means getting there, red means worth practising.') : null,
-    h('div', { class: 'grid-2' }, h('div', { class: 'tt-scroll', role: 'region', 'aria-label': 'Multiplication table', tabindex: '-1' }, table), detail),
+    hint,
+    h('div', { class: 'tt-layout' }, scroller, detail),
     h('p', null, h('a', { class: 'btn btn-primary', href: '#/times-table/practice' }, 'Practise these facts →')),
   );
 }
