@@ -851,6 +851,20 @@ export const CATALOG = {
         "CCSS S-CP.B.9",
         "CCSS S-ID.A.4"
       ]
+    },
+    {
+      "id": "statistical-inference",
+      "title": "Samples, Studies & Inference",
+      "summary": "Choose fair samples, tell experiments from observational studies, use a margin of error, and judge results with a simulation.",
+      "grade": null,
+      "standards": [
+        "CCSS S-IC.A.1",
+        "CCSS S-IC.A.2",
+        "CCSS S-IC.B.3",
+        "CCSS S-IC.B.4",
+        "CCSS S-IC.B.5",
+        "CCSS S-IC.B.6"
+      ]
     }
   ],
   "precalculus": [

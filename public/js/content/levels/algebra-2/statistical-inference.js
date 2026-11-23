@@ -6,6 +6,7 @@ import { M } from './_shared.js';
 const pct = (v) => M(`${num(v)}\\%`);
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const at = (s) => `${s.prep ?? 'in'} ${s.where}`; // "in a city", "of a phone company"
+const atThe = (s) => at(s).replace(/ an? /, ' the '); // later mentions: "in the city"
 
 // A small seeded generator for the models and the fixed examples (topic files may not use Math.random).
 function seeded(seed) {
@@ -56,7 +57,7 @@ function easyPopulation(rng) {
   const n = 10 * rng.int(s.n[0] / 10, s.n[1] / 10);
   const p = rng.int(s.lo ?? 12, s.hi ?? 78);
   const ch = {
-    population: `All ${txt(N)} ${s.many} ${at(s)}`,
+    population: `All ${txt(N)} ${s.many} ${atThe(s)}`,
     sample: `The ${n} ${s.many} that ${name} chose`,
     parameter: `The percent of all ${txt(N)} ${s.many} ${s.rel} ${s.trait}`,
     statistic: `${p}%, the percent of the ${n} chosen ${s.many} ${s.rel} ${s.trait}`,
@@ -171,11 +172,11 @@ function easySamplingMethod(rng) {
   });
 }
 
-const STUDY_TYPES = { survey: 'Sample survey', obs: 'Observational study', exp: 'Randomized experiment', census: 'Census' };
+const STUDY_TYPES = { survey: 'Sample survey', obs: 'Observational study', exp: 'Randomised experiment', census: 'Census' };
 const STUDY_KEY = {
   survey: 'A sample of people is asked questions to learn about a whole population. Nothing is done to them and no groups are compared, so it is a sample survey.',
   obs: 'The groups already existed: the researchers only recorded what happened. Nobody assigned the treatment, so it is an observational study.',
-  exp: 'The researchers decided at random who got each treatment. That makes it a randomized experiment.',
+  exp: 'The researchers decided at random who got each treatment. That makes it a randomised experiment.',
   census: 'Data were collected from every member of the population, not from a sample. That is a census.',
 };
 const STUDIES = {
@@ -224,7 +225,7 @@ function easyMargin(rng) {
   const s = rng.pick(POPS.filter((x) => !x.lo));
   const p = rng.int(25, 75);
   return q({
-    prompt: R`A random sample of ${txt(n)} ${s.many} ${at(s)} finds that ${p}% ${s.trait}. Use the rule that the 95% margin of error is about \(\dfrac{1}{\sqrt{n}}\). What is the margin of error, in percentage points?`,
+    prompt: R`A random sample of ${txt(n)} ${s.many} ${at(s)} finds that ${p}% ${s.trait}. Use the rule that the 95% margin of error is about \(\dfrac{1}{\sqrt{n}}\). What is the margin of error?`,
     correct: E,
     fmt: pct,
     wrong: [
@@ -315,7 +316,7 @@ function mediumMarginInterval(rng) {
   if (kind === 'plausible') {
     const c = rng.pick(inside);
     return q({
-      prompt: `${head} Which of these is a plausible value for the percent of all ${s.many} ${at(s)} ${s.rel} ${s.trait}?`,
+      prompt: `${head} Which of these is a plausible value for the percent of all ${s.many} ${atThe(s)} ${s.rel} ${s.trait}?`,
       correct: c,
       fmt: pct,
       wrong: outside.map((v) => ({ value: v, why: R`The plausible values run from \(${p - e}\%\) to \(${p + e}\%\). This value is outside that interval.` })),
@@ -327,7 +328,7 @@ function mediumMarginInterval(rng) {
   const bad = rng.pick(outside);
   const ins = [p - e, p + e, rng.pick(inside)];
   return q({
-    prompt: `${head} Which of these is NOT a plausible value for the percent of all ${s.many} ${at(s)} ${s.rel} ${s.trait}?`,
+    prompt: `${head} Which of these is NOT a plausible value for the percent of all ${s.many} ${atThe(s)} ${s.rel} ${s.trait}?`,
     correct: bad,
     fmt: pct,
     wrong: [...new Set(ins)].map((v) => ({ value: v, why: R`\(${v}\%\) is inside the interval from \(${p - e}\%\) to \(${p + e}\%\) (the ends count), so it is plausible.` })).concat(inside.map((v) => ({ value: v, why: 'That value is inside the interval, so it is plausible.' }))),
@@ -456,7 +457,7 @@ function hardCauseEffect(rng) {
     correct: st[ok],
     wrong: Object.keys(st).filter((k) => k !== ok).map((k) => ({ value: st[k], why: why[k] })),
     solution: [
-      exp ? 'This is a randomized experiment: the researchers used chance to decide who got the treatment.' : 'This is an observational study: the people were already in their groups.',
+      exp ? 'This is a randomised experiment: the researchers used chance to decide who got the treatment.' : 'This is an observational study: the people were already in their groups.',
       exp ? 'Random assignment balances the other differences between the groups, so a difference too large for chance shows cause and effect.' : `Other differences between the groups could explain the result. ${s.lurk}`,
       `Conclusion: ${st[ok]}`,
     ],
@@ -613,7 +614,7 @@ function challengeEvaluateReport(rng) {
     const org = rng.pick(['A website', 'A TV show', 'A radio station']);
     const v = rng.pick(POPS.filter((x) => x.many === 'voters' || x.many === 'customers'));
     return q({
-      prompt: `${org} invites the ${v.many} ${at(v)} to vote online on whether they ${v.trait}. ${txt(n)} of them vote, and ${p}% say yes. A headline reads: “${p}% of the ${v.many} ${at(v)} ${v.trait}.” Is the headline justified?`,
+      prompt: `${org} invites the ${v.many} ${at(v)} to vote online on whether they ${v.trait}. ${txt(n)} of them vote, and ${p}% say yes. A headline reads: “${p}% of the ${v.many} ${atThe(v)} ${v.trait}.” Is the headline justified?`,
       correct: `No: the people who voted chose themselves, so they are unlikely to represent all the ${v.many}, however many voted`,
       wrong: [
         { value: `Yes: with ${txt(n)} votes the margin of error is only about ${txt(round(100 / Math.sqrt(n), 1))} percentage point${round(100 / Math.sqrt(n), 1) === 1 ? '' : 's'}`, why: 'The margin of error only describes chance variation in a random sample. It says nothing about bias in a self-selected sample.' },
@@ -632,7 +633,7 @@ function challengeEvaluateReport(rng) {
   const supported = p - E > 50;
   const half = E / 2;
   return q({
-    prompt: R`A random sample of ${txt(n)} ${s.many} ${at(s)} finds that ${p}% ${s.trait}. A headline says: “Most ${s.many} ${at(s)} ${s.trait}.” Using the 95% margin of error \(E \approx \dfrac{1}{\sqrt{n}}\), which statement is correct?`,
+    prompt: R`A random sample of ${txt(n)} ${s.many} ${at(s)} finds that ${p}% ${s.trait}. A headline says: “Most ${s.many} ${atThe(s)} ${s.trait}.” Using the 95% margin of error \(E \approx \dfrac{1}{\sqrt{n}}\), which statement is correct?`,
     correct: line(p - E, p + E, supported),
     wrong: [
       { value: line(p - E, p + E, !supported), why: supported ? R`Every value from \(${p - E}\%\) to \(${p + E}\%\) is above 50%.` : R`The interval reaches down to \(${p - E}\%\), which is not above 50%.` },
@@ -774,7 +775,7 @@ export default {
       },
       {
         title: 'Surveys, observational studies and experiments',
-        text: 'A sample survey asks a sample questions. An observational study records what happens in groups that already exist. In an experiment the researcher imposes treatments. Only a randomized experiment can show cause and effect, because random assignment makes the groups alike in every other way, on average. A good experiment also has a control group for comparison, a placebo (a fake treatment) when expectations could matter, and blinding: the subjects, and whoever measures the results, do not know who got which treatment.',
+        text: 'A sample survey asks a sample questions. An observational study records what happens in groups that already exist. In an experiment the researcher imposes treatments. Only a randomised experiment can show cause and effect, because random assignment makes the groups alike in every other way, on average. A good experiment also has a control group for comparison, a placebo (a fake treatment) when expectations could matter, and blinding: the subjects, and whoever measures the results, do not know who got which treatment.',
         example: 'Students who sleep more get better grades (observational: a link, not proof of cause). Randomly assigning a bedtime and comparing grades is an experiment.',
       },
       {
@@ -840,7 +841,7 @@ export default {
         '(b) Recruit volunteers who usually skip breakfast and use a random draw to assign half to eat a set breakfast each day (treatment) and half to continue as usual (control).',
         'Have the tests marked by people who do not know which group each student is in (blinding), then compare the mean scores. Random assignment balances the other differences, so a large difference can be credited to breakfast.',
       ],
-      answer: '(a) Observational; a link, not cause. (b) A randomized experiment with a control group and blinded scoring.',
+      answer: '(a) Observational; a link, not cause. (b) A randomised experiment with a control group and blinded scoring.',
     },
     {
       title: 'Word problem: is the result unusual?',
