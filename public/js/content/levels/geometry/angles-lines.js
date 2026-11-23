@@ -670,7 +670,7 @@ function challengeParallelTest(rng) {
     ? `Supplementary is the test for same-side interior angles. ${cap(type)} angles must be congruent.`
     : 'Congruent is the test for corresponding and alternate angles. Same-side interior angles must be supplementary.';
   return q({
-    prompt: R`A transversal crosses two lines. Two ${type} angles measure \(${deg(g)}\) and \(${deg(other)}\), as shown (the figure is not drawn to scale). Are the two lines parallel?`,
+    prompt: R`A transversal crosses two lines. Two ${type} angles ${g === other ? R`both measure \(${deg(g)}\)` : R`measure \(${deg(g)}\) and \(${deg(other)}\)`}, as shown (the figure is not drawn to scale). Are the two lines parallel?`,
     visual: tvFigure(s, { [p1]: degT(g), [p2]: degT(other) }, false),
     correct: choice[right],
     wrong: [{ value: choice[tempting], why: note }, ...Object.keys(choice).filter((k) => k !== right && k !== tempting).map((k) => choice[k])],
