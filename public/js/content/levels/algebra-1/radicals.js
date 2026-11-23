@@ -383,7 +383,7 @@ function hardRationalize(rng) {
     correct: M(right.tex),
     wrong: wrongs(right.v, [
       g > 1 && c * b / g !== 1 && { tex: `\\frac{${RT(a, b).tex}}{${c * b}}`, v: right.v, form: true, why: R`This is equal, but not simplified: \(${a}\) and \(${c * b}\) share the factor \(${g}\).` },
-      g > 1 && c * b / g === 1 && { tex: `\\frac{${RT(a, b).tex}}{${c * b}}`, v: right.v, form: true, why: R`This is equal, but not simplified: \(${a} \div ${c * b} = ${a / (c * b)}\), so the fraction is a whole number times \(\sqrt{${b}}\).` },
+      g > 1 && c * b / g === 1 && { tex: `\\frac{${RT(a, b).tex}}{${c * b}}`, v: right.v, form: true, why: R`This is equal, but not simplified: \(\dfrac{${a}}{${c * b}} = ${a / (c * b)}\), so it simplifies to \(${right.tex}\).` },
       { ...RF(a, b, c), why: c === 1 ? R`Multiplying the top by \(\sqrt{${b}}\) means multiplying the bottom by \(\sqrt{${b}}\) too, which makes it \(${b}\).` : R`The bottom becomes \(${c}\sqrt{${b}} \cdot \sqrt{${b}} = ${c} \cdot ${b} = ${c * b}\), not \(${c}\).` },
       { tex: frac(a, c * b).tex(), v: a / (c * b), why: R`The top is multiplied by \(\sqrt{${b}}\) as well: it becomes \(${RT(a, b).tex}\).` },
       { ...RF(a, b, c * b * b), why: R`\(\sqrt{${b}} \cdot \sqrt{${b}} = ${b}\), not \(${b * b}\).` },
@@ -509,14 +509,14 @@ function challengeClosure(rng) {
     () => { const r = rng.pick(SQFREE); const p = rng.int(1, 9); return { tex: `${p} + \\sqrt{${r}}`, v: p + Math.sqrt(r), why: R`A rational number plus an irrational number is always irrational. (If \(${p} + \sqrt{${r}}\) were rational, then \(\sqrt{${r}}\), which is that number minus \(${p}\), would be rational too.)` }; },
     () => { const r = rng.pick(SQFREE); const f = frac(rng.pick([1, 2, 3, 5, 7]), rng.pick([2, 3, 4])); if (f.isInt()) return irr[0](); return { tex: `${f.tex()}\\sqrt{${r}}`, v: f.value * Math.sqrt(r), why: R`A nonzero rational number times an irrational number is always irrational.` }; },
     () => { const [a, b] = rng.pick([[2, 6], [3, 6], [2, 10], [3, 15], [2, 14], [5, 10], [6, 10], [3, 21]]); return { tex: `\\sqrt{${a}} \\cdot \\sqrt{${b}}`, v: Math.sqrt(a * b), why: R`\(\sqrt{${a}} \cdot \sqrt{${b}} = \sqrt{${a * b}} = ${sqrtTex(a * b)}\), which is still irrational.` }; },
-    () => { const [a, b] = rng.sample([2, 3, 5, 7], 2); return { tex: `\\sqrt{${a}} + \\sqrt{${b}}`, v: Math.sqrt(a) + Math.sqrt(b), why: R`\(\sqrt{${a}}\) and \(\sqrt{${b}}\) are not like radicals, and their sum is irrational: it is about \(${num(Math.sqrt(a) + Math.sqrt(b), { places: 4 })}\), with no repeating pattern.` }; },
+    () => { const [a, b] = rng.sample([2, 3, 5, 7], 2); return { tex: `\\sqrt{${a}} + \\sqrt{${b}}`, v: Math.sqrt(a) + Math.sqrt(b), why: R`These are not like radicals, and the sum is irrational: its square is \((\sqrt{${a}} + \sqrt{${b}})^2 = ${a + b} + 2\sqrt{${a * b}}\), which is irrational, and the square of a rational number would be rational.` }; },
   ];
   const [mine, other] = wantRat ? [rat, irr] : [irr, rat];
   const right = rng.pick(mine)();
   const rest = rng.sample(other, 3).map((f) => f());
   if (new Set([right, ...rest].map((c) => c.v.toFixed(9))).size < 4) return challengeClosure(rng);
   return q({
-    prompt: `Which expression has a **${wantRat ? 'rational' : 'irrational'}** value?`,
+    prompt: `Which expression has ${wantRat ? 'a **rational**' : 'an **irrational**'} value?`,
     correct: M(right.tex),
     wrong: rest.map((c) => ({ value: M(c.tex), why: c.why })),
     solution: [
@@ -668,7 +668,7 @@ function simplifyModel({ n }) {
       R`Find the largest perfect square that divides \(${n}\): it is \(${coef * coef} = ${coef}^2\), and \(${n} = ${coef * coef} \cdot ${rad}\).`,
       R`Split the root: \(\sqrt{${n}} = \sqrt{${coef * coef}} \cdot \sqrt{${rad}} = ${coef}\sqrt{${rad}}\).`,
       R`\(${rad}\) has no perfect-square factor left, so \(${coef}\sqrt{${rad}}\) is in simplest form. It is irrational.`,
-      R`Check with decimals: \(\sqrt{${n}} \approx ${num(v, { places: 4 })}\) and \(${coef} \times ${num(Math.sqrt(rad), { places: 4 })} \approx ${num(coef * Math.sqrt(rad), { places: 4 })}\). ✓`,
+      R`Check with decimals: \(\sqrt{${n}} \approx ${num(v, { places: 4 })}\) and \(${coef} \times ${num(Math.sqrt(rad), { places: 5 })} \approx ${num(coef * Math.sqrt(rad), { places: 4 })}\). ✓`,
     );
   }
   if (rad !== 1) steps.push(R`\(${lo}^2 = ${lo * lo}\) and \(${lo + 1}^2 = ${(lo + 1) ** 2}\), so \(\sqrt{${n}}\) lies between \(${lo}\) and \(${lo + 1}\).`);
