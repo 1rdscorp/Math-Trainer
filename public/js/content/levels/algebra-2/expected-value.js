@@ -599,7 +599,7 @@ function gameModel({ cost, prize, win, sections }) {
     ],
     answer: `${exact ? '' : 'About '}${money(Er)} per play. ${Er === 0 && exact ? 'The game is fair.' : `${Er < 0 ? 'Players lose' : 'Players gain'} on average, so the game is not fair.`}`,
     visual: {
-      type: 'barChart', yLabel: 'Probability', xLabel: 'Net winnings',
+      type: 'barChart', yLabel: 'P(x)', xLabel: 'Net winnings x',
       bars: [{ label: money(prize - cost), value: round(p, 3) }, { label: money(-cost), value: round(1 - p, 3) }],
       alt: `Probability distribution of the net winnings: ${money(prize - cost)} with probability ${txt(round(p, 3))} and ${money(-cost)} with probability ${txt(round(1 - p, 3))}.`,
     },

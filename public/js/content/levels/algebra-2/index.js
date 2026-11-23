@@ -9,6 +9,8 @@ import logarithms from './logarithms.js';
 import sequencesSeries from './sequences-series.js';
 import trigFunctions from './trig-functions.js';
 import probabilityStatistics from './probability-statistics.js';
+import expectedValue from './expected-value.js';
 import statisticalInference from './statistical-inference.js';
+import nonlinearSystems from './nonlinear-systems.js';
 
-export default [complexNumbers, polynomialFunctions, rationalExpressions, radicalsRationalExponents, functionsInverses, exponentialFunctions, logarithms, sequencesSeries, trigFunctions, probabilityStatistics, statisticalInference];
+export default [complexNumbers, polynomialFunctions, nonlinearSystems, rationalExpressions, radicalsRationalExponents, functionsInverses, exponentialFunctions, logarithms, sequencesSeries, trigFunctions, probabilityStatistics, expectedValue, statisticalInference];
