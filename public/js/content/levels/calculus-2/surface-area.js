@@ -150,7 +150,7 @@ function easySphereZone(rng) {
     prompt: R`The curve \(y = \sqrt{${Rr * Rr} - x^{2}}\), \(${a} \le x \le ${b}\), is revolved about the \(x\)-axis, giving a band (zone) of a sphere. Find its area.`,
     ...exactChoices(right, [
       { k: piK(2 * h), why: R`\(y\cdot\sqrt{1 + (y')^{2}} = \sqrt{${Rr * Rr} - x^{2}}\cdot\dfrac{${Rr}}{\sqrt{${Rr * Rr} - x^{2}}} = ${Rr}\). The factor ${Rr} is missing.` },
-      { k: piK(4 * Rr * Rr), why: `That is the whole sphere. Only the band from x = ${a} to x = ${b} is swept.` },
+      { k: piK(4 * Rr * Rr), why: `That is the whole sphere. Only the band from \\(x = ${a}\\) to \\(x = ${b}\\) is swept.` },
       { k: piK(Rr * h), why: R`Each band has circumference \(2\pi r\), not \(\pi r\).` },
       piK(2 * Rr * Rr * h),
     ]),
@@ -224,7 +224,7 @@ function mediumCubic(rng) {
   const co = frac(9, n * n);
   const m = co.mul(b ** 4).add(1).n;
   const k = frac(n, 27);
-  const root = (c) => K([[k.mul(c).mul(m), `\\sqrt{${m}}\\pi`], [k.mul(c).neg(), '\\pi']]);
+  const root = (c) => K([[k.mul(c), { t: `\\pi\\left(${m}\\sqrt{${m}} - 1\\right)`, v: PI * (m ** 1.5 - 1) }]]);
   const right = root(1);
   const curve = n === 1 ? 'x^{3}' : R`\frac{x^{3}}{${n}}`;
   const inner = `1 + ${co.eq(1) ? 'x^{4}' : co.isInt() ? `${co.n}x^{4}` : R`\frac{x^{4}}{${co.d}}`}`;
@@ -243,7 +243,7 @@ function mediumCubic(rng) {
     solution: [
       R`\(y' = ${n === 1 ? '3x^{2}' : n === 3 ? 'x^{2}' : R`\frac{x^{2}}{${n / 3}}`}\), so \(1 + (y')^{2} = ${inner}\) and \(S = 2\pi\displaystyle\int_{0}^{${b}} ${curve}\sqrt{${inner}}\,dx\).`,
       R`Let \(u = ${inner}\), \(du = ${du.eq(1) ? '' : du.tex()}x^{3}\,dx\): \(S = ${fterms([[frac(2, n).div(du), '\\pi']])}\displaystyle\int_{1}^{${m}} \sqrt{u}\,du = ${fterms([[k, '\\pi']])}\Big[u^{3/2}\Big]_{1}^{${m}}\).`,
-      R`\(S = ${fterms([[k, '\\pi']])}\left(${m}\sqrt{${m}} - 1\right) = ${right.tex} \approx ${num(right.value, { places: 3 })}\).`,
+      R`\(S = ${right.tex} \approx ${num(right.value, { places: 3 })}\).`,
     ],
     rule: 0,
     skill: 'evaluating surface area',
@@ -329,7 +329,7 @@ function hardPerfectSquare(rng) {
     ]),
     solution: [
       R`\(y' = ${fam.dy}\), so \(1 + (y')^{2} = ${fam.sq} = \left(${fam.ds}\right)^{2}\).`,
-      R`About the \(${fam.axis}\)-axis the radius is \(${fam.axis === 'y' ? 'x' : 'y'}\): \(S = 2\pi\displaystyle\int_{${a}}^{${b}} ${fam.integrand}\,dx\).`,
+      R`About the \(${fam.axis}\)-axis the radius is \(${fam.axis === 'y' ? 'x' : 'y'}\), and \(${fam.axis === 'y' ? 'x' : 'y'}\sqrt{1 + (y')^{2}} = ${fam.integrand}\). So \(S = 2\pi\displaystyle\int_{${a}}^{${b}} \left(${fam.integrand.split(' = ')[1]}\right)dx\).`,
       R`\(S = ${fam.anti}_{${a}}^{${b}} = ${right.tex} \approx ${num(right.value, { places: 3 })}\).`,
     ],
     rule: 4,
@@ -345,7 +345,7 @@ function hardParaboloid(rng) {
   const fourC2 = c.mul(c).mul(4); // 1 + 4c²x²
   const m = fourC2.mul(b * b).add(1).n;
   const k = frac(1, 6).div(c.mul(c)); // S = kπ(m^{3/2} − 1)
-  const S = (f) => K([[k.mul(f).mul(m), `\\sqrt{${m}}\\pi`], [k.mul(f).neg(), '\\pi']]);
+  const S = (f) => K([[k.mul(f), { t: `\\pi\\left(${m}\\sqrt{${m}} - 1\\right)`, v: PI * (m ** 1.5 - 1) }]]);
   const right = S(1);
   const asX = rng.bool();
   const cx = c.eq(1) ? 'x^{2}' : kind === 'half' ? R`\frac{x^{2}}{2}` : '2x^{2}';
@@ -364,12 +364,13 @@ function hardParaboloid(rng) {
     prompt,
     ...exactChoices(right, [
       { k: K([[k.mul(m), `\\sqrt{${m}}\\pi`]]), why: R`The lower limit gives \(1^{3/2} = 1\), not 0. Subtract it.` },
-      { k: S(fourC2.mul(2)), why: R`The substitution \(u = ${inner}\) has \(du = ${du}x\,dx\). Divide by ${du}.` },
+      asX ? { k: S(fourC2.mul(2)), why: R`The substitution \(u = ${inner}\) has \(du = ${du}x\,dx\). Divide by ${du}.` } : null,
       { k: S(frac(1, 2)), why: R`Each band has circumference \(2\pi r\), not \(\pi r\).` },
       { k: piK(top.mul(top).div(c.mul(2))), why: 'That is the volume of the solid inside the bowl. The question asks for the area of its surface.' },
       S(3),
+      S(2),
     ]),
-    solution: [...steps, R`\(S = ${fterms([[k, '\\pi']])}\left(${m}\sqrt{${m}} - 1\right) = ${right.tex} \approx ${num(right.value, { places: 3 })}\).`],
+    solution: [...steps, R`\(S = ${right.tex} \approx ${num(right.value, { places: 3 })}\).`],
     rule: 1,
     skill: 'revolving about the y-axis',
     check: () => checkSurface(right.value, { yf: (x) => c.value * x * x, t0: 0, t1: b, axis: 'y' }),
@@ -529,10 +530,10 @@ function challengeWordPaint(rng) {
     correct: L,
     unit: 'L',
     wrong: [
-      { value: r1((PI * (2 * Rr * h - h * h)) / k), why: R`That paints only the flat circle under the dome (radius \(\sqrt{${2 * Rr * h - h * h}}\) m). The curved cap is larger: \(2\pi R h\).` },
+      { value: r1((PI * (2 * Rr * h - h * h)) / k), why: R`That paints only the flat circle under the dome (radius \(${sqrtTex(2 * Rr * h - h * h)}\) m). The curved cap is larger: \(2\pi R h\).` },
       h !== Rr ? { value: r1((2 * PI * Rr * Rr) / k), why: R`That is a whole hemisphere. This cap is only ${h} m high, so its area is \(2\pi\cdot ${Rr}\cdot ${h}\).` } : { value: r1((4 * PI * Rr * Rr) / k), why: 'That is the whole sphere. The dome is half of it.' },
       { value: r1((PI * Rr * h) / k), why: R`Each band has circumference \(2\pi r\), not \(\pi r\).` },
-      r1(area * k),
+      { value: r1(area * k), why: R`Divide the area by the coverage: \(\text{litres} = \dfrac{\text{area}}{${k}\text{ m}^{2}\text{ per litre}}\).` },
     ],
     solution: [
       R`\(y\sqrt{1 + (y')^{2}} = \sqrt{${Rr * Rr} - x^{2}}\cdot\dfrac{${Rr}}{\sqrt{${Rr * Rr} - x^{2}}} = ${Rr}\).`,
