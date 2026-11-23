@@ -63,6 +63,9 @@ const fnPow = (fn, n, b) => (b === 1 ? `\\${fn}^{${n}} x` : `\\${fn}^{${n}}(${b}
 const antiPolyItems = (Q) => Q.map((c, i) => xItem(frac(c, Q.length - i), Q.length - i));
 const antiPolyFn = (Q) => (x) => Q.reduce((s, c, i) => s + (c * x ** (Q.length - i)) / (Q.length - i), 0);
 const texFracS = (n, d) => texFrac(n, d).replace('\\frac', '\\dfrac');
+const dover = (n, d) => over(n, d).replace('\\frac', '\\dfrac');
+const plusFrac = (n, d) => `${n < 0 ? '-' : '+'} ${dover(Math.abs(n), d)}`; // "+ \dfrac{3}{x - 1}" or "- \dfrac{3}{x - 1}"
+const plain = (tex) => tex.replace(/\^\{2\}/g, '²').replace(/\^\{3\}/g, '³').replace(/[{}]/g, '').replace(/-/g, '−'); // TeX of a polynomial → picture text
 const integral = (lo, hi, body) => R`\displaystyle\int_{${lo}}^{${hi}} ${body}\,dx`;
 
 // ───────────── Easy ─────────────
@@ -89,7 +92,7 @@ function easySplit(rng) {
     right: build(null),
     wrong: [
       [R`\frac{${topAnti}}{${denX}}`, (x) => antiPolyFn(N)(x) / x ** k, 'The numerator cannot be integrated on its own while the denominator waits. Split the fraction into separate terms first.'],
-      [sumTex([...others.map((t) => anti(t)), [-logT.c, { den: 'x^{2}' }]]), (x) => others.reduce((s, t) => s + antiFn(t)(x), 0) - logT.c / x ** 2, R`\(\dfrac{${logT.c}}{x}\) integrates to \(${terms([[logT.c, R`\ln|x|`]])}\); the power rule does not apply to \(x^{-1}\).`],
+      [sumTex([...others.map((t) => anti(t)), [-logT.c, { den: 'x^{2}' }]]), (x) => others.reduce((s, t) => s + antiFn(t)(x), 0) - logT.c / x ** 2, R`\(${over(logT.c, 'x').replace('\\frac', '\\dfrac')}\) integrates to \(${terms([[logT.c, R`\ln|x|`]])}\); the power rule does not apply to \(x^{-1}\).`],
       [...build('sign'), 'A negative new exponent changes the sign when you divide by it.'],
       build('noDivide'),
       [sumTex([...others.map((t) => anti(t)), [logT.c, 'x']]), (x) => others.reduce((s, t) => s + antiFn(t)(x), 0) + logT.c * x],
@@ -234,7 +237,7 @@ function mediumLongDivision(rng) {
     xs,
     right,
     wrong: [
-      [sumTex(antiPolyItems(Q)), antiPolyFn(Q), R`Long division leaves the remainder \(\dfrac{${Rm}}{${t.den}}\). It has to be integrated too.`],
+      [sumTex(antiPolyItems(Q)), antiPolyFn(Q), R`Long division leaves the remainder \(${dover(Rm, t.den)}\). It has to be integrated too.`],
       [sumTex([...antiPolyItems(Q), [Rm, ln(-r)]]), (x) => antiPolyFn(Q)(x) + Rm * lnF(-r)(x), R`The remainder sits over \(${t.den}\), so the logarithm is \(${ln(r)}\).`],
       [sumTex([...Q.map((c, i) => xItem(c, Q.length - 1 - i)), [Rm, ln(r)]]), (x) => polyEval(Q, x) + Rm * lnF(r)(x), R`The quotient \(${poly(Q)}\) must be integrated as well, not copied.`],
       Rbad !== Rm ? [sumTex([...antiPolyItems(Q), [Rbad, ln(r)]]), (x) => antiPolyFn(Q)(x) + Rbad * lnF(r)(x)] : null,
@@ -242,7 +245,7 @@ function mediumLongDivision(rng) {
     ],
     solution: [
       R`The numerator has degree ${N.length - 1}, at least the degree of the denominator, so divide first.`,
-      R`Long division: \(\dfrac{${poly(N)}}{${t.den}} = ${poly(Q)} + \dfrac{${Rm}}{${t.den}}\). (Check: \((${poly(Q)})(${t.den}) ${Rm < 0 ? '-' : '+'} ${Math.abs(Rm)} = ${poly(N)}\).)`,
+      R`Long division: \(\dfrac{${poly(N)}}{${t.den}} = ${poly(Q)} ${plusFrac(Rm, t.den)}\). (Check: \((${poly(Q)})(${t.den}) ${Rm < 0 ? '-' : '+'} ${Math.abs(Rm)} = ${poly(N)}\).)`,
       R`Integrate each part: \(${right[0]} + C\).`,
     ],
     rule: 1,
@@ -341,8 +344,8 @@ function mediumWord(rng) {
 // ───────────── Hard ─────────────
 
 function hardScaled(rng) {
-  let [a, b] = [rng.int(1, 5), rng.int(2, 4)];
-  while (gcd(a, b) !== 1) [a, b] = [rng.int(1, 5), rng.int(2, 4)];
+  let [a, b] = [rng.int(2, 5), rng.int(2, 4)];
+  while (gcd(a, b) !== 1) [a, b] = [rng.int(2, 5), rng.int(2, 4)];
   const k = rng.int(1, 6);
   const bx = `${b}x`;
   const u = (a === 1 ? bx : R`\frac{${b}x}{${a}}`);
@@ -435,6 +438,7 @@ function hardSplitInverse(rng) {
       [...G(1, frac(bb + A, a)), R`The remainder is \(${bb} - ${A} = ${rem}\): subtract, since \(${poly([1, 0, bb])} = (x^{2} + ${A}) ${rem < 0 ? '-' : '+'} ${Math.abs(rem)}\).`],
       bb !== 0 ? G(0, frac(bb, a)) : null,
       G(1, frac(-rem, a)),
+      [...G(1, 0), R`Division leaves the remainder \(${dover(rem, `x^{2} + ${A}`)}\) as well; it integrates to an arctangent.`],
     ],
     solution: [
       R`The degrees are equal, so divide: \(${poly([1, 0, bb])} = (x^{2} + ${A}) ${rem < 0 ? '-' : '+'} ${Math.abs(rem)}\), giving \(1 ${rem < 0 ? '-' : '+'} \dfrac{${Math.abs(rem)}}{x^{2} + ${A}}\).`,
@@ -485,8 +489,8 @@ const DEFINITE = [
     return {
       tex: integral(lo, hi, R`\frac{${poly(t.N)}}{${t.den}}`), f: t.f, lo, hi,
       right: [T(polyPart, t.Rm), val],
-      wrong: [[polyPart.tex(), polyPart.value, R`The remainder \(\dfrac{${t.Rm}}{${t.den}}\) contributes \(${terms([[t.Rm, R`\ln ${n}`]])}\).`], [T(polyPart, -t.Rm), polyPart.value - t.Rm * Math.log(n)], [T(polyPart, t.Rm, n + 1), polyPart.value + t.Rm * Math.log(n + 1), R`At \(x = ${hi}\) the logarithm is \(\ln|${hi} ${t.r < 0 ? '+' : '-'} ${Math.abs(t.r)}| = \ln ${n}\), and at \(x = ${lo}\) it is \(\ln 1 = 0\).`], [T(Pv(hi), t.Rm), Pv(hi).value + t.Rm * Math.log(n)]],
-      steps: [R`Divide: \(\dfrac{${poly(t.N)}}{${t.den}} = ${poly(t.Q)} + \dfrac{${t.Rm}}{${t.den}}\).`, R`Antiderivative: \(${sumTex([...A, [t.Rm, R`\ln|${t.den}|`]])}\).`, R`From ${lo} to ${hi}: the polynomial part gives \(${polyPart.tex()}\), and the logarithm gives \(${terms([[t.Rm, R`\ln ${n}`]])} - ${terms([[t.Rm, R`\ln 1`]])}\).`],
+      wrong: [[polyPart.tex(), polyPart.value, R`The remainder \(${dover(t.Rm, t.den)}\) contributes \(${terms([[t.Rm, R`\ln ${n}`]])}\).`], [T(polyPart, -t.Rm), polyPart.value - t.Rm * Math.log(n)], [T(polyPart, t.Rm, n + 1), polyPart.value + t.Rm * Math.log(n + 1), R`At \(x = ${hi}\) the logarithm is \(\ln|${hi} ${t.r < 0 ? '+' : '-'} ${Math.abs(t.r)}| = \ln ${n}\), and at \(x = ${lo}\) it is \(\ln 1 = 0\).`], [T(Pv(hi), t.Rm), Pv(hi).value + t.Rm * Math.log(n)]],
+      steps: [R`Divide: \(\dfrac{${poly(t.N)}}{${t.den}} = ${poly(t.Q)} ${plusFrac(t.Rm, t.den)}\).`, R`Antiderivative: \(${sumTex([...A, [t.Rm, R`\ln|${t.den}|`]])}\).`, R`From ${lo} to ${hi}: the polynomial part gives \(${polyPart.tex()}\), and the logarithm gives \(${terms([[t.Rm, R`\ln ${n}`]])} - ${terms([[t.Rm, R`\ln 1`]])}\).`],
     };
   },
   (rng) => {
@@ -531,7 +535,7 @@ const TECH_ITEMS = [
   (rng) => { const [h, a] = [rng.nonzero(-4, 4), rng.int(1, 4)]; return { key: 'square', tex: R`\frac{1}{${poly([1, 2 * h, h * h + a * a])}}`, f: (x) => 1 / (x * x + 2 * h * x + h * h + a * a), g: (x) => 1 / ((x + h) ** 2 + a * a), why: { usub: R`The numerator would need to be a multiple of \(${linear(2, 2 * h)}\) for that.`, squareSin: 'Arcsine goes with the square root of a difference, not with a sum of squares.' } }; },
   (rng) => { const [h, a] = [rng.nonzero(-3, 3), rng.int(2, 4)]; return { key: 'squareSin', tex: R`\frac{1}{\sqrt{${terms([[a * a - h * h, ''], [2 * h, 'x'], [-1, 'x^{2}']])}}}`, f: (x) => 1 / Math.sqrt(a * a - h * h + 2 * h * x - x * x), g: (x) => 1 / Math.sqrt(a * a - (x - h) ** 2), xs: [h - 0.5, h + 0.3, h + 0.8], why: { square: R`Completing the square gives \(${a * a} - (${linear(1, -h)})^{2}\) under a square root: a difference, which leads to arcsine.` } }; },
   (rng) => { const [p, c] = [rng.nonzero(-6, 6), rng.nonzero(-9, 9)]; return { key: 'split', tex: R`\frac{${poly([1, p, 0, c])}}{x^{2}}`, f: (x) => (x ** 3 + p * x * x + c) / (x * x), g: (x) => x + p + c / (x * x), why: { divide: R`Long division by \(x^{2}\) is the same as dividing each term by \(x^{2}\): splitting is the quicker way to say it.` } }; },
-  (rng) => { const k = rng.int(1, 6); return { key: 'identity', tex: terms([[k, R`\tan^{2} x`]]), f: (x) => k * Math.tan(x) ** 2, g: (x) => k / Math.cos(x) ** 2 - k, xs: [0.3, 0.6, 0.9], why: { usub: R`\(u = \tan x\) would need a factor \(\sec^{2} x\), which is not there.` } }; },
+  (rng) => { const k = rng.int(1, 6); return { key: 'identity', tex: terms([[k, R`\tan^{2} x`]]), f: (x) => k * Math.tan(x) ** 2, g: (x) => k / Math.cos(x) ** 2 - k, xs: [0.3, 0.6, 0.9], why: { usub: R`There is no fraction here, and \(u = \tan x\) would need a factor \(\sec^{2} x\), which is not there.` } }; },
   (rng) => { const [a, k] = [rng.int(1, 5), rng.int(1, 6)]; return { key: 'usub', tex: R`\frac{${terms([[k, 'x']])}}{x^{2} + ${a * a}}`, f: (x) => (k * x) / (x * x + a * a), g: (x) => (k / 2) * ((2 * x) / (x * x + a * a)), why: { square: R`\(x^{2} + ${a * a}\) is already a sum of squares, and the numerator \(${terms([[k, 'x']])}\) is a multiple of its derivative \(2x\): a logarithm, not an arctangent.` } }; },
 ];
 
@@ -563,15 +567,14 @@ function challengeTechnique(rng) {
 
 // ∫₀ᵇ of an inverse-trig integrand has a given exact value: find b.
 function challengeFindLimit(rng) {
-  const a = rng.int(1, 6);
-  const B = {
-    a: [`${a}`, a],
-    a3: [a === 1 ? R`\sqrt{3}` : R`${a}\sqrt{3}`, a * Math.sqrt(3)],
-    a33: [R`\frac{${a === 1 ? '' : a}\sqrt{3}}{3}`, (a * Math.sqrt(3)) / 3],
-    a2: [F(frac(a, 2)).tex(), a / 2],
-    a32: [R`\frac{${a === 1 ? '' : a}\sqrt{3}}{2}`, (a * Math.sqrt(3)) / 2],
-    a22: [R`\frac{${a === 1 ? '' : a}\sqrt{2}}{2}`, (a * Math.sqrt(2)) / 2],
+  const a = rng.int(2, 6);
+  // (a/d)·√r in simplest form
+  const root = (r, d) => {
+    const c = frac(a, d);
+    const top = `${c.n === 1 ? '' : c.n}\\sqrt{${r}}`;
+    return [c.d === 1 ? top : `\\frac{${top}}{${c.d}}`, (a * Math.sqrt(r)) / d];
   };
+  const B = { a: [`${a}`, a], a3: root(3, 1), a33: root(3, 3), a2: [F(frac(a, 2)).tex(), a / 2], a32: root(3, 2), a22: root(2, 2) };
   if (rng.bool()) {
     const [key, d, ang] = rng.pick([['a', 4, '1'], ['a3', 3, R`\sqrt{3}`], ['a33', 6, R`\frac{\sqrt{3}}{3}`]]);
     const f = (x) => 1 / (x * x + a * a);
@@ -646,7 +649,7 @@ function challengeSquareDefinite(rng) {
     correct: M(piTex(val)),
     wrong: [
       { value: M(piTex(frac(k, 3))), why: R`\(\arcsin\frac{1}{2} = \frac{\pi}{6}\).` },
-      a > 1 ? { value: M(piTex(frac(k, 6 * a))), why: 'The arcsine form has no factor 1/a.' } : null,
+      a > 1 ? { value: M(piTex(frac(k, 6 * a))), why: R`The arcsine form has no factor \(\frac{1}{a}\).` } : null,
       M(F(frac(k, 2)).tex()),
       M(piTex(frac(k, 2))),
     ],
@@ -665,7 +668,7 @@ function challengeSquareDefinite(rng) {
 
 export default {
   id: 'integration-techniques',
-  title: 'Long Division, Completing the Square & Inverse Trig',
+  title: 'Integration by Algebra & Inverse Trig',
   summary: 'Rewrite an integrand with algebra or an identity, by splitting, dividing or completing the square, so a basic or inverse-trig rule applies.',
   standards: ['AP Calculus 6.10', 'AP Calculus 6.9', 'AP Calculus 6.8'],
 
@@ -786,7 +789,7 @@ export default {
           problem: R`Find \(\displaystyle\int \frac{${poly(N)}}{${den}}\,dx\).`,
           steps: [
             R`The numerator has degree ${lead}, the denominator degree 1: divide first.`,
-            Rm === 0 ? R`\(${poly(N)} = (${den})(${poly(Q)})\): the division is exact, so the integrand is \(${poly(Q)}\) (for \(x \neq ${r}\)).` : R`\(${poly(N)} = (${den})(${poly(Q)}) ${Rm < 0 ? '-' : '+'} ${Math.abs(Rm)}\), so the integrand is \(${poly(Q)} + \dfrac{${Rm}}{${den}}\).`,
+            Rm === 0 ? R`\(${poly(N)} = (${den})(${poly(Q)})\): the division is exact, so the integrand is \(${poly(Q)}\) (for \(x \neq ${r}\)).` : R`\(${poly(N)} = (${den})(${poly(Q)}) ${Rm < 0 ? '-' : '+'} ${Math.abs(Rm)}\), so the integrand is \(${poly(Q)} ${plusFrac(Rm, den)}\).`,
             R`Integrate the quotient term by term${Rm === 0 ? '' : R` and the remainder as \(${terms([[Rm, R`\ln|${den}|`]])}\)`}.`,
           ],
           answer: R`\(${anti} + C\)`,
@@ -796,7 +799,7 @@ export default {
             y: fit([(x) => polyEval(Q, x)], r - 6, r + 6, { minPad: 3 }).y,
             fns: [{ f, label: 'integrand' }, { f: (x) => polyEval(Q, x), color: 'b', dashed: true, label: 'quotient' }],
             vlines: Rm === 0 ? [] : [{ x: r }],
-            alt: `Graph of y = (${txt(a)}x² + ${txt(b)}x + ${txt(c)})/(x − ${txt(r)}) with the dashed quotient line y = ${poly(Q).replace(/[{}]/g, '').replace('^2', '²')}.${Rm === 0 ? ' The two coincide except at x = ' + txt(r) + '.' : ` There is a vertical asymptote at x = ${txt(r)}; far from it the graph approaches the quotient line, and the gap is the remainder ${txt(Rm)}/(x − ${txt(r)}).`}`,
+            alt: `Graph of y = (${plain(poly(N))})/(${plain(den)}) with the dashed quotient line y = ${plain(poly(Q))}.${Rm === 0 ? ' The two coincide except at x = ' + txt(r) + '.' : ` There is a vertical asymptote at x = ${txt(r)}; far from it the graph approaches the quotient line, and the gap is the remainder ${txt(Rm)}/(${plain(den)}).`}`,
           },
         };
       },
@@ -815,7 +818,7 @@ export default {
         const amount = (k / a) * Math.atan(T / a);
         const r = (t) => k / (t * t + a * a);
         return {
-          problem: R`Water flows into a barrel at \(r(t) = \dfrac{${k}}{t^{2} + ${num(a * a)}}\) liters per minute. How much flows in during the first ${txt(T)} minutes?`,
+          problem: R`Water flows into a barrel at \(r(t) = \dfrac{${k}}{t^{2} + ${num(a * a)}}\) liters per minute. How much flows in during the first ${txt(T)} ${T === 1 ? 'minute' : 'minutes'}?`,
           steps: [
             R`Amount \(= \displaystyle\int_0^{${num(T)}} \frac{${k}}{t^{2} + ${num(a)}^{2}}\,dt\): the arctangent form with \(a = ${num(a)}\).`,
             R`Antiderivative: \(\dfrac{${k}}{${num(a)}}\arctan\dfrac{t}{${num(a)}}\).`,

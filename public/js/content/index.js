@@ -73,7 +73,7 @@ export const LEVELS = Object.freeze([
     title: 'Calculus 1',
     band: 'college',
     icon: '∂',
-    blurb: 'Limits, derivatives and their uses, and the first ideas of integration.',
+    blurb: "Limits, derivatives and their uses, Newton's method, and integration by substitution and by algebra.",
     standards: 'AP Calculus AB / college Calculus I',
     load: () => import('./levels/calculus-1/index.js'),
   },

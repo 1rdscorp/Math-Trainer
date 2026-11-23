@@ -6,10 +6,12 @@ import derivativeRules from './derivative-rules.js';
 import chainRuleImplicit from './chain-rule-implicit.js';
 import relatedRates from './related-rates.js';
 import linearizationLhopital from './linearization-lhopital.js';
+import newtonsMethod from './newtons-method.js';
 import curveAnalysis from './curve-analysis.js';
 import optimization from './optimization.js';
 import riemannDefinite from './riemann-definite.js';
 import antiderivativesFtc from './antiderivatives-ftc.js';
 import uSubstitution from './u-substitution.js';
+import integrationTechniques from './integration-techniques.js';
 
-export default [limits, continuity, derivativeDefinition, derivativeRules, chainRuleImplicit, relatedRates, linearizationLhopital, curveAnalysis, optimization, riemannDefinite, antiderivativesFtc, uSubstitution];
+export default [limits, continuity, derivativeDefinition, derivativeRules, chainRuleImplicit, relatedRates, linearizationLhopital, newtonsMethod, curveAnalysis, optimization, riemannDefinite, antiderivativesFtc, uSubstitution, integrationTechniques];
