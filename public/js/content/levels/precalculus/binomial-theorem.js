@@ -342,7 +342,7 @@ function mediumBinomialProb(rng) {
   const story = rng.pick([
     `${name} makes ${pct}% of free throws. In a practice set ${name} takes ${n} free throws, each independent of the others. What is the probability that exactly ${k} of them go in?`,
     `A seed packet says ${pct}% of the seeds germinate. ${name} plants ${n} seeds, which germinate independently. What is the probability that exactly ${k} germinate?`,
-    `A spinner lands on blue with probability ${p}. ${name} spins it ${n} times. What is the probability that it lands on blue exactly ${k} times?`,
+    `A spinner lands on blue with probability ${p}. ${name} spins it ${n} times. What is the probability that it lands on blue exactly ${k} ${k === 1 ? 'time' : 'times'}?`,
   ]);
   const ans = choose(n, k) * p ** k * (1 - p) ** (n - k);
   if (ans < 0.01) return mediumBinomialProb(rng);
@@ -353,7 +353,7 @@ function mediumBinomialProb(rng) {
     correct: v,
     fmt: dec(3),
     wrong: probWrong(v, [
-      { value: p ** k * (1 - p) ** (n - k), why: R`That is the probability of one particular order. There are \(${B(n, k)} = ${choose(n, k)}\) orders with exactly ${k} successes.` },
+      { value: p ** k * (1 - p) ** (n - k), why: R`That is the probability of one particular order. There are \(${B(n, k)} = ${choose(n, k)}\) orders with exactly ${k} ${k === 1 ? 'success' : 'successes'}.` },
       { value: choose(n, k) * p ** (n - k) * (1 - p) ** k, why: R`The success probability \(${p}\) goes with the ${k} successes: \(${p}^{${k}}\), and \(${qn}^{${n - k}}\) for the ${n - k} failures.` },
       { value: choose(n, k) * p ** k, why: R`The ${n - k} failures each have probability \(${qn}\), so multiply by \(${qn}^{${n - k}}\) as well.` },
     ]),

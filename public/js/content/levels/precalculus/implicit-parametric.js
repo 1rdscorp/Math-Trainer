@@ -856,7 +856,7 @@ export default {
           steps: [
             R`Substitute \(x = ${num(x0)}\) and collect terms: \(${terms([[1, 'y^{2}'], [lin, 'y'], [cst, '']])} = 0\).`,
             R`Discriminant: \(${lin < 0 ? `(${num(lin)})` : num(lin)}^{2} - 4 \cdot ${cst < 0 ? `(${num(cst)})` : num(cst)} = ${num(r(disc))}\).`,
-            ys.length === 2 ? R`Positive: two solutions, \(y \approx ${num(r(ys[0]))}\) and \(y \approx ${num(r(ys[1]))}\). The vertical line crosses the curve twice.` : ys.length === 1 ? R`Zero: one solution, \(y = ${num(r(ys[0]))}\). The vertical line just touches the curve.` : R`Negative: no real \(y\). There is no point of the curve with \(x = ${num(x0)}\).`,
+            ys.length === 2 ? R`Positive: two solutions, \(y ${Number.isInteger(ys[0]) ? '=' : '\\approx'} ${num(r(ys[0]))}\) and \(y ${Number.isInteger(ys[1]) ? '=' : '\\approx'} ${num(r(ys[1]))}\). The vertical line crosses the curve twice.` : ys.length === 1 ? R`Zero: one solution, \(y = ${num(r(ys[0]))}\). The vertical line just touches the curve.` : R`Negative: no real \(y\). There is no point of the curve with \(x = ${num(x0)}\).`,
             R`The curve has points only for \(|x| \le ${num(r(P.X))}\) (where the discriminant \(${num(4 * c)} - ${num(4 - b * b)}x^{2}\) is not negative).`,
           ],
           answer: ys.length ? ys.map((y) => R`\(\left(${num(x0)}, ${num(r(y))}\right)\)`).join(' and ') : 'No point of the curve has this x-value.',
