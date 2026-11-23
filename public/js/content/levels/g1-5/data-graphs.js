@@ -182,7 +182,7 @@ function graphAsk(rng, ctx, cats, vals, kind, read) {
     prompt: kind === 'most' ? ctx.most : ctx.least,
     correct: cap(cats[i]),
     wrong: cats.filter((_, j) => j !== i).map(cap),
-    solution: [...order.map(read), `${cap(cats[i])} has the ${kind === 'most' ? 'biggest' : 'smallest'} number, ${want}.`],
+    solution: [...order.map(read), `The ${kind === 'most' ? 'biggest' : 'smallest'} number is ${want}, for ${cats[i]}.`],
     skill: 'reading a graph',
     again: (v) => (v.indexOf(kind === 'most' ? Math.max(...v) : Math.min(...v)) === i ? want : -1),
     answerIsName: true,
@@ -205,13 +205,13 @@ function easyTally(rng) {
   const vals = distinct(rng, 3, 2, 13);
   const pic = tallyPic(ctx, cats, vals);
   const kind = rng.pick(['one', 'one', 'more', 'fewer', 'all']);
-  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => `${cap(cats[i])} has ${plural(vals[i], 'tally mark')}. Count the groups of 5, then the ones.`);
+  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => `The ${cats[i]} row has ${plural(vals[i], 'tally mark')}.`);
   return q({
     prompt: `${ctx.intro} The tally chart shows the result. ${a.prompt}`,
     visual: pic,
     correct: a.correct,
     wrong: kind === 'one' ? [{ value: Math.floor(a.correct / 5) + (a.correct % 5), why: 'A crossed group stands for 5 marks, not 1.' }, ...a.wrong] : a.wrong,
-    solution: a.solution,
+    solution: ['Count by fives for each crossed group, then count on the single marks.', ...a.solution],
     rule: kind === 'one' ? 0 : 3,
     skill: kind === 'one' ? 'tally charts' : a.skill,
     check: recheck(a, () => pic.rows.map((r) => countTally(r[1])), a.correct),
@@ -225,7 +225,7 @@ function easyPictureOne(rng) {
   const vals = distinct(rng, k, 1, 9);
   const pic = picturePic(ctx, cats, vals, 1);
   const kind = rng.pick(k === 4 ? ['one', 'more', 'fewer', 'most', 'least'] : ['one', 'more', 'fewer', 'all']);
-  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => `${cap(cats[i])} has ${plural(vals[i], 'star')}, so ${vals[i]}.`);
+  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => `The ${cats[i]} row has ${plural(vals[i], 'star')}, so ${vals[i]}.`);
   return q({
     prompt: `${ctx.intro} In this picture graph, each star stands for 1. ${a.prompt}`,
     visual: pic,
@@ -245,7 +245,7 @@ function easyBarRead(rng) {
   const vals = distinct(rng, 4, step, 10 * step, step);
   const pic = barPic(ctx, cats, vals, step);
   const kind = rng.pick(['one', 'one', 'more', 'fewer', 'most']);
-  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => `The ${cap(cats[i])} bar ends at ${vals[i]}.`);
+  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => `The ${cats[i]} bar ends at ${vals[i]}.`);
   return q({
     prompt: `${ctx.intro} The bar graph shows the result. ${a.prompt}`,
     visual: pic,
@@ -268,7 +268,7 @@ function mediumPictureKey(rng) {
   const vals = stars.map((s) => s * key);
   const pic = picturePic(ctx, cats, stars, key);
   const kind = rng.pick(['one', 'one', 'more', 'fewer', 'pair']);
-  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => R`${cap(cats[i])} has ${plural(stars[i], 'star')}: \(${stars[i]} \times ${key} = ${vals[i]}\).`);
+  const a = graphAsk(rng, ctx, cats, vals, kind, (i) => R`The ${cats[i]} row has ${plural(stars[i], 'star')}: \(${stars[i]} \times ${key} = ${vals[i]}\).`);
   const i = vals.indexOf(a.correct);
   return q({
     prompt: `${ctx.intro} ${keyWords(ctx, key)} ${a.prompt}`,
@@ -291,7 +291,7 @@ function mediumBarScale(rng) {
   const vals = distinct(rng, 4, step, 10 * step, unit);
   const pic = barPic(ctx, cats, vals, step);
   const kind = rng.pick(['one', 'more', 'fewer', 'pair', 'all']);
-  const read = (i) => (vals[i] % step ? `The ${cap(cats[i])} bar ends halfway between ${vals[i] - unit} and ${vals[i] + unit}, so ${vals[i]}.` : `The ${cap(cats[i])} bar ends on the line for ${vals[i]}.`);
+  const read = (i) => (vals[i] % step ? `The ${cats[i]} bar ends halfway between ${vals[i] - unit} and ${vals[i] + unit}, so ${vals[i]}.` : `The ${cats[i]} bar ends on the line for ${vals[i]}.`);
   const a = graphAsk(rng, ctx, cats, vals, kind, read);
   return q({
     prompt: `${ctx.intro} The bar graph shows the result. The scale goes up by ${step}. ${a.prompt}`,
@@ -375,23 +375,24 @@ const fracText = (k, d) => {
 const texOf = (f) => (f instanceof Frac ? f : frac(f, 1)).mixedTex();
 
 const MEASURE = [
-  { obj: ['ribbon', 'ribbons'], unit: ['inch', 'inches'], axis: 'Length (inches)', what: 'the length of each ribbon', at: (v, u) => `How many ribbons are ${v} ${u} long?`, diff: 'How much longer is the longest ribbon than the shortest ribbon?', sum: 'What is the total length of all the ribbons?', some: (c, v, u) => `What is the total length of the ${c} ribbons that are ${v} ${u} long?` },
-  { obj: ['caterpillar', 'caterpillars'], unit: ['inch', 'inches'], axis: 'Length (inches)', what: 'the length of each caterpillar', at: (v, u) => `How many caterpillars are ${v} ${u} long?`, diff: 'How much longer is the longest caterpillar than the shortest one?', sum: 'If the caterpillars lined up end to end, how long would the line be?', some: (c, v, u) => `The ${c} caterpillars that are ${v} ${u} long line up end to end. How long is the line?` },
-  { obj: ['bag of sand', 'bags of sand'], unit: ['pound', 'pounds'], axis: 'Weight (pounds)', what: 'the weight of each bag of sand', at: (v, u) => `How many bags weigh ${v} ${u}?`, diff: 'How much heavier is the heaviest bag than the lightest bag?', sum: 'What is the total weight of all the bags?', some: (c, v, u) => `What is the total weight of the ${c} bags that weigh ${v} ${u} each?`, share: (n) => `All the sand is poured out. Then it is shared equally into the ${n} bags. How much sand will each bag hold?` },
-  { obj: ['beaker', 'beakers'], unit: ['liter', 'liters'], axis: 'Water (liters)', what: 'how much water is in each beaker', at: (v, u) => `How many beakers hold ${v} ${u} of water?`, diff: 'How much more water is in the fullest beaker than in the beaker with the least?', sum: 'How much water is in all the beakers together?', some: (c, v, u) => `How much water is in the ${c} beakers that hold ${v} ${u} each?`, share: (n) => `The water is shared out equally among the ${n} beakers. How much water will each beaker hold?` },
-  { obj: ['glass', 'glasses'], unit: ['cup', 'cups'], axis: 'Juice (cups)', what: 'how much juice is in each glass', at: (v, u) => `How many glasses hold ${v} ${u} of juice?`, diff: 'How much more juice is in the fullest glass than in the glass with the least?', sum: 'How much juice is in all the glasses together?', some: (c, v, u) => `How much juice is in the ${c} glasses that hold ${v} ${u} each?`, share: (n) => `The juice is poured back and shared equally among the ${n} glasses. How much juice will each glass hold?` },
+  { top: 8, obj: ['ribbon', 'ribbons'], unit: ['inch', 'inches'], axis: 'Length (inches)', what: 'the length of each ribbon', at: (v, u) => `How many ribbons are ${v} ${u} long?`, diff: 'How much longer is the longest ribbon than the shortest ribbon?', sum: 'What is the total length of all the ribbons?', some: (c, v, u) => `What is the total length of the ${c} ribbons that are ${v} ${u} long?` },
+  { top: 4, obj: ['caterpillar', 'caterpillars'], unit: ['inch', 'inches'], axis: 'Length (inches)', what: 'the length of each caterpillar', at: (v, u) => `How many caterpillars are ${v} ${u} long?`, diff: 'How much longer is the longest caterpillar than the shortest one?', sum: 'If the caterpillars lined up end to end, how long would the line be?', some: (c, v, u) => `The ${c} caterpillars that are ${v} ${u} long line up end to end. How long is the line?` },
+  { top: 6, obj: ['bag of sand', 'bags of sand'], unit: ['pound', 'pounds'], axis: 'Weight (pounds)', what: 'the weight of each bag of sand', at: (v, u) => `How many bags weigh ${v} ${u}?`, diff: 'How much heavier is the heaviest bag than the lightest bag?', sum: 'What is the total weight of all the bags?', some: (c, v, u) => `What is the total weight of the ${c} bags that weigh ${v} ${u} each?`, share: (n) => `All the sand is poured out. Then it is shared equally into the ${n} bags. How much sand will each bag hold?` },
+  { top: 3, obj: ['beaker', 'beakers'], unit: ['liter', 'liters'], axis: 'Water (liters)', what: 'how much water is in each beaker', at: (v, u) => `How many beakers hold ${v} ${u} of water?`, diff: 'How much more water is in the fullest beaker than in the beaker with the least?', sum: 'How much water is in all the beakers together?', some: (c, v, u) => `How much water is in the ${c} beakers that hold ${v} ${u} each?`, share: (n) => `The water is shared out equally among the ${n} beakers. How much water will each beaker hold?` },
+  { top: 2, obj: ['glass', 'glasses'], unit: ['cup', 'cups'], axis: 'Juice (cups)', what: 'how much juice is in each glass', at: (v, u) => `How many glasses hold ${v} ${u} of juice?`, diff: 'How much more juice is in the fullest glass than in the glass with the least?', sum: 'How much juice is in all the glasses together?', some: (c, v, u) => `How much juice is in the ${c} glasses that hold ${v} ${u} each?`, share: (n) => `The juice is poured back and shared equally among the ${n} glasses. How much juice will each glass hold?` },
 ];
 const unitFor = (M, f) => (f.n <= f.d ? M.unit[0] : M.unit[1]);
 const amount = (M, f) => R`\(${texOf(f)}\) ${unitFor(M, f)}`;
 
 // A plot in parts of 1/d: halves over 2 or 3 wholes, quarters over 1 whole, eighths from 0 to 1.
-function fracRange(rng, d) {
+function fracRange(rng, d, top) {
   if (d === 2) {
-    const w = rng.int(1, 5);
-    return [2 * w, 2 * (w + rng.pick([2, 3]))];
+    const span = top >= 5 ? rng.pick([2, 3]) : 2;
+    const w = rng.int(0, Math.max(0, top - span));
+    return [2 * w, 2 * (w + span)];
   }
   if (d === 4) {
-    const w = rng.int(0, 4);
+    const w = rng.int(0, top - 1);
     return [4 * w, 4 * w + 4];
   }
   return [0, 8];
@@ -410,17 +411,27 @@ function fracPlot(M, parts, d, lo, hi) {
     alt: `A line plot of ${M.what}. It is marked in ${['', '', 'halves', '', 'quarters', '', '', '', 'eighths'][d]}. Each dot is one ${M.obj[0]}. Dots: ${dotsAlt(ticks, parts, (k) => fracText(k, d))}. No other dots.`,
   };
 }
+// Fraction data with mostly non-whole values, and not both ends whole (so a difference needs fractions).
+function fracData(rng, d, lo, hi, n, stack) {
+  let parts;
+  for (let t = 0; t < 40; t++) {
+    parts = plotData(rng, lo || 1, hi, n, stack);
+    const whole = parts.filter((k) => k % d === 0).length;
+    if (whole * 2 <= n && (Math.max(...parts) % d || Math.min(...parts) % d)) break;
+  }
+  return parts;
+}
 // Read the parts back out of a plot picture (an independent route to the data).
 const partsOf = (pic, d) => pic.values.map((v) => Math.round(v * d));
 
 function hardLinePlotFrac(rng) {
   const M = rng.pick(MEASURE);
   const d = rng.pick([2, 4, 4, 8]);
-  const [lo, hi] = fracRange(rng, d);
-  const parts = plotData(rng, d === 8 ? 1 : lo, hi, rng.int(8, 12), 4);
+  const [lo, hi] = fracRange(rng, d, M.top);
+  const parts = fracData(rng, d, lo, hi, rng.int(8, 12), 4);
   const pic = fracPlot(M, parts, d, lo, hi);
   const kind = rng.pick(['at', 'diff', 'diff', 'some']);
-  const stacks = [...new Set(parts)].filter((k) => countAt(parts, k) >= 2);
+  const stacks = [...new Set(parts)].filter((k) => countAt(parts, k) >= 2 && k % d);
   if (kind === 'at' || (kind === 'some' && !stacks.length)) {
     const k = rng.pick([...new Set(parts)]);
     const c = countAt(parts, k);
@@ -518,7 +529,7 @@ function hardBarTwoStep(rng) {
   const cats = rng.sample(ctx.cats, 4);
   const vals = distinct(rng, 4, step, 10 * step, step);
   const pic = barPic(ctx, cats, vals, step);
-  const a = twoStepParts(rng, ctx, cats, vals, (i) => `The ${cap(cats[i])} bar shows ${vals[i]}.`);
+  const a = twoStepParts(rng, ctx, cats, vals, (i) => `The ${cats[i]} bar shows ${vals[i]}.`);
   return q({
     prompt: `${ctx.intro} The bar graph shows the result. The scale goes up by ${step}. ${a.prompt}`,
     visual: pic,
@@ -536,8 +547,8 @@ function hardBarTwoStep(rng) {
 function challengePlotTotal(rng) {
   const M = rng.pick(MEASURE);
   const d = rng.pick([4, 8, 8]);
-  const [lo, hi] = fracRange(rng, d);
-  const parts = plotData(rng, d === 8 ? 1 : lo, hi, rng.int(6, 9), 3);
+  const [lo, hi] = fracRange(rng, d, M.top);
+  const parts = fracData(rng, d, lo, hi, rng.int(6, 9), 3);
   const pic = fracPlot(M, parts, d, lo, hi);
   const F = (k) => frac(k, d);
   const t = total(parts);
@@ -557,14 +568,16 @@ function challengePlotTotal(rng) {
   });
 }
 
+const PARTS = { 4: 'fourths', 8: 'eighths' };
+
 function challengeShare(rng) {
   const M = rng.pick(MEASURE.filter((x) => x.share));
   const d = rng.pick([4, 8, 8]);
-  const [lo, hi] = fracRange(rng, d);
-  const first = d === 8 ? 1 : lo;
+  const [lo, hi] = fracRange(rng, d, M.top);
+  const first = lo || 1;
   const n = rng.int(3, 5) * 2;
   // Build pairs that sit the same distance above and below the equal share, so the share is exact.
-  const mid = rng.int(first + 2, hi - 2);
+  const mid = rng.int(first + 1, hi - 1);
   const reach = Math.min(mid - first, hi - mid);
   let parts;
   for (let tries = 0; tries < 30; tries++) {
@@ -573,7 +586,7 @@ function challengeShare(rng) {
       const t = rng.int(0, reach);
       parts.push(mid - t, mid + t);
     }
-    if (Math.max(...parts.map((k) => countAt(parts, k))) <= 4) break;
+    if (Math.max(...parts.map((k) => countAt(parts, k))) <= 4 && parts.filter((k) => k % d).length * 2 >= n) break;
   }
   parts.sort((a, b) => a - b);
   const pic = fracPlot(M, parts, d, lo, hi);
@@ -586,11 +599,12 @@ function challengeShare(rng) {
     visual: pic,
     correct: ans,
     fmt: (v) => amount(M, v),
-    wrong: [{ value: F(t), why: `That is the total. Share it equally among the ${n} ${M.obj[1]}: divide by ${n}.` }, { value: F(t).div(frac(n - 1, 1)), why: `There are ${n} ${M.obj[1]}. Count every dot.` }, F(mid + 1), F(mid - 1), F(hi)],
+    wrong: [{ value: F(t), why: `That is the total. Share it equally among the ${n} ${M.obj[1]}: divide by ${n}.` }, Math.max(...parts) !== mid ? { value: F(Math.max(...parts)), why: 'That is the fullest one. In an equal share, every one gets the total divided by the number of them.' } : null, F(mid + 1), F(mid - 1), F(hi)],
     solution: [
       `Find the total first. Add the amount for every dot.`,
       R`Total: \(${kinds.map((k) => (countAt(parts, k) > 1 ? R`${countAt(parts, k)} \times ${texOf(F(k))}` : texOf(F(k)))).join(' + ')} = ${texOf(F(t))}\).`,
-      R`Share it among ${n} ${M.obj[1]}: \(${texOf(F(t))} \div ${n} = ${texOf(ans)}\).`,
+      R`Write the total in ${PARTS[d]}: \(${texOf(F(t))} = \frac{${t}}{${d}}\).`,
+      R`Share ${t} ${PARTS[d]} among ${n}: \(${t} \div ${n} = ${t / n}\), so each gets \(\frac{${t / n}}{${d}}${frac(t / n, d).d !== d || t / n > d ? ` = ${texOf(ans)}` : ''}\).`,
       `Each one will hold ${amount(M, ans)}.`,
     ],
     rule: 5,
@@ -619,7 +633,7 @@ function challengeWorkBack(rng) {
       visual: pic,
       correct: vals[j],
       wrong: [{ value: stars[j], why: `That counts the stars. First find what one star stands for.` }, { value: key, why: `That is what one star stands for. The ${cats[j]} row has ${stars[j]} stars.` }, vals[j] + key, vals[j] - key, vals[i] + stars[j] - stars[i] > 0 ? vals[i] + stars[j] - stars[i] : null],
-      solution: [R`${cap(cats[i])} has ${plural(stars[i], 'star')} for ${vals[i]}. One star: \(${vals[i]} \div ${stars[i]} = ${key}\).`, R`${cap(cats[j])} has ${plural(stars[j], 'star')}: \(${stars[j]} \times ${key} = ${vals[j]}\).`],
+      solution: [R`The ${cats[i]} row has ${plural(stars[i], 'star')} for ${vals[i]}.`, R`One star stands for \(${vals[i]} \div ${stars[i]} = ${key}\).`, R`The ${cats[j]} row has ${plural(stars[j], 'star')}: \(${stars[j]} \times ${key} = ${vals[j]}\).`],
       rule: 1,
       skill: 'picture graph key',
       check: () => (countStars(pic)[j] * (vals[i] / countStars(pic)[i]) === vals[j] ? true : 'key does not fit'),
