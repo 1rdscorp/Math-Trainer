@@ -169,5 +169,5 @@ export default function flashcardsView(ctx) {
   const wanted = findDeck(new URLSearchParams(location.hash.split('?')[1] ?? '').get('deck'));
   if (wanted) study(wanted, false);
   else showDecks();
-  return h('div', { class: 'stack-lg' }, gameHeader('Fact flashcards', 'Type the answer to each card. Cards you know well come back less often; cards you miss come back soon.'), timingControl(settings), h('p', { class: 'small muted' }, `With timing on, a correct answer counts as "quick" within ${FAST_MS / 1000} seconds (${(FAST_MS * 2) / 1000} on the slower setting). Slow but correct answers are never marked wrong. There are ${MAX_BOX} boxes.`), stage);
+  return h('div', { class: 'stack-lg' }, gameHeader('Fact flashcards', 'Type the answer to each card. Cards you know well come back less often; cards you miss come back soon.'), timingControl(settings), h('p', { class: 'small muted' }, `With timing on, a correct answer counts as "quick" within ${FAST_MS / 1000} seconds (${(FAST_MS * 2) / 1000} on the slower setting). Slow but correct answers are never marked wrong. Each card climbs ${MAX_BOX} steps: a quick right answer moves it up a step, a slow one keeps it where it is, and a miss sends it back to the first step. The higher the step, the longer before the card comes back, from 1 day up to a month.`), stage);
 }
