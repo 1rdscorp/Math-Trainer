@@ -549,7 +549,7 @@ export default {
       R`Forgetting the zero that holds a place. Three hundredths is \(0.03\), not \(0.3\).`,
       R`Putting too few decimal places in a product. \(0.3 \times 0.4\) is \(0.12\), not \(1.2\).`,
     ],
-    visual: { type: 'numberLine', min: 0, max: 1, step: 0.1, points: [{ value: 0.7, label: '0.7 = 7/10' }], alt: 'A number line from 0 to 1 cut into ten equal jumps. The point 0.7 is seven jumps from 0.' },
+    visual: { type: 'numberLine', min: 0, max: 1, step: 0.1, points: [{ value: 0.7, label: '0.7 = 7/10' }], alt: 'A number line from 0 to 1 split into ten equal jumps. The point 0.7 is seven jumps from 0.' },
   },
 
   examples: [

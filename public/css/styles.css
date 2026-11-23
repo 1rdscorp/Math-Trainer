@@ -629,6 +629,11 @@ input[aria-invalid='true'] { border-color: var(--bad); }
 /* Bigger answer buttons for the youngest students. */
 .band-elementary .choice label { min-height: 4.4rem; font-size: 1.2rem; }
 .band-elementary .question-prompt { font-size: 1.25rem; }
+/* Young readers: math a little larger everywhere in Grades 1–5, and inline fractions bigger still
+   (KaTeX draws an inline fraction at about 70% of the text size, too small for a 7-year-old). */
+.band-elementary .katex { font-size: 1.22em; }
+.band-elementary .katex .mfrac .vlist-t { font-size: 1.18em; }
+.band-elementary p, .band-elementary li, .band-elementary .question-prompt { line-height: 1.85; }
 /* The "Correct" / "Your answer" mark is a small badge on the top edge of the choice, so it never
    takes room away from a long answer. */
 .choice .mark {
