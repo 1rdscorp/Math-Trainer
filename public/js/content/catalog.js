@@ -367,6 +367,31 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "functions",
+      "title": "Functions & Variables",
+      "summary": "Name independent and dependent variables, decide whether a relation is a function, compare functions, and read graphs as stories.",
+      "grade": "Grades 6–8",
+      "standards": [
+        "CCSS 6.EE.C.9",
+        "CCSS 8.F.A.1",
+        "CCSS 8.F.A.2",
+        "CCSS 8.F.B.5"
+      ]
+    },
+    {
+      "id": "transformations",
+      "title": "Transformations, Congruence & Similarity",
+      "summary": "Translate, reflect, rotate and dilate figures on the coordinate plane, and use them to decide whether figures are congruent or similar.",
+      "grade": "Grade 8",
+      "standards": [
+        "CCSS 8.G.A.1",
+        "CCSS 8.G.A.2",
+        "CCSS 8.G.A.3",
+        "CCSS 8.G.A.4",
+        "CCSS 8.G.A.5"
+      ]
+    },
+    {
       "id": "pythagorean-angles",
       "title": "Angles, Triangles & the Pythagorean Theorem",
       "summary": "Find missing angles made by crossing lines, parallel lines and triangles, and use the Pythagorean theorem to find lengths and distances.",

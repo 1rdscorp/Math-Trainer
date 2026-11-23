@@ -551,6 +551,8 @@ function plot(s) {
   // Labels are placed so that they do not sit on top of each other, on a marked point or on an axis number.
   const labels = [];
   for (const pt of s.points ?? []) taken.push([X(pt.x) - 5, Y(pt.y) - 5, X(pt.x) + 5, Y(pt.y) + 5]);
+  // The axis lines too, so a label does not sit across an axis.
+  taken.push([m.l, axisY - 2, m.l + pw, axisY + 2], [axisX - 2, m.t, axisX + 2, m.t + ph]);
   const placeLabel = (x, y, str, cls, options) => {
     const w = String(str).length * 7 + 6;
     const hgt = 16;

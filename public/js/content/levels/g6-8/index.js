@@ -10,6 +10,8 @@ import areaVolume from './area-volume.js';
 import statisticsProbability from './statistics-probability.js';
 import exponentsScientific from './exponents-scientific.js';
 import linearRelationships from './linear-relationships.js';
+import functions from './functions.js';
+import transformations from './transformations.js';
 import pythagoreanAngles from './pythagorean-angles.js';
 
-export default [ratiosRates, fractionDivisionFactors, percent, integersRationals, expressions, equationsInequalities, proportional, areaVolume, statisticsProbability, exponentsScientific, linearRelationships, pythagoreanAngles];
+export default [ratiosRates, fractionDivisionFactors, percent, integersRationals, expressions, equationsInequalities, proportional, areaVolume, statisticsProbability, exponentsScientific, linearRelationships, functions, transformations, pythagoreanAngles];
