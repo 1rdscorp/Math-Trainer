@@ -352,6 +352,13 @@ main {
 .card-link:hover { border-color: var(--brand); color: inherit; transform: translateY(-2px); }
 .card-link h3 { color: var(--brand); }
 .card-icon { font-size: 1.8rem; line-height: 1; margin-bottom: 0.4rem; }
+/* On phones the level cards put the icon beside the title, so the list of nine levels is shorter. */
+@media (max-width: 34rem) {
+  .grid > .card-link { display: grid; grid-template-columns: auto 1fr; column-gap: 0.75rem; align-items: center; }
+  .grid > .card-link > * { grid-column: 1 / -1; }
+  .grid > .card-link > .card-icon { grid-column: 1; margin: 0; font-size: 1.6rem; }
+  .grid > .card-link > h3 { grid-column: 2; margin: 0; }
+}
 
 .notice {
   border-radius: var(--radius);

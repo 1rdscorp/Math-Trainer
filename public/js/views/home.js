@@ -63,9 +63,6 @@ export default function homeView(ctx) {
     );
   }
 
-  const notice = guestNotice(app);
-  if (notice) sections.push(notice);
-
   sections.push(
     h(
       'section',
@@ -94,6 +91,10 @@ export default function homeView(ctx) {
       ),
     ),
   );
+
+  // The guest notice comes after the levels, so a first-time visitor sees the levels first.
+  const notice = guestNotice(app);
+  if (notice) sections.push(notice);
 
   sections.push(
     h(
