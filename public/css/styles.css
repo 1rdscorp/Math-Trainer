@@ -634,6 +634,9 @@ input[aria-invalid='true'] { border-color: var(--bad); }
 .band-elementary .katex { font-size: 1.22em; }
 .band-elementary .katex .mfrac .vlist-t { font-size: 1.18em; }
 .band-elementary p, .band-elementary li, .band-elementary .question-prompt { line-height: 1.85; }
+/* Grades 6–8: inline fractions a little larger too (they carry most of the content here). */
+.band-middle .katex .mfrac .vlist-t { font-size: 1.12em; }
+.band-middle p, .band-middle li, .band-middle .question-prompt { line-height: 1.75; }
 /* The "Correct" / "Your answer" mark is a small badge on the top edge of the choice, so it never
    takes room away from a long answer. */
 .choice .mark {

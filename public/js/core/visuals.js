@@ -551,6 +551,8 @@ function plot(s) {
   // Labels are placed so that they do not sit on top of each other, on a marked point or on an axis number.
   const labels = [];
   for (const pt of s.points ?? []) taken.push([X(pt.x) - 5, Y(pt.y) - 5, X(pt.x) + 5, Y(pt.y) + 5]);
+  // The axis lines too, so a label does not sit across an axis.
+  taken.push([m.l, axisY - 2, m.l + pw, axisY + 2], [axisX - 2, m.t, axisX + 2, m.t + ph]);
   const placeLabel = (x, y, str, cls, options) => {
     const w = String(str).length * 7 + 6;
     const hgt = 16;
@@ -672,13 +674,25 @@ function polygon(s) {
   const by0 = Math.min(...ys);
   const by1 = Math.max(...ys);
   const W = 340;
-  const pad = 44;
   const bw = bx1 - bx0 || 1;
   const bh = by1 - by0 || 1;
+  // Leave room at the sides for the longest label on a steep side ("2.5 in → 10 ft" beside a
+  // vertical edge would otherwise run off the picture).
+  let sideRoom = 0;
+  raw.forEach((pt, i) => {
+    const label = s.sides?.[i];
+    if (label == null || label === '') return;
+    const nx = raw[(i + 1) % raw.length];
+    const dx = Math.abs(nx[0] - pt[0]) / bw;
+    const dy = Math.abs(nx[1] - pt[1]) / bh;
+    if (dy > dx) sideRoom = Math.max(sideRoom, String(label).length * 7.2 + 18);
+  });
+  const pad = Math.min(110, Math.max(44, sideRoom));
   const scale = Math.min((W - 2 * pad) / bw, 200 / bh);
-  const H = bh * scale + 2 * pad;
+  const padY = 44;
+  const H = bh * scale + 2 * padY;
   const ox = (W - bw * scale) / 2;
-  const P = ([x, y]) => [ox + (x - bx0) * scale, pad + (by1 - y) * scale];
+  const P = ([x, y]) => [ox + (x - bx0) * scale, padY + (by1 - y) * scale];
   const p = raw.map(P);
   const cnt = p.length;
   const centroid = mul(p.reduce(add, [0, 0]), 1 / cnt);

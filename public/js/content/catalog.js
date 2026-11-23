@@ -341,6 +341,21 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "data-displays",
+      "title": "Data Displays, Sampling & Comparing Groups",
+      "summary": "Ask statistical questions, read dot plots, histograms and box plots, estimate from random samples, and compare two groups.",
+      "grade": "Grades 6–7",
+      "standards": [
+        "CCSS 6.SP.A.1",
+        "CCSS 6.SP.A.2",
+        "CCSS 6.SP.B.4",
+        "CCSS 7.SP.A.1",
+        "CCSS 7.SP.A.2",
+        "CCSS 7.SP.B.3",
+        "CCSS 7.SP.B.4"
+      ]
+    },
+    {
       "id": "exponents-scientific",
       "title": "Exponents, Roots & Scientific Notation",
       "summary": "Use the exponent rules, find square and cube roots, estimate roots that are not whole numbers, and work with scientific notation.",
@@ -364,6 +379,52 @@ export const CATALOG = {
         "CCSS 8.EE.C.7",
         "CCSS 8.F.A.3",
         "CCSS 8.F.B.4"
+      ]
+    },
+    {
+      "id": "functions",
+      "title": "Functions & Variables",
+      "summary": "Name independent and dependent variables, decide whether a relation is a function, compare functions, and read graphs as stories.",
+      "grade": "Grades 6–8",
+      "standards": [
+        "CCSS 6.EE.C.9",
+        "CCSS 8.F.A.1",
+        "CCSS 8.F.A.2",
+        "CCSS 8.F.B.5"
+      ]
+    },
+    {
+      "id": "systems",
+      "title": "Systems of Linear Equations",
+      "summary": "Solve pairs of linear equations by graphing, substitution and elimination, and tell when a system has one, no or infinitely many solutions.",
+      "grade": "Grade 8",
+      "standards": [
+        "CCSS 8.EE.C.8"
+      ]
+    },
+    {
+      "id": "scatter-plots",
+      "title": "Scatter Plots & Two-Way Tables",
+      "summary": "Describe patterns in scatter plots, use a line of fit to predict, and look for associations in two-way tables.",
+      "grade": "Grade 8",
+      "standards": [
+        "CCSS 8.SP.A.1",
+        "CCSS 8.SP.A.2",
+        "CCSS 8.SP.A.3",
+        "CCSS 8.SP.A.4"
+      ]
+    },
+    {
+      "id": "transformations",
+      "title": "Transformations, Congruence & Similarity",
+      "summary": "Translate, reflect, rotate and dilate figures on the coordinate plane, and use them to decide whether figures are congruent or similar.",
+      "grade": "Grade 8",
+      "standards": [
+        "CCSS 8.G.A.1",
+        "CCSS 8.G.A.2",
+        "CCSS 8.G.A.3",
+        "CCSS 8.G.A.4",
+        "CCSS 8.G.A.5"
       ]
     },
     {
