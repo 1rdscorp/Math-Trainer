@@ -1589,6 +1589,16 @@ export const CATALOG = {
       ]
     },
     {
+      "id": "parametric-surfaces",
+      "title": "Parametric Surfaces & Surface Integrals",
+      "summary": "Describe surfaces by r(u, v), find their tangent planes and areas, and integrate a density or temperature over a surface.",
+      "grade": null,
+      "standards": [
+        "Calculus III: parametric surfaces and their areas",
+        "Calculus III: surface integrals"
+      ]
+    },
+    {
       "id": "surface-integrals-theorems",
       "title": "Curl, Divergence, Stokes' & the Divergence Theorem",
       "summary": "Compute divergence, curl, surface area and flux, and use Stokes' theorem and the divergence theorem to simplify integrals.",

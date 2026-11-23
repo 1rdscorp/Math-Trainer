@@ -1,4 +1,4 @@
-import { R, q, frac, Frac, num, terms, paren, dot, simplifySqrt, person, close, checkEqual, integrate2 } from '../../lib/index.js';
+import { R, q, frac, Frac, num, terms, paren, dot, simplifySqrt, person, close, checkEqual, integrate2, numPartial } from '../../lib/index.js';
 import { M, V, Pt, piTex, exactCos, exactSin, rootOver, angleTex, vcross, vdot, vsub, vadd, vscale, isZero, parallel, normPlane, planeTex, samePlane, mpTex, mpEval, mpD, surfNormal, surfInt, vlen } from './_shared.js';
 
 const PI = Math.PI;
@@ -103,7 +103,7 @@ function identifyCase(rng) {
     };
   }
   if (kind === 'plane') {
-    const [p, b, d] = [rng.nonzero(-4, 4), rng.nonzero(-4, 4), rng.int(-6, 6)];
+    const [p, b, d] = [rng.nonzero(-4, 4), rng.nonzero(-4, 4), rng.nonzero(-6, 6)];
     const pl = (n, e) => [R`the plane \(${planeTex(n, e)}\)`, (P) => near(vdot(n, P), e)];
     return {
       tex: V(['u', 'v', terms([[d, ''], [-p, 'u'], [-b, 'v']])]), dom: R`\(u\) and \(v\) any real numbers`, fn: (u, v) => [u, v, d - p * u - b * v], box: [-2, 2, -2, 2],
@@ -175,7 +175,7 @@ function easyFindParameters(rng) {
   const pair = (s, t) => M(`(u, v) = (${s}, ${t})`);
   if (kind === 'which') {
     const m = rng.int(1, 3);
-    const [p, s, h] = rng.pick([[3, 4, 5], [4, 3, 5], [5, 12, 13], [6, 8, 10], [8, 6, 10], [0, 2, 2], [1, 0, 1], [0, 3, 3]]);
+    const [p, s, h] = rng.pick([[3, 4, 5], [4, 3, 5], [5, 12, 13], [12, 5, 13], [6, 8, 10], [8, 6, 10], [8, 15, 17], [15, 8, 17]]);
     const [x, y] = [p * rng.sign() || 0, s * rng.sign() || 0];
     const on = (P) => P[2] >= 0 && near(P[2], m * Math.hypot(P[0], P[1]));
     const cands = [
@@ -272,7 +272,7 @@ function parametrizeCase(rng) {
   if (kind === 'graph') {
     let f;
     do f = [[rng.nonzero(-3, 3), ...rng.pick(MONOS)], [rng.nonzero(-3, 3), ...rng.pick(MONOS)], [rng.int(-5, 5), 0, 0]].filter((t) => t[0]);
-    while (mpTex(f) === mpTex(f.map(([c, i, j]) => [c, j, i])) || f[0][1] === f[1][1] && f[0][2] === f[1][2]);
+    while (f.length < 2 || (f[0][1] === f[1][1] && f[0][2] === f[1][2]) || [[0.7, -1.3], [1.9, 0.4]].every(([x, y]) => near(mpEval(f, x, y), mpEval(f, y, x))));
     const fe = (x, y) => mpEval(f, x, y);
     const sw = f.map(([c, i, j]) => [c, j, i]);
     return {
@@ -282,6 +282,7 @@ function parametrizeCase(rng) {
         [V([uv(f), 'u', 'v']), (u, v) => [fe(u, v), u, v], R`That is the graph \(x = ${mpTex(f, ['y', 'z'])}\). For \(z = f(x, y)\) take \(x = u\), \(y = v\), \(z = f(u, v)\).`],
         [V(['u', uv(f), 'v']), (u, v) => [u, fe(u, v), v]],
         [V(['u', 'v', uv(sw)]), (u, v) => [u, v, mpEval(sw, u, v)], R`\(x = u\) and \(y = v\), so \(z\) is the formula with \(x\) replaced by \(u\) and \(y\) by \(v\).`],
+        [V(['u', 'v', uv(f.map(([c, i, j]) => [-c, i, j]))]), (u, v) => [u, v, -fe(u, v)]],
       ],
       sol: R`A graph \(z = f(x, y)\) is parametrized by \(\mathbf{r}(u, v) = \langle u, v, f(u, v) \rangle\).`,
     };
@@ -353,6 +354,8 @@ function parametrizeCase(rng) {
 function easyParametrize(rng) {
   const k = parametrizeCase(rng);
   const box = [0.3, 2.9, 0.4, 2.2];
+  // A slip can land on the same surface (⟨u, f, v⟩ for z = x − y + c, say): drop any candidate that stays on it.
+  k.wrong = k.wrong.filter((w) => spots(box).some(([u, v]) => !k.test(w[1](u, v))));
   const question = q({
     prompt: R`Which vector function parametrizes ${k.text}? (Take \(u\) and \(v\) over suitable intervals.)`,
     correct: rVec(k.right[0]),
@@ -408,7 +411,7 @@ function gridCase(rng, fixU) {
   }
   const r0 = rng.int(2, 4);
   const h = para ? r0 * r0 : r0;
-  return { ...base, vr: [0, TAU], val: r0, valTex: r0, right: circ(r0, r0 * r0, h, h), wrong: [[...circ(r0, r0 * r0, para ? r0 : r0 * r0, para ? r0 : r0 * r0), R`At \(v = ${r0}\) the height is \(z = ${para ? `${r0}^{2}` : r0} = ${h}\).`], [...(para ? halfPar(c, s) : ray([c, s, 1], [c, s, 1])), why('that goes around the axis at a fixed distance.')], circ(r0, r0 * r0, 0, 0), circ(r0 * r0, r0 ** 4, h, h)] };
+  return { ...base, vr: [0, TAU], val: r0, valTex: r0, right: circ(r0, r0 * r0, h, h), wrong: [[...circ(r0, r0 * r0, para ? r0 : r0 * r0, para ? r0 : r0 * r0), (para ? R`At \(v = ${r0}\) the height is \(z = ${r0}^{2} = ${h}\).` : R`At \(v = ${r0}\) the height is \(z = v = ${h}\).`)], [...(para ? halfPar(c, s) : ray([c, s, 1], [c, s, 1])), why('that goes around the axis at a fixed distance.')], circ(r0, r0 * r0, 0, 0), circ(r0 * r0, r0 ** 4, h, h)] };
 }
 
 function easyGridCurve(rng) {
@@ -464,7 +467,7 @@ function tangentQ({ prompt, comps, u0, v0, pre = [], extra = () => [], skill }) 
       ...pre,
       R`\(\mathbf{r}_{u} = ${V(ruS.map(uv))}\) and \(\mathbf{r}_{v} = ${V(rvS.map(uv))}\). At \((u, v) = (${u0}, ${v0})\): \(\mathbf{r}_{u} = ${V(ru)}\), \(\mathbf{r}_{v} = ${V(rv)}\), and the point is \(${Pt(P)}\).`,
       R`Normal: \(\mathbf{r}_{u} \times \mathbf{r}_{v} = ${V(n)}\).`,
-      R`Plane: \(${n[0]}(x - ${paren(P[0])}) + ${paren(n[1])}(y - ${paren(P[1])}) + ${paren(n[2])}(z - ${paren(P[2])}) = 0\), that is \(${planeTex(right.k, right.d)}\).`,
+      R`Plane: \(${terms(['x', 'y', 'z'].map((t, i) => [n[i], P[i] ? `(${terms([[1, t], [-P[i], '']])})` : t]))} = 0\), that is \(${planeTex(right.k, right.d)}\).`,
     ],
     rule: 2,
     skill,
@@ -646,6 +649,7 @@ function mediumOrientation(rng) {
   const [dir, opp] = sign > 0 ? k.words : [k.words[1], k.words[0]];
   const say = (v, w) => R`\(${V(v)}\), pointing ${w}`;
   const closed = k.words[0] === 'outward';
+  const tan = (j) => [0, 1, 2].map((i) => Math.round(numPartial((u, v) => k.fn(u, v)[i], k.uvNum, j)) || 0);
   const question = q({
     prompt: R`\(\mathbf{r}(u, v) = ${k.tex}\) parametrizes ${k.surf}. Find \(\mathbf{r}_{u} \times \mathbf{r}_{v}\) at \((u, v) = (${k.ptTex.join(', ')})\) and say which way it points.`,
     correct: say(n, dir),
@@ -655,7 +659,8 @@ function mediumOrientation(rng) {
       say(neg, dir),
     ],
     solution: [
-      R`At \((u, v) = (${k.ptTex.join(', ')})\) the point is \(${Pt(P.map((x) => Math.round(x * 1e9) / 1e9 || 0))}\). Differentiate each component and evaluate there, then take the cross product: \(\mathbf{r}_{u} \times \mathbf{r}_{v} = ${V(n)}\).`,
+      R`At \((u, v) = (${k.ptTex.join(', ')})\) the point is \(${Pt(P.map((x) => Math.round(x * 1e9) / 1e9 || 0))}\), \(\mathbf{r}_{u} = ${V(tan(0))}\) and \(\mathbf{r}_{v} = ${V(tan(1))}\).`,
+      R`\(\mathbf{r}_{u} \times \mathbf{r}_{v} = ${V(n)}\).`,
       closed ? R`Its dot product with \(${V(k.out(P).map((x) => Math.round(x) || 0))}\) is ${sign > 0 ? 'positive' : 'negative'}, so it points ${dir}.` : R`Its \(z\)-component is \(${n[2]}\), so it points ${dir}.`,
       dir === k.words[1] ? R`To orient ${k.surf} ${k.words[0]}, use \(\mathbf{r}_{v} \times \mathbf{r}_{u}\) instead (or swap \(u\) and \(v\)).` : R`So this parametrization gives the ${k.words[0]} orientation.`,
     ],
@@ -879,6 +884,7 @@ const SCALAR_H = [
       };
     }
     const m = rng.pick([2, 3, 4, 6]);
+    if (a * a > 8 * m) return SCALAR_H[1](rng);
     const ans = frac(T0).sub(frac(2 * a * a, 3 * m));
     return {
       prompt: R`A thin dome is the hemisphere \(x^{2} + y^{2} + z^{2} = ${a * a}\), \(z \ge 0\) (in meters). In the evening its temperature is \(T = ${T0} - \frac{x^{2} + y^{2}}{${m}}\) degrees Celsius, coolest at the rim. Find the average temperature over the dome.`,
@@ -984,8 +990,8 @@ const CENTROIDS = [
       ans: frac(2 * h, 3), r: (u, v) => [v * Math.cos(u), v * Math.sin(u), m * v], box: [0, TAU, 0, h / m], f: () => 1,
       wrong: [[frac(3 * h, 4), 'That is the center of mass of a solid cone. For the shell, the area element grows in proportion to the distance from the vertex.'], [frac(h, 2), 'More of the surface lies near the rim than near the vertex, so the center of mass is above half the height.'], [frac(h, 3), 'That is its distance below the rim, not above the vertex.'], [frac(3 * h, 5)]],
       solution: [
-        R`Parametrize by \(\mathbf{r}(u, v) = ${V(['v\\cos u', 'v\\sin u', cf(m, 'v')])}\), \(0 \le v \le ${frac(h, m).tex()}\). Then \(dS = \sqrt{1 + ${m * m}}\,v\,dv\,du\): the area element is proportional to \(v\).`,
-        R`\(\bar{z} = \dfrac{\int_{0}^{${frac(h, m).tex()}} ${cf(m, 'v')} \cdot v\,dv}{\int_{0}^{${frac(h, m).tex()}} v\,dv}\) (the constants cancel) \(= ${m === 1 ? '' : m} \cdot \dfrac{2}{3} \cdot ${frac(h, m).tex()}\).`,
+        R`Parametrize by \(\mathbf{r}(u, v) = ${V(['v\\cos u', 'v\\sin u', cf(m, 'v')])}\), \(0 \le v \le ${frac(h, m).tex()}\). Then \(dS = ${sqrtTexS(1 + m * m)}\,v\,dv\,du\): the area element is proportional to \(v\).`,
+        R`\(\bar{z} = \dfrac{\int_{0}^{${frac(h, m).tex()}} ${cf(m, 'v')} \cdot v\,dv}{\int_{0}^{${frac(h, m).tex()}} v\,dv}\) (the constants cancel) \(= ${m === 1 ? '' : `${m} \\cdot `}\dfrac{2}{3} \cdot ${frac(h, m).tex()}\).`,
         R`\(\bar{z} = ${frac(2 * h, 3).tex()}\) cm, two thirds of the way up.`,
       ],
     };
