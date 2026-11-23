@@ -62,7 +62,7 @@ function easyNumberLine(rng) {
   const t = rng.int(1, 9);
   const x = val(10 * w + t, 10);
   return q({
-    prompt: `The space between ${w} and ${w + 1} is cut into 10 equal jumps. What decimal is at the point?`,
+    prompt: `The space between ${w} and ${w + 1} is split into 10 equal jumps. What decimal is at the point?`,
     visual: { type: 'numberLine', min: w, max: w + 1, step: 0.1, labels: [{ value: w, text: String(w) }, { value: w + 1, text: String(w + 1) }], points: [{ value: x, label: '?' }], alt: `A number line from ${w} to ${w + 1} with 10 equal jumps. A point is ${t} ${t === 1 ? 'jump' : 'jumps'} after ${w}.` },
     correct: x,
     wrong: [

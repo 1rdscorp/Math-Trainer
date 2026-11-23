@@ -347,7 +347,7 @@ function challengeTwoStep(rng) {
     const name = person(rng);
     const say = (a, b) => `${a} each, ${b} left over`;
     return q({
-      prompt: `${name} has ${packs} packs of ${each} stickers and ${loose} loose stickers. ${name} shares them all equally among ${d} friends. How many does each friend get, and how many are left over?`,
+      prompt: `${name} has ${packs} packs of ${each} stickers and ${loose} loose ${loose === 1 ? 'sticker' : 'stickers'}. ${name} shares them all equally among ${d} friends. How many does each friend get, and how many are left over?`,
       correct: say(k, r),
       wrong: [
         { value: say(Math.floor((packs * each) / d), (packs * each) % d), why: `This shares only the stickers in the packs. Add the ${loose} loose ones first.` },

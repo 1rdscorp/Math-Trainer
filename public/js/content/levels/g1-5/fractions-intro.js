@@ -112,7 +112,7 @@ function mediumNumberLine(rng) {
   const max = rng.bool(0.35) ? 2 : 1;
   const n = rng.intExcept(1, max * d - 1, [d]);
   return q({
-    prompt: `Each whole on the number line is cut into ${d} equal jumps. What fraction is at the point?`,
+    prompt: `Each whole on the number line is split into ${d} equal jumps. What fraction is at the point?`,
     visual: linePic(n, d, max),
     correct: F(n, d),
     wrong: [

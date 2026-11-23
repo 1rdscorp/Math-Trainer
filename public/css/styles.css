@@ -621,10 +621,10 @@ input[aria-invalid='true'] { border-color: var(--bad); }
 .choice input:checked + label { border-color: var(--brand); background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand); }
 .choice input:checked + label .letter { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
 .choice input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 2px; }
-.choice.is-correct label { border-color: var(--good); background: var(--good-bg); }
-.choice.is-correct .letter { background: var(--good); border-color: var(--good); color: var(--surface); }
-.choice.is-wrong label { border-color: var(--bad); background: var(--bad-bg); }
-.choice.is-wrong .letter { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.choice.is-correct label, .choice.is-correct input:checked + label { border-color: var(--good); background: var(--good-bg); }
+.choice.is-correct .letter, .choice.is-correct input:checked + label .letter { background: var(--good); border-color: var(--good); color: var(--surface); }
+.choice.is-wrong label, .choice.is-wrong input:checked + label { border-color: var(--bad); background: var(--bad-bg); }
+.choice.is-wrong .letter, .choice.is-wrong input:checked + label .letter { background: var(--bad); border-color: var(--bad); color: var(--surface); }
 .choice input:disabled + label { cursor: default; }
 /* Bigger answer buttons for the youngest students. */
 .band-elementary .choice label { min-height: 4.4rem; font-size: 1.2rem; }
